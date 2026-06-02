@@ -1,7 +1,6 @@
 # GrowT
 
-GrowT is a React + TypeScript + Supabase app scaffold. The name is intentionally
-`GrowT`, not `Grow+`.
+GrowT is a React + TypeScript + Supabase app scaffold.
 
 ## Current Stack
 
