@@ -30,28 +30,41 @@ secret key or service role key in `.env.local`.
 
 ## Supabase
 
-1. Create a Supabase project named `GrowT`.
-2. Copy the Project URL and Publishable key from the Supabase project Connect
-   dialog.
-3. Paste those values into `.env.local`.
-4. Open the Supabase SQL Editor and run `supabase/schema.sql`.
-5. Restart `npm run dev`.
+Project ref: `gptgwddtmxckdmjzltan`
+
+Project URL: `https://gptgwddtmxckdmjzltan.supabase.co`
+
+The local `.env.local` file has already been created with the Supabase project
+URL and publishable key. It is ignored by git.
+
+Use the CLI once you are authenticated:
+
+```bash
+npx supabase login
+npx supabase link --project-ref gptgwddtmxckdmjzltan
+npx supabase db push
+```
+
+If the CLI asks for the database password, use the database password you saved
+when creating the Supabase project. Do not paste the password into source files.
+
+If CLI auth is not available yet, open the Supabase SQL Editor and run
+`supabase/schema.sql`.
 
 The SQL file enables RLS and grants authenticated API access for the starter
 tables together.
 
 ## GitHub
 
-This folder is already a git repository. Create an empty GitHub repository named
-`GrowT` with no README, no `.gitignore`, and no license, then run:
+Remote: `https://github.com/zaynab-3/GrowT.git`
+
+If GitHub rejects the push as the wrong cached account, sign in to GitHub as
+`zaynab-3` in Git Credential Manager, then run:
 
 ```bash
 git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/GrowT.git
 git push -u origin main
 ```
-
-If GitHub CLI or a token becomes available, these steps can be automated.
 
 ## External Chat
 

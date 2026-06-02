@@ -10,8 +10,10 @@ Important: the project name is GrowT, not Grow+.
 Current foundation:
 - React 19 with TypeScript and Vite
 - Supabase JavaScript client in src/lib/supabase.ts
+- Supabase project ref: gptgwddtmxckdmjzltan
 - Browser env vars: VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY
 - Starter SQL in supabase/schema.sql
+- CLI migration in supabase/migrations/20260602075726_init_growt_schema.sql
 - RLS must stay enabled for all public tables
 - Never place Supabase secret keys or service_role keys in browser code
 - Keep changes small enough to implement step by step
