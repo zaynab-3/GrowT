@@ -14,6 +14,7 @@ Current foundation:
 - Browser env vars: VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY
 - Starter SQL in supabase/schema.sql
 - CLI migration in supabase/migrations/20260602075726_init_growt_schema.sql
+- Current UI supports email magic-link auth, workspace creation, checkpoint creation, and checkpoint status cycling
 - RLS must stay enabled for all public tables
 - Never place Supabase secret keys or service_role keys in browser code
 - Keep changes small enough to implement step by step

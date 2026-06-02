@@ -1,163 +1,438 @@
-import { useMemo, useState } from 'react'
+import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
+import type { Session } from '@supabase/supabase-js'
 import './App.css'
-import { isSupabaseConfigured } from './lib/supabase'
+import { isSupabaseConfigured, supabase } from './lib/supabase'
+import {
+  createCheckpoint,
+  createWorkspace,
+  ensureProfile,
+  listCheckpoints,
+  listWorkspaces,
+  updateCheckpointStatus,
+  type Checkpoint,
+  type Workspace,
+} from './lib/growtData'
+import type { CheckpointStatus } from './lib/database.types'
 
-type StepStatus = 'done' | 'active' | 'waiting'
+const statusOrder: CheckpointStatus[] = ['planned', 'active', 'paused', 'complete']
 
-type BuildStep = {
-  title: string
-  status: StepStatus
-  detail: string
-}
-
-type Workstream = {
-  label: string
-  value: string
-  accent: string
-}
-
-const buildSteps: BuildStep[] = [
-  {
-    title: 'Name correction locked',
-    status: 'done',
-    detail: 'GrowT is the canonical project name across app copy, docs, and package metadata.',
-  },
-  {
-    title: 'Frontend foundation',
-    status: 'done',
-    detail: 'React, TypeScript, Vite, linting, and production build scripts are installed.',
-  },
-  {
-    title: 'Supabase client',
-    status: 'active',
-    detail: 'The browser client is wired for a publishable key and waits for real project credentials.',
-  },
-  {
-    title: 'Remote services',
-    status: 'waiting',
-    detail: 'GitHub and Supabase need authenticated accounts before the remote link can be completed.',
-  },
-]
-
-const workstreams: Workstream[] = [
-  { label: 'Product', value: 'GrowT', accent: 'sprout' },
-  { label: 'Stack', value: 'React + Supabase', accent: 'sky' },
-  { label: 'Source', value: 'Local git ready', accent: 'sun' },
-]
-
-const setupNotes = [
-  'Keep .env.local private and use only VITE_ publishable Supabase values in the browser.',
-  'Run the SQL setup after the Supabase project exists so RLS and grants are created together.',
-  'Use docs/external-chat-prompt.md when asking another model for help so it keeps GrowT consistent.',
-]
-
-function StatusPill({ status }: { status: StepStatus }) {
-  return <span className={`status-pill status-pill--${status}`}>{status}</span>
+function getNextStatus(status: CheckpointStatus): CheckpointStatus {
+  const index = statusOrder.indexOf(status)
+  return statusOrder[(index + 1) % statusOrder.length]
 }
 
 function App() {
-  const [selectedStep, setSelectedStep] = useState(2)
+  const [session, setSession] = useState<Session | null>(null)
+  const [authReady, setAuthReady] = useState(false)
+  const [email, setEmail] = useState('')
+  const [authLoading, setAuthLoading] = useState(false)
+  const [message, setMessage] = useState('')
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([])
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null)
+  const [checkpoints, setCheckpoints] = useState<Checkpoint[]>([])
+  const [workspaceName, setWorkspaceName] = useState('')
+  const [workspaceDescription, setWorkspaceDescription] = useState('')
+  const [checkpointTitle, setCheckpointTitle] = useState('')
+  const [checkpointDueOn, setCheckpointDueOn] = useState('')
+  const [dataLoading, setDataLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
 
-  const selected = buildSteps[selectedStep]
-  const supabaseStatus = useMemo(
-    () => (isSupabaseConfigured ? 'Configured' : 'Waiting for env'),
-    [],
+  const user = session?.user ?? null
+  const activeWorkspace = useMemo(
+    () => workspaces.find((workspace) => workspace.id === selectedWorkspaceId) ?? workspaces[0],
+    [selectedWorkspaceId, workspaces],
   )
+
+  useEffect(() => {
+    if (!supabase) {
+      setAuthReady(true)
+      return
+    }
+
+    void supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session)
+      setAuthReady(true)
+    })
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession)
+      setAuthReady(true)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const loadUserData = useCallback(async () => {
+    if (!supabase || !user) {
+      return
+    }
+
+    setDataLoading(true)
+    setMessage('')
+
+    try {
+      await ensureProfile(supabase, user.id, user.email ?? null)
+      const nextWorkspaces = await listWorkspaces(supabase, user.id)
+      setWorkspaces(nextWorkspaces)
+      setSelectedWorkspaceId((currentId) => currentId ?? nextWorkspaces[0]?.id ?? null)
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Unable to load GrowT data.')
+    } finally {
+      setDataLoading(false)
+    }
+  }, [user])
+
+  useEffect(() => {
+    void loadUserData()
+  }, [loadUserData])
+
+  useEffect(() => {
+    if (!supabase || !activeWorkspace) {
+      setCheckpoints([])
+      return
+    }
+
+    let ignore = false
+
+    async function loadWorkspaceCheckpoints() {
+      setDataLoading(true)
+      setMessage('')
+
+      try {
+        const nextCheckpoints = await listCheckpoints(supabase!, activeWorkspace!.id)
+        if (!ignore) {
+          setCheckpoints(nextCheckpoints)
+        }
+      } catch (error) {
+        if (!ignore) {
+          setMessage(error instanceof Error ? error.message : 'Unable to load checkpoints.')
+        }
+      } finally {
+        if (!ignore) {
+          setDataLoading(false)
+        }
+      }
+    }
+
+    void loadWorkspaceCheckpoints()
+
+    return () => {
+      ignore = true
+    }
+  }, [activeWorkspace])
+
+  async function handleMagicLink(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (!supabase || !email.trim()) {
+      return
+    }
+
+    setAuthLoading(true)
+    setMessage('')
+
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: {
+          emailRedirectTo: window.location.origin,
+        },
+      })
+
+      if (error) {
+        throw error
+      }
+
+      setMessage('Check your email for the GrowT sign-in link.')
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Unable to send sign-in link.')
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
+  async function handleSignOut() {
+    if (!supabase) {
+      return
+    }
+
+    await supabase.auth.signOut()
+    setSession(null)
+    setWorkspaces([])
+    setCheckpoints([])
+    setSelectedWorkspaceId(null)
+  }
+
+  async function handleCreateWorkspace(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (!supabase || !user || !workspaceName.trim()) {
+      return
+    }
+
+    setSaving(true)
+    setMessage('')
+
+    try {
+      const workspace = await createWorkspace(
+        supabase,
+        user.id,
+        workspaceName.trim(),
+        workspaceDescription.trim() || null,
+      )
+      setWorkspaces((current) => [workspace, ...current])
+      setSelectedWorkspaceId(workspace.id)
+      setWorkspaceName('')
+      setWorkspaceDescription('')
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Unable to create workspace.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleCreateCheckpoint(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (!supabase || !user || !activeWorkspace || !checkpointTitle.trim()) {
+      return
+    }
+
+    setSaving(true)
+    setMessage('')
+
+    try {
+      const checkpoint = await createCheckpoint(supabase, {
+        workspaceId: activeWorkspace.id,
+        ownerId: user.id,
+        title: checkpointTitle.trim(),
+        dueOn: checkpointDueOn || null,
+      })
+      setCheckpoints((current) => [...current, checkpoint])
+      setCheckpointTitle('')
+      setCheckpointDueOn('')
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Unable to create checkpoint.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleCycleStatus(checkpoint: Checkpoint) {
+    if (!supabase) {
+      return
+    }
+
+    const nextStatus = getNextStatus(checkpoint.status)
+    setMessage('')
+
+    try {
+      const updated = await updateCheckpointStatus(supabase, checkpoint.id, nextStatus)
+      setCheckpoints((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item)),
+      )
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Unable to update checkpoint.')
+    }
+  }
+
+  if (!isSupabaseConfigured) {
+    return (
+      <main className="app-shell app-shell--centered">
+        <section className="auth-panel">
+          <span className="brand-mark">GT</span>
+          <h1>GrowT needs Supabase env values.</h1>
+          <p>Copy `.env.example` to `.env.local` and restart the dev server.</p>
+        </section>
+      </main>
+    )
+  }
+
+  if (!authReady) {
+    return (
+      <main className="app-shell app-shell--centered">
+        <section className="auth-panel">
+          <span className="brand-mark">GT</span>
+          <h1>Opening GrowT</h1>
+          <p>Checking your session.</p>
+        </section>
+      </main>
+    )
+  }
+
+  if (!session) {
+    return (
+      <main className="app-shell app-shell--centered">
+        <section className="auth-panel">
+          <span className="brand-mark">GT</span>
+          <h1>GrowT</h1>
+          <p>Sign in with email to start organizing your growth checkpoints.</p>
+          <form className="auth-form" onSubmit={handleMagicLink}>
+            <label htmlFor="email">Email</label>
+            <div className="inline-form">
+              <input
+                id="email"
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="you@example.com"
+                required
+                type="email"
+                value={email}
+              />
+              <button className="button button--primary" disabled={authLoading} type="submit">
+                {authLoading ? 'Sending' : 'Send link'}
+              </button>
+            </div>
+          </form>
+          {message ? <p className="notice">{message}</p> : null}
+        </section>
+      </main>
+    )
+  }
 
   return (
     <main className="app-shell">
       <header className="topbar">
-        <a className="brand" href="#overview" aria-label="GrowT overview">
+        <a className="brand" href="#workspace" aria-label="GrowT workspace">
           <span className="brand-mark">GT</span>
           <span>GrowT</span>
         </a>
-        <nav className="nav-links" aria-label="Primary navigation">
-          <a href="#pipeline">Pipeline</a>
-          <a href="#setup">Setup</a>
-          <a href="#handoff">Handoff</a>
-        </nav>
+        <div className="account-actions">
+          <span>{user?.email}</span>
+          <button className="button button--secondary" onClick={handleSignOut} type="button">
+            Sign out
+          </button>
+        </div>
       </header>
 
-      <section className="hero-section" id="overview">
-        <div className="hero-copy">
-          <p className="section-label">Project foundation</p>
-          <h1>GrowT is ready for its first real build cycle.</h1>
+      <section className="workspace-hero" id="workspace">
+        <div>
+          <p className="section-label">Workspace</p>
+          <h1>Shape the next useful GrowT step.</h1>
           <p className="hero-text">
-            A clean app shell, Supabase wiring, local git, and shared prompts are in place so
-            every next step can land without losing the thread.
+            Create a workspace, add checkpoints, and move each item through the workflow as
+            the project grows.
           </p>
-          <div className="hero-actions">
-            <a className="button button--primary" href="#pipeline">
-              View pipeline
-            </a>
-            <a className="button button--secondary" href="#setup">
-              Setup checklist
-            </a>
+        </div>
+        <div className="summary-grid">
+          <div className="metric">
+            <span>Workspaces</span>
+            <strong>{workspaces.length}</strong>
+          </div>
+          <div className="metric metric--sky">
+            <span>Checkpoints</span>
+            <strong>{checkpoints.length}</strong>
+          </div>
+          <div className="metric metric--sun">
+            <span>Status</span>
+            <strong>{dataLoading ? 'Syncing' : 'Ready'}</strong>
           </div>
         </div>
-
-        <aside className="status-panel" aria-label="GrowT service status">
-          <div className="status-header">
-            <span>Service status</span>
-            <strong>{supabaseStatus}</strong>
-          </div>
-          <div className="status-grid">
-            {workstreams.map((item) => (
-              <div className={`metric metric--${item.accent}`} key={item.label}>
-                <span>{item.label}</span>
-                <strong>{item.value}</strong>
-              </div>
-            ))}
-          </div>
-        </aside>
       </section>
 
-      <section className="pipeline-section" id="pipeline">
-        <div className="section-heading">
-          <p className="section-label">Step work</p>
-          <h2>Current build pipeline</h2>
-        </div>
+      <section className="workspace-grid">
+        <aside className="side-panel">
+          <div className="panel-heading">
+            <h2>Workspaces</h2>
+            <span>{workspaces.length}</span>
+          </div>
 
-        <div className="pipeline-layout">
-          <div className="step-list" role="list" aria-label="GrowT setup steps">
-            {buildSteps.map((step, index) => (
+          <div className="workspace-list" aria-label="GrowT workspaces">
+            {workspaces.map((workspace) => (
               <button
-                className={`step-row ${index === selectedStep ? 'step-row--selected' : ''}`}
-                key={step.title}
-                onClick={() => setSelectedStep(index)}
+                className={`workspace-row ${
+                  workspace.id === activeWorkspace?.id ? 'workspace-row--selected' : ''
+                }`}
+                key={workspace.id}
+                onClick={() => setSelectedWorkspaceId(workspace.id)}
                 type="button"
               >
-                <span className="step-index">{String(index + 1).padStart(2, '0')}</span>
-                <span className="step-title">{step.title}</span>
-                <StatusPill status={step.status} />
+                <strong>{workspace.name}</strong>
+                <span>{workspace.description || 'No description yet'}</span>
               </button>
             ))}
+            {!workspaces.length ? <p className="empty-state">No workspaces yet.</p> : null}
           </div>
 
-          <article className="step-detail">
-            <StatusPill status={selected.status} />
-            <h3>{selected.title}</h3>
-            <p>{selected.detail}</p>
-          </article>
-        </div>
+          <form className="stack-form" onSubmit={handleCreateWorkspace}>
+            <label htmlFor="workspace-name">New workspace</label>
+            <input
+              id="workspace-name"
+              onChange={(event) => setWorkspaceName(event.target.value)}
+              placeholder="Launch plan"
+              required
+              value={workspaceName}
+            />
+            <textarea
+              onChange={(event) => setWorkspaceDescription(event.target.value)}
+              placeholder="What this workspace is for"
+              rows={3}
+              value={workspaceDescription}
+            />
+            <button className="button button--primary" disabled={saving} type="submit">
+              Create workspace
+            </button>
+          </form>
+        </aside>
+
+        <section className="main-panel">
+          <div className="panel-heading">
+            <div>
+              <p className="section-label">Checkpoints</p>
+              <h2>{activeWorkspace?.name ?? 'Choose a workspace'}</h2>
+            </div>
+            {activeWorkspace ? <span>{activeWorkspace.description}</span> : null}
+          </div>
+
+          {activeWorkspace ? (
+            <>
+              <form className="checkpoint-form" onSubmit={handleCreateCheckpoint}>
+                <input
+                  onChange={(event) => setCheckpointTitle(event.target.value)}
+                  placeholder="Next checkpoint"
+                  required
+                  value={checkpointTitle}
+                />
+                <input
+                  aria-label="Due date"
+                  onChange={(event) => setCheckpointDueOn(event.target.value)}
+                  type="date"
+                  value={checkpointDueOn}
+                />
+                <button className="button button--primary" disabled={saving} type="submit">
+                  Add
+                </button>
+              </form>
+
+              <div className="checkpoint-list">
+                {checkpoints.map((checkpoint) => (
+                  <article className="checkpoint-row" key={checkpoint.id}>
+                    <div>
+                      <strong>{checkpoint.title}</strong>
+                      <span>{checkpoint.due_on ? `Due ${checkpoint.due_on}` : 'No due date'}</span>
+                    </div>
+                    <button
+                      className={`status-pill status-pill--${checkpoint.status}`}
+                      onClick={() => void handleCycleStatus(checkpoint)}
+                      type="button"
+                    >
+                      {checkpoint.status}
+                    </button>
+                  </article>
+                ))}
+                {!checkpoints.length ? (
+                  <p className="empty-state">Add the first checkpoint for this workspace.</p>
+                ) : null}
+              </div>
+            </>
+          ) : (
+            <p className="empty-state">Create a workspace to unlock checkpoints.</p>
+          )}
+        </section>
       </section>
 
-      <section className="setup-section" id="setup">
-        <div className="section-heading">
-          <p className="section-label">Guardrails</p>
-          <h2>What stays true while we build</h2>
-        </div>
-        <div className="note-grid">
-          {setupNotes.map((note) => (
-            <p key={note}>{note}</p>
-          ))}
-        </div>
-      </section>
-
-      <footer className="footer" id="handoff">
-        <span>GrowT foundation pass 01</span>
-        <span>Next: GitHub remote and Supabase project credentials</span>
-      </footer>
+      {message ? <p className="toast">{message}</p> : null}
     </main>
   )
 }

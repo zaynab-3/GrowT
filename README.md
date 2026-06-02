@@ -2,6 +2,14 @@
 
 GrowT is a React + TypeScript + Supabase app scaffold.
 
+## Current Product Pass
+
+- Email magic-link authentication
+- Authenticated profile upsert
+- Workspace creation and selection
+- Checkpoint creation
+- Checkpoint status cycling through planned, active, paused, and complete
+
 ## Current Stack
 
 - React 19
@@ -52,6 +60,9 @@ If CLI auth is not available yet, open the Supabase SQL Editor and run
 
 The SQL file enables RLS and grants authenticated API access for the starter
 tables together.
+
+Auth currently uses Supabase passwordless email links. If emails do not arrive,
+check Supabase Dashboard > Authentication > Logs and email provider settings.
 
 ## GitHub
 
