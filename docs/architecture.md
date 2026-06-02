@@ -85,6 +85,17 @@ MVP realtime uses Supabase Postgres Changes on canonical tables:
 React subscriptions should update local query state from database events, not
 fake shared updates with local-only state.
 
+Current implementation:
+
+- The active folder opens a `live-folder:{folderId}` Realtime channel.
+- Folder, member, task, and notification subscriptions use database filters
+  where the changed table has the needed column.
+- Task progress, status actions, and task level events are filtered in React
+  against the active folder's current task IDs.
+- Status buttons call `set_task_progress`.
+- Undo buttons call `undo_latest_task_progress`.
+- The browser must never reload as the sync mechanism.
+
 ## Notification Strategy
 
 MVP uses only database-backed in-app notifications:

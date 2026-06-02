@@ -14,7 +14,15 @@ Current foundation:
 - Browser env vars: VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY
 - Starter SQL in supabase/schema.sql
 - CLI migration in supabase/migrations/20260602075726_init_growt_schema.sql
-- Current UI supports email magic-link auth, workspace creation, checkpoint creation, and checkpoint status cycling
+- Canonical schema in supabase/migrations/20260602084044_mvp_core_schema.sql
+- Security-advisor fixes in supabase/migrations/20260602085224_security_advisor_fixes.sql
+- Current UI supports email magic-link auth, folders, profile username, invite-by-username, tasks, live task statuses, and persisted undo
+- The active folder page must behave like a live collaborative session
+- Status writes must go through public.set_task_progress(...)
+- Undo must go through public.undo_latest_task_progress(...)
+- Supabase Realtime subscriptions are required for folders, folder_members, tasks, task_levels, task_progress, task_status_actions, and notifications
+- Realtime must update React state/cache only
+- Do not use window.location.reload(), location.reload(), route reloads, polling-only sync, or frontend-only fake collaboration
 - RLS must stay enabled for all public tables
 - Never place Supabase secret keys or service_role keys in browser code
 - Keep changes small enough to implement step by step
