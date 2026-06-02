@@ -309,10 +309,9 @@ function App() {
       <section className="workspace-hero" id="workspace">
         <div>
           <p className="section-label">Workspace</p>
-          <h1>Shape the next useful GrowT step.</h1>
+          <h1>GrowT workspace</h1>
           <p className="hero-text">
-            Create a workspace, add checkpoints, and move each item through the workflow as
-            the project grows.
+            Plan growth work in small checkpoints, then move each task through the workflow.
           </p>
         </div>
         <div className="summary-grid">
@@ -380,7 +379,7 @@ function App() {
           <div className="panel-heading">
             <div>
               <p className="section-label">Checkpoints</p>
-              <h2>{activeWorkspace?.name ?? 'Choose a workspace'}</h2>
+              <h2>{activeWorkspace?.name ?? 'No workspace selected'}</h2>
             </div>
             {activeWorkspace ? <span>{activeWorkspace.description}</span> : null}
           </div>

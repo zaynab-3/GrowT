@@ -14,9 +14,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: min(1160px, calc(100% - 40px));
+  width: min(1440px, calc(100% - 40px));
   margin: 0 auto;
-  padding: 24px 0;
+  padding: 14px 0;
 }
 
 .brand,
@@ -91,16 +91,21 @@
 
 .workspace-hero,
 .workspace-grid {
-  width: min(1160px, calc(100% - 40px));
+  width: min(1440px, calc(100% - 40px));
   margin: 0 auto;
 }
 
 .workspace-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.72fr);
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.62fr);
   gap: 24px;
-  align-items: end;
-  padding: 48px 0 28px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(69, 141, 84, 0.09), transparent 36%),
+    var(--surface);
+  padding: 20px 22px;
 }
 
 .section-label {
@@ -119,10 +124,10 @@ p {
 
 h1 {
   max-width: 760px;
-  margin-bottom: 18px;
+  margin-bottom: 8px;
   color: var(--ink);
-  font-size: clamp(42px, 6vw, 72px);
-  line-height: 0.98;
+  font-size: 32px;
+  line-height: 1.08;
 }
 
 h2 {
@@ -136,8 +141,8 @@ h2 {
   max-width: 670px;
   margin-bottom: 0;
   color: var(--muted);
-  font-size: 18px;
-  line-height: 1.7;
+  font-size: 15px;
+  line-height: 1.55;
 }
 
 .summary-grid {
@@ -149,8 +154,8 @@ h2 {
 .metric {
   border-left: 4px solid var(--sprout);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.72);
-  padding: 16px;
+  background: var(--surface-strong);
+  padding: 12px 14px;
 }
 
 .metric--sky {
@@ -172,19 +177,20 @@ h2 {
 
 .metric strong {
   color: var(--ink);
-  font-size: 19px;
+  font-size: 18px;
 }
 
 .workspace-grid {
   display: grid;
-  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
-  gap: 18px;
-  padding: 18px 0 44px;
+  grid-template-columns: minmax(290px, 360px) minmax(0, 1fr);
+  gap: 16px;
+  padding: 14px 0 36px;
 }
 
 .side-panel,
 .main-panel {
-  padding: 22px;
+  min-height: calc(100vh - 182px);
+  padding: 20px;
 }
 
 .panel-heading {
@@ -192,7 +198,7 @@ h2 {
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .panel-heading > span {
@@ -210,8 +216,16 @@ h2 {
   gap: 10px;
 }
 
+.checkpoint-list {
+  max-height: calc(100vh - 350px);
+  overflow: auto;
+  padding-right: 4px;
+}
+
 .workspace-list {
-  margin-bottom: 20px;
+  max-height: 300px;
+  margin-bottom: 16px;
+  overflow: auto;
 }
 
 .workspace-row,
@@ -253,7 +267,7 @@ h2 {
 .stack-form,
 .checkpoint-form {
   border-top: 1px solid var(--line);
-  padding-top: 18px;
+  padding-top: 16px;
 }
 
 .checkpoint-form {
