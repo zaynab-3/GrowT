@@ -10,6 +10,7 @@ export type Profile = Database['public']['Tables']['profiles']['Row']
 export type Folder = Database['public']['Tables']['folders']['Row']
 export type FolderMember = Database['public']['Tables']['folder_members']['Row']
 export type Task = Database['public']['Tables']['tasks']['Row']
+export type TaskMember = Database['public']['Tables']['task_members']['Row']
 export type TaskProgress = Database['public']['Tables']['task_progress']['Row']
 export type TaskStatusAction = Database['public']['Tables']['task_status_actions']['Row']
 
@@ -70,6 +71,18 @@ export async function updateProfile(
   return data
 }
 
+export async function resolveLoginEmail(client: GrowTClient, identifier: string) {
+  const { data, error } = await client.rpc('resolve_login_email', {
+    identifier,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return data
+}
+
 export async function listProfiles(client: GrowTClient, userIds: string[]) {
   const uniqueIds = Array.from(new Set(userIds)).filter(Boolean)
 
@@ -104,38 +117,81 @@ export async function listFolders(client: GrowTClient) {
   return data
 }
 
-export async function createFolder(
-  client: GrowTClient,
-  ownerId: string,
-  title: string,
-  description: string | null,
-  category: FolderCategory,
-) {
-  const { data, error } = await client
-    .from('folders')
-    .insert({
-      owner_id: ownerId,
-      title,
-      description,
-      category,
-      is_shared: category === 'shared',
-    })
-    .select('*')
-    .single()
+export async function listDeletedFolders(client: GrowTClient) {
+  const { data, error } = await client.rpc('list_deleted_folders', {})
 
   if (error) {
     throw error
   }
 
-  const { error: memberError } = await client
-    .from('folder_members')
-    .upsert(
-      { folder_id: data.id, user_id: ownerId, role: 'owner' },
-      { onConflict: 'folder_id,user_id', ignoreDuplicates: true },
-    )
+  return data
+}
 
-  if (memberError) {
-    throw memberError
+export async function createFolder(
+  client: GrowTClient,
+  title: string,
+  description: string | null,
+  category: FolderCategory,
+) {
+  const { data, error } = await client.rpc('create_folder', {
+    title,
+    description,
+    category,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return data
+}
+
+export async function updateFolder(
+  client: GrowTClient,
+  folder: {
+    id: string
+    title: string
+    description: string | null
+    category: FolderCategory
+    dueDate: string | null
+    isActive: boolean
+  },
+) {
+  const { data, error } = await client.rpc('update_folder', {
+    folder_id: folder.id,
+    title: folder.title,
+    description: folder.description,
+    category: folder.category,
+    due_date: folder.dueDate,
+    is_active: folder.isActive,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return data
+}
+
+export async function softDeleteFolder(client: GrowTClient, folderId: string) {
+  const { data, error } = await client.rpc('soft_delete_folder', {
+    folder_id: folderId,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return data
+}
+
+export async function restoreFolder(client: GrowTClient, folderId: string) {
+  const { data, error } = await client.rpc('restore_folder', {
+    folder_id: folderId,
+  })
+
+  if (error) {
+    throw error
   }
 
   return data
@@ -191,13 +247,75 @@ export async function addFolderMemberByUsername(
 }
 
 export async function listTasks(client: GrowTClient, folderId: string) {
-  const { data, error } = await client
-    .from('tasks')
+  const { data, error } = await client.rpc('list_folder_tasks', {
+    folder_id: folderId,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return data
+}
+
+export async function listStandaloneTasks(client: GrowTClient) {
+  const { data, error } = await client.rpc('list_standalone_tasks', {})
+
+  if (error) {
+    throw error
+  }
+
+  return data
+}
+
+export async function listTaskMembers(client: GrowTClient, taskId: string) {
+  const { data, error } = await client.rpc('list_task_members', {
+    task_id: taskId,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return data
+}
+
+export async function addTaskMemberByUsername(
+  client: GrowTClient,
+  taskId: string,
+  username: string,
+) {
+  const { data, error } = await client.rpc('add_task_member', {
+    task_id: taskId,
+    username,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  const { data: profile, error: profileError } = await client
+    .from('profiles')
     .select('*')
-    .eq('folder_id', folderId)
-    .is('deleted_at', null)
-    .order('position', { ascending: true })
-    .order('created_at', { ascending: true })
+    .eq('id', data.user_id)
+    .single()
+
+  if (profileError) {
+    throw profileError
+  }
+
+  return { member: data, profile }
+}
+
+export async function removeTaskMember(
+  client: GrowTClient,
+  taskId: string,
+  userId: string,
+) {
+  const { data, error } = await client.rpc('remove_task_member', {
+    task_id: taskId,
+    user_id: userId,
+  })
 
   if (error) {
     throw error
@@ -210,23 +328,107 @@ export async function createTask(
   client: GrowTClient,
   task: {
     folderId: string
-    ownerId: string
+    title: string
+    description: string | null
+    category: FolderCategory | null
+  },
+) {
+  const { data, error } = await client.rpc('create_task', {
+    folder_id: task.folderId,
+    title: task.title,
+    description: task.description,
+    category: task.category,
+    assigned_user_id: null,
+    due_date: null,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return data
+}
+
+export async function createStandaloneTask(
+  client: GrowTClient,
+  task: {
     title: string
     description: string | null
     category: FolderCategory
+    assignedUserId: string | null
+    dueDate: string | null
   },
 ) {
-  const { data, error } = await client
-    .from('tasks')
-    .insert({
-      folder_id: task.folderId,
-      owner_id: task.ownerId,
-      title: task.title,
-      description: task.description,
-      category: task.category,
-    })
-    .select('*')
-    .single()
+  const { data, error } = await client.rpc('create_standalone_task', {
+    title: task.title,
+    description: task.description,
+    category: task.category,
+    assigned_user_id: task.assignedUserId,
+    due_date: task.dueDate,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return data
+}
+
+export async function updateTask(
+  client: GrowTClient,
+  task: {
+    id: string
+    title: string
+    description: string | null
+    category: FolderCategory
+    dueDate: string | null
+    isActive: boolean
+    assignedUserId: string | null
+  },
+) {
+  const { data, error } = await client.rpc('update_task', {
+    task_id: task.id,
+    title: task.title,
+    description: task.description,
+    category: task.category,
+    due_date: task.dueDate,
+    is_active: task.isActive,
+    assigned_user_id: task.assignedUserId,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return data
+}
+
+export async function listDeletedTasks(client: GrowTClient) {
+  const { data, error } = await client.rpc('list_deleted_tasks', {})
+
+  if (error) {
+    throw error
+  }
+
+  return data
+}
+
+export async function softDeleteTask(client: GrowTClient, taskId: string) {
+  const { data, error } = await client.rpc('soft_delete_task', {
+    task_id: taskId,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return data
+}
+
+export async function restoreTask(client: GrowTClient, taskId: string) {
+  const { data, error } = await client.rpc('restore_task', {
+    task_id: taskId,
+  })
 
   if (error) {
     throw error
@@ -298,6 +500,18 @@ export async function undoLatestTaskProgress(
   const { data, error } = await client.rpc('undo_latest_task_progress', {
     task_id: taskId,
     task_level_id: taskLevelId,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return data
+}
+
+export async function undoTaskStatusAction(client: GrowTClient, actionId: string) {
+  const { data, error } = await client.rpc('undo_task_status_action', {
+    action_id: actionId,
   })
 
   if (error) {

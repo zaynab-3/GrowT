@@ -10,6 +10,7 @@ type TableDefinition<Row, Insert, Update> = {
 export type CheckpointStatus = 'planned' | 'active' | 'paused' | 'complete'
 export type FolderCategory = 'work' | 'personal' | 'shared'
 export type FolderMemberRole = 'owner' | 'member' | 'viewer'
+export type TaskMemberRole = 'owner' | 'member' | 'viewer'
 export type TaskProgressStatus = 'ongoing' | 'half_done' | 'completed'
 export type AcquaintanceRequestStatus = 'pending' | 'accepted' | 'rejected'
 
@@ -61,6 +62,16 @@ export type TaskRow = {
   created_at: string
   updated_at: string
   deleted_at: string | null
+}
+
+export type TaskMemberRow = {
+  id: string
+  task_id: string
+  user_id: string
+  role: TaskMemberRole
+  joined_at: string
+  created_at: string
+  updated_at: string
 }
 
 export type TaskLevelRow = {
@@ -167,6 +178,18 @@ type TaskInsert = {
 }
 
 type TaskUpdate = Partial<TaskInsert>
+
+type TaskMemberInsert = {
+  id?: string
+  task_id: string
+  user_id: string
+  role?: TaskMemberRole
+  joined_at?: string
+  created_at?: string
+  updated_at?: string
+}
+
+type TaskMemberUpdate = Partial<TaskMemberInsert>
 
 type TaskLevelInsert = {
   id?: string
@@ -355,6 +378,7 @@ export type Database = {
         FolderShareLinkUpdate
       >
       tasks: TableDefinition<TaskRow, TaskInsert, TaskUpdate>
+      task_members: TableDefinition<TaskMemberRow, TaskMemberInsert, TaskMemberUpdate>
       task_levels: TableDefinition<TaskLevelRow, TaskLevelInsert, TaskLevelUpdate>
       task_progress: TableDefinition<TaskProgressRow, TaskProgressInsert, TaskProgressUpdate>
       task_status_actions: TableDefinition<
@@ -381,6 +405,107 @@ export type Database = {
     }
     Views: Record<string, never>
     Functions: {
+      create_folder: {
+        Args: {
+          title: string
+          description: string | null
+          category: FolderCategory
+        }
+        Returns: FolderRow
+      }
+      add_task_member: {
+        Args: {
+          task_id: string
+          username: string
+        }
+        Returns: TaskMemberRow
+      }
+      create_standalone_task: {
+        Args: {
+          title: string
+          description: string | null
+          category: FolderCategory
+          assigned_user_id: string | null
+          due_date: string | null
+        }
+        Returns: TaskRow
+      }
+      create_task: {
+        Args: {
+          folder_id: string
+          title: string
+          description: string | null
+          category: FolderCategory | null
+          assigned_user_id: string | null
+          due_date: string | null
+        }
+        Returns: TaskRow
+      }
+      list_deleted_folders: {
+        Args: Record<string, never>
+        Returns: FolderRow[]
+      }
+      list_deleted_tasks: {
+        Args: Record<string, never>
+        Returns: TaskRow[]
+      }
+      list_folder_tasks: {
+        Args: {
+          folder_id: string
+        }
+        Returns: TaskRow[]
+      }
+      list_standalone_tasks: {
+        Args: Record<string, never>
+        Returns: TaskRow[]
+      }
+      list_task_members: {
+        Args: {
+          task_id: string
+        }
+        Returns: TaskMemberRow[]
+      }
+      list_visible_standalone_tasks: {
+        Args: Record<string, never>
+        Returns: TaskRow[]
+      }
+      remove_task_member: {
+        Args: {
+          task_id: string
+          user_id: string
+        }
+        Returns: TaskMemberRow
+      }
+      resolve_login_email: {
+        Args: {
+          identifier: string
+        }
+        Returns: string | null
+      }
+      restore_folder: {
+        Args: {
+          folder_id: string
+        }
+        Returns: FolderRow
+      }
+      restore_task: {
+        Args: {
+          task_id: string
+        }
+        Returns: TaskRow
+      }
+      soft_delete_folder: {
+        Args: {
+          folder_id: string
+        }
+        Returns: FolderRow
+      }
+      soft_delete_task: {
+        Args: {
+          task_id: string
+        }
+        Returns: TaskRow
+      }
       set_task_progress: {
         Args: {
           task_id: string
@@ -389,10 +514,39 @@ export type Database = {
         }
         Returns: TaskStatusActionRow
       }
+      update_folder: {
+        Args: {
+          folder_id: string
+          title: string
+          description: string | null
+          category: FolderCategory
+          due_date: string | null
+          is_active: boolean
+        }
+        Returns: FolderRow
+      }
+      update_task: {
+        Args: {
+          task_id: string
+          title: string
+          description: string | null
+          category: FolderCategory
+          due_date: string | null
+          is_active: boolean
+          assigned_user_id: string | null
+        }
+        Returns: TaskRow
+      }
       undo_latest_task_progress: {
         Args: {
           task_id: string
           task_level_id: string | null
+        }
+        Returns: TaskStatusActionRow
+      }
+      undo_task_status_action: {
+        Args: {
+          action_id: string
         }
         Returns: TaskStatusActionRow
       }

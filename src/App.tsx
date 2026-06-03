@@ -1,105 +1,94 @@
-import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { Session } from '@supabase/supabase-js'
+import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import './App.css'
-import { isSupabaseConfigured, supabase } from './lib/supabase'
+import { AuthPanel } from './auth/AuthPanel'
+import { ConfirmDialog } from './components/ConfirmDialog'
+import { LoadingState } from './components/LoadingState'
+import { FolderDetail } from './features/folders/FolderDetail'
+import type { FolderEditValues } from './features/folders/FolderEditForm'
 import {
   addFolderMemberByUsername,
   createFolder,
-  createTask,
-  ensureProfile,
+  listDeletedFolders,
   listFolderMembers,
   listFolders,
-  listProfiles,
+  restoreFolder,
+  softDeleteFolder,
+  updateFolder,
+} from './features/folders/folderApi'
+import { StandaloneTasksPanel } from './features/tasks/StandaloneTasksPanel'
+import type { TaskCreateValues } from './features/tasks/TaskForm'
+import type { TaskEditValues } from './features/tasks/TaskEditForm'
+import { TaskRestorePanel } from './features/tasks/TaskRestorePanel'
+import {
+  addTaskMemberByUsername,
+  createStandaloneTask,
+  createTask,
+  listDeletedTasks,
+  listStandaloneTasks,
   listTaskActionsForTasks,
+  listTaskMembers,
   listTaskProgressForTasks,
   listTasks,
+  removeTaskMember,
+  restoreTask,
   setTaskProgress,
-  undoLatestTaskProgress,
+  softDeleteTask,
+  undoTaskStatusAction,
+  updateTask,
+} from './features/tasks/taskApi'
+import { AppShell } from './layout/AppShell'
+import { Sidebar } from './layout/Sidebar'
+import { useGrowTData } from './hooks/useGrowTData'
+import { useAuthSession } from './hooks/useAuthSession'
+import { useGrowTRealtime } from './hooks/useGrowTRealtime'
+import {
+  isSharedFolder,
+  normalizeUsername,
+} from './lib/growtDisplay'
+import {
+  getPasswordError,
+  replaceRowsForTasks,
+  sortActions,
+  sortByPositionAndCreatedAt,
+  sortFolders,
+  sortTaskMembers,
+  upsertById,
+} from './lib/growtState'
+import { isSupabaseConfigured, supabase } from './lib/supabase'
+import {
+  ensureProfile,
+  listProfiles,
+  resolveLoginEmail,
   updateProfile,
   type Folder,
   type FolderMember,
   type Profile,
   type Task,
+  type TaskMember,
   type TaskProgress,
   type TaskStatusAction,
 } from './lib/growtData'
 import type { FolderCategory, TaskProgressStatus } from './lib/database.types'
 
-type RealtimePayload<T extends { id: string }> = {
-  eventType: 'INSERT' | 'UPDATE' | 'DELETE'
-  new: Partial<T>
-  old: Partial<T>
-}
-
-const categoryOptions: { id: FolderCategory; label: string }[] = [
-  { id: 'personal', label: 'Personal' },
-  { id: 'work', label: 'Work' },
-  { id: 'shared', label: 'Shared' },
-]
-
-const statusColumns: { id: TaskProgressStatus; label: string }[] = [
-  { id: 'ongoing', label: 'Ongoing' },
-  { id: 'half_done', label: 'Half Done' },
-  { id: 'completed', label: 'Completed' },
-]
-
-function sortByPositionAndCreatedAt<T extends { position: number; created_at: string }>(items: T[]) {
-  return [...items].sort((first, second) => {
-    if (first.position !== second.position) {
-      return first.position - second.position
-    }
-
-    return Date.parse(first.created_at) - Date.parse(second.created_at)
-  })
-}
-
-function sortFolders(folders: Folder[]) {
-  return [...folders].sort((first, second) => {
-    if (first.position !== second.position) {
-      return first.position - second.position
-    }
-
-    return Date.parse(second.updated_at) - Date.parse(first.updated_at)
-  })
-}
-
-function sortActions(actions: TaskStatusAction[]) {
-  return [...actions].sort((first, second) => {
-    return Date.parse(second.created_at) - Date.parse(first.created_at)
-  })
-}
-
-function upsertById<T extends { id: string }>(items: T[], nextItem: T) {
-  const exists = items.some((item) => item.id === nextItem.id)
-
-  if (!exists) {
-    return [nextItem, ...items]
-  }
-
-  return items.map((item) => (item.id === nextItem.id ? nextItem : item))
-}
-
-function actionKey(taskId: string, taskLevelId: string | null) {
-  return `${taskId}:${taskLevelId ?? 'root'}`
-}
-
-function normalizeUsername(username: string) {
-  const nextUsername = username.trim().replace(/^@/, '').toLowerCase()
-  return nextUsername.length ? nextUsername : null
-}
-
-function defaultDisplayName(email: string | undefined) {
-  if (!email) {
-    return null
-  }
-
-  return email.split('@')[0] || email
+type ConfirmRequest = {
+  confirmLabel: string
+  message: string
+  onConfirm: () => Promise<void>
+  title: string
 }
 
 function App() {
-  const [session, setSession] = useState<Session | null>(null)
-  const [authReady, setAuthReady] = useState(false)
-  const [email, setEmail] = useState('')
+  const { authReady, authView, session, setAuthView, setSession } = useAuthSession()
+  const [loginIdentifier, setLoginIdentifier] = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(true)
+  const [registerEmail, setRegisterEmail] = useState('')
+  const [registerUsername, setRegisterUsername] = useState('')
+  const [registerPassword, setRegisterPassword] = useState('')
+  const [registerConfirmPassword, setRegisterConfirmPassword] = useState('')
+  const [forgotEmail, setForgotEmail] = useState('')
+  const [resetPassword, setResetPassword] = useState('')
+  const [resetConfirmPassword, setResetConfirmPassword] = useState('')
   const [authLoading, setAuthLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [currentProfile, setCurrentProfile] = useState<Profile | null>(null)
@@ -114,83 +103,70 @@ function App() {
   const [members, setMembers] = useState<FolderMember[]>([])
   const [memberUsername, setMemberUsername] = useState('')
   const [tasks, setTasks] = useState<Task[]>([])
-  const [taskTitle, setTaskTitle] = useState('')
-  const [taskDescription, setTaskDescription] = useState('')
+  const [standaloneTasks, setStandaloneTasks] = useState<Task[]>([])
+  const [taskMembers, setTaskMembers] = useState<TaskMember[]>([])
+  const [deletedFolders, setDeletedFolders] = useState<Folder[]>([])
+  const [deletedTasks, setDeletedTasks] = useState<Task[]>([])
   const [progress, setProgress] = useState<TaskProgress[]>([])
   const [actions, setActions] = useState<TaskStatusAction[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isEditingFolder, setIsEditingFolder] = useState(false)
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
+  const [confirmRequest, setConfirmRequest] = useState<ConfirmRequest | null>(null)
   const [dataLoading, setDataLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [pendingAction, setPendingAction] = useState<string | null>(null)
-  const [realtimeStatus, setRealtimeStatus] = useState('Offline')
+  const [realtimeStatus, setRealtimeStatus] = useState('Idle')
   const [notificationCount, setNotificationCount] = useState(0)
 
   const user = session?.user ?? null
   const profilesByIdRef = useRef<Record<string, Profile>>({})
   const taskIdsRef = useRef<Set<string>>(new Set())
+  const standaloneTaskIdsRef = useRef<Set<string>>(new Set())
   const progressRef = useRef<TaskProgress[]>([])
   const actionsRef = useRef<TaskStatusAction[]>([])
   const refreshFoldersRef = useRef<() => Promise<void>>(async () => undefined)
   const refreshLiveSessionRef = useRef<() => Promise<void>>(async () => undefined)
 
-  const activeFolder = useMemo(
-    () => folders.find((folder) => folder.id === selectedFolderId) ?? folders[0] ?? null,
-    [selectedFolderId, folders],
-  )
-
-  const progressByTask = useMemo(() => {
-    const grouped = new Map<string, Record<TaskProgressStatus, TaskProgress[]>>()
-
-    for (const item of progress) {
-      const taskGroup =
-        grouped.get(item.task_id) ??
-        ({
-          ongoing: [],
-          half_done: [],
-          completed: [],
-        } satisfies Record<TaskProgressStatus, TaskProgress[]>)
-
-      taskGroup[item.status] = [...taskGroup[item.status], item]
-      grouped.set(item.task_id, taskGroup)
-    }
-
-    return grouped
-  }, [progress])
-
-  const latestUndoableActionByTask = useMemo(() => {
-    const undoableActions = new Map<string, TaskStatusAction>()
-
-    if (!user) {
-      return undoableActions
-    }
-
-    for (const action of sortActions(actions)) {
-      const key = actionKey(action.task_id, action.task_level_id)
-
-      if (!action.is_undone && action.user_id === user.id && !undoableActions.has(key)) {
-        undoableActions.set(key, action)
-      }
-    }
-
-    return undoableActions
-  }, [actions, user])
-
-  const statusTotals = useMemo(() => {
-    return statusColumns.reduce<Record<TaskProgressStatus, number>>(
-      (totals, status) => {
-        totals[status.id] = progress.filter((item) => item.status === status.id).length
-        return totals
-      },
-      { ongoing: 0, half_done: 0, completed: 0 },
-    )
-  }, [progress])
+  const {
+    accountLabel,
+    activeFolder,
+    activeFolderIsShared,
+    assignableMembers,
+    canInviteMembers,
+    contributionsByTask,
+    filteredFolders,
+    filteredStandaloneTasks,
+    filteredTasks,
+    folderMemberUserIds,
+    getContributionCounts,
+    getProfileLabel,
+    normalizedSearchQuery,
+    standaloneAssignableMembers,
+    statusTotals,
+    taskMembersByTask,
+  } = useGrowTData({
+    actions,
+    currentProfile,
+    folders,
+    members,
+    profilesById,
+    searchQuery,
+    selectedFolderId,
+    standaloneTasks,
+    taskMembers,
+    tasks,
+    userId: user?.id ?? null,
+  })
 
   useEffect(() => {
     profilesByIdRef.current = profilesById
   }, [profilesById])
 
   useEffect(() => {
-    taskIdsRef.current = new Set(tasks.map((task) => task.id))
-  }, [tasks])
+    taskIdsRef.current = new Set([...tasks, ...standaloneTasks].map((task) => task.id))
+    standaloneTaskIdsRef.current = new Set(standaloneTasks.map((task) => task.id))
+  }, [standaloneTasks, tasks])
 
   useEffect(() => {
     progressRef.current = progress
@@ -199,27 +175,6 @@ function App() {
   useEffect(() => {
     actionsRef.current = actions
   }, [actions])
-
-  useEffect(() => {
-    if (!supabase) {
-      setAuthReady(true)
-      return
-    }
-
-    void supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
-      setAuthReady(true)
-    })
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession)
-      setAuthReady(true)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
 
   const loadProfilesForIds = useCallback(async (userIds: string[]) => {
     if (!supabase) {
@@ -252,7 +207,7 @@ function App() {
   }, [])
 
   const refreshFolders = useCallback(async () => {
-    if (!supabase || !user) {
+    if (!authReady || !supabase || !user) {
       return
     }
 
@@ -263,18 +218,83 @@ function App() {
         return currentId
       }
 
-      return nextFolders[0]?.id ?? null
+      return null
     })
-  }, [user])
+  }, [authReady, user])
 
   useEffect(() => {
     refreshFoldersRef.current = refreshFolders
   }, [refreshFolders])
 
+  const refreshStandaloneTasks = useCallback(async () => {
+    if (!authReady || !supabase || !user) {
+      return
+    }
+
+    const client = supabase
+
+    try {
+      const nextTasks = await listStandaloneTasks(client)
+      const taskIds = nextTasks.map((task) => task.id)
+      const sharedTaskIds = nextTasks
+        .filter((task) => task.category === 'shared')
+        .map((task) => task.id)
+      const [nextProgress, nextActions, nextMembersByTask] = await Promise.all([
+        listTaskProgressForTasks(client, taskIds),
+        listTaskActionsForTasks(client, taskIds),
+        Promise.all(sharedTaskIds.map((taskId) => listTaskMembers(client, taskId))),
+      ])
+      const nextTaskMembers = nextMembersByTask.flat()
+
+      setStandaloneTasks(sortByPositionAndCreatedAt(nextTasks))
+      setTaskMembers(sortTaskMembers(nextTaskMembers))
+      setProgress((current) => replaceRowsForTasks(current, taskIds, nextProgress))
+      setActions((current) => sortActions(replaceRowsForTasks(current, taskIds, nextActions)))
+
+      void loadProfilesForIds([
+        ...nextTasks.map((task) => task.owner_id),
+        ...nextTasks.flatMap((task) => [task.assigned_user_id ?? '']),
+        ...nextTaskMembers.map((member) => member.user_id),
+        ...nextProgress.map((item) => item.user_id),
+        ...nextActions.map((action) => action.user_id),
+      ])
+    } catch (error) {
+      console.error('Standalone tasks load failed', error)
+      setMessage('Unable to load standalone tasks.')
+    }
+  }, [authReady, loadProfilesForIds, user])
+
+  const refreshArchive = useCallback(async () => {
+    if (!authReady || !supabase || !user) {
+      return
+    }
+
+    try {
+      const [nextDeletedFolders, nextDeletedTasks] = await Promise.all([
+        listDeletedFolders(supabase),
+        listDeletedTasks(supabase),
+      ])
+
+      setDeletedFolders(sortFolders(nextDeletedFolders))
+      setDeletedTasks(sortByPositionAndCreatedAt(nextDeletedTasks))
+    } catch (error) {
+      console.error('Archive load failed', error)
+      setMessage('Unable to load deleted items.')
+    }
+  }, [authReady, user])
+
   const loadUserData = useCallback(async () => {
+    if (!authReady) {
+      return
+    }
+
     if (!supabase || !user) {
       setCurrentProfile(null)
       setFolders([])
+      setStandaloneTasks([])
+      setTaskMembers([])
+      setDeletedFolders([])
+      setDeletedTasks([])
       setSelectedFolderId(null)
       return
     }
@@ -283,30 +303,62 @@ function App() {
     setMessage('')
 
     try {
-      const nextProfile = await ensureProfile(supabase, user.id, defaultDisplayName(user.email))
+      const nextProfile = await ensureProfile(supabase, user.id, null)
       setCurrentProfile(nextProfile)
       setProfileDisplayName(nextProfile.display_name ?? '')
       setProfileUsername(nextProfile.username ?? '')
       setProfilesById((current) => ({ ...current, [nextProfile.id]: nextProfile }))
       await refreshFolders()
+      await Promise.all([refreshStandaloneTasks(), refreshArchive()])
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Unable to load GrowT data.')
     } finally {
       setDataLoading(false)
     }
-  }, [refreshFolders, user])
+  }, [authReady, refreshArchive, refreshFolders, refreshStandaloneTasks, user])
 
   useEffect(() => {
     void loadUserData()
   }, [loadUserData])
 
+  useEffect(() => {
+    if (!authReady || !user) {
+      return
+    }
+
+    const refreshVisibleData = () => {
+      void refreshFoldersRef.current()
+      void refreshLiveSessionRef.current()
+      void refreshStandaloneTasks()
+      void refreshArchive()
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refreshVisibleData()
+      }
+    }
+
+    window.addEventListener('focus', refreshVisibleData)
+    window.addEventListener('online', refreshVisibleData)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      window.removeEventListener('focus', refreshVisibleData)
+      window.removeEventListener('online', refreshVisibleData)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [authReady, refreshArchive, refreshStandaloneTasks, user])
+
   const refreshLiveSession = useCallback(async () => {
+    if (!authReady) {
+      return
+    }
+
     if (!supabase || !activeFolder) {
       setMembers([])
       setTasks([])
-      setProgress([])
-      setActions([])
-      setRealtimeStatus('Offline')
+      setRealtimeStatus('Idle')
       return
     }
 
@@ -326,8 +378,8 @@ function App() {
 
       setTasks(sortByPositionAndCreatedAt(nextTasks))
       setMembers(nextMembers)
-      setProgress(nextProgress)
-      setActions(sortActions(nextActions))
+      setProgress((current) => replaceRowsForTasks(current, taskIds, nextProgress))
+      setActions((current) => sortActions(replaceRowsForTasks(current, taskIds, nextActions)))
 
       void loadProfilesForIds([
         activeFolder.owner_id,
@@ -338,11 +390,12 @@ function App() {
         ...nextActions.map((action) => action.user_id),
       ])
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unable to load live session.')
+      console.error('Live session load failed', error)
+      setMessage('Unable to load live session.')
     } finally {
       setDataLoading(false)
     }
-  }, [activeFolder, loadProfilesForIds])
+  }, [activeFolder, authReady, loadProfilesForIds])
 
   useEffect(() => {
     refreshLiveSessionRef.current = refreshLiveSession
@@ -352,245 +405,44 @@ function App() {
     void refreshLiveSession()
   }, [refreshLiveSession])
 
-  useEffect(() => {
-    if (!supabase || !user || !activeFolder) {
+  useGrowTRealtime({
+    actionsRef,
+    activeFolder,
+    authReady,
+    loadProfilesForIds,
+    progressRef,
+    refreshArchive,
+    refreshFoldersRef,
+    refreshLiveSessionRef,
+    refreshStandaloneTasks,
+    setActions,
+    setFolders,
+    setMembers,
+    setNotificationCount,
+    setProgress,
+    setRealtimeStatus,
+    setSelectedFolderId,
+    setStandaloneTasks,
+    setTaskMembers,
+    setTasks,
+    standaloneTaskIdsRef,
+    taskIdsRef,
+    userId: user?.id ?? null,
+  })
+
+  async function handleRegister(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    const username = normalizeUsername(registerUsername)
+    const passwordError = getPasswordError(registerPassword, registerConfirmPassword)
+
+    if (!supabase || !registerEmail.trim() || !username) {
+      setMessage('Enter an email, username, and password.')
       return
     }
 
-    const realtimeClient = supabase
-    const folderId = activeFolder.id
-    setRealtimeStatus('Connecting')
-
-    const applyFolderChange = (payload: RealtimePayload<Folder>) => {
-      if (payload.eventType === 'DELETE') {
-        const deletedId = payload.old.id
-        if (!deletedId) {
-          return
-        }
-
-        setFolders((current) => current.filter((folder) => folder.id !== deletedId))
-        setSelectedFolderId((currentId) => (currentId === deletedId ? null : currentId))
-        void refreshFoldersRef.current()
-        return
-      }
-
-      const changedFolder = payload.new as Folder
-
-      if (changedFolder.deleted_at) {
-        setFolders((current) => current.filter((folder) => folder.id !== changedFolder.id))
-        return
-      }
-
-      setFolders((current) => sortFolders(upsertById(current, changedFolder)))
-    }
-
-    const applyMemberChange = (payload: RealtimePayload<FolderMember>) => {
-      if (payload.eventType === 'DELETE') {
-        const deletedId = payload.old.id
-        if (deletedId) {
-          setMembers((current) => current.filter((member) => member.id !== deletedId))
-        }
-
-        return
-      }
-
-      const changedMember = payload.new as FolderMember
-      if (changedMember.folder_id !== folderId) {
-        return
-      }
-
-      setMembers((current) => upsertById(current, changedMember))
-      void loadProfilesForIds([changedMember.user_id])
-    }
-
-    const applyTaskChange = (payload: RealtimePayload<Task>) => {
-      if (payload.eventType === 'DELETE') {
-        const deletedId = payload.old.id
-        if (!deletedId) {
-          return
-        }
-
-        setTasks((current) => current.filter((task) => task.id !== deletedId))
-        setProgress((current) => current.filter((item) => item.task_id !== deletedId))
-        setActions((current) => current.filter((action) => action.task_id !== deletedId))
-        return
-      }
-
-      const changedTask = payload.new as Task
-      if (changedTask.folder_id !== folderId || changedTask.deleted_at) {
-        setTasks((current) => current.filter((task) => task.id !== changedTask.id))
-        return
-      }
-
-      setTasks((current) => sortByPositionAndCreatedAt(upsertById(current, changedTask)))
-      void loadProfilesForIds([changedTask.owner_id, changedTask.assigned_user_id ?? ''])
-      void refreshLiveSessionRef.current()
-    }
-
-    const applyProgressChange = (payload: RealtimePayload<TaskProgress>) => {
-      if (payload.eventType === 'DELETE') {
-        const deletedId = payload.old.id
-        if (deletedId && progressRef.current.some((item) => item.id === deletedId)) {
-          setProgress((current) => current.filter((item) => item.id !== deletedId))
-        }
-
-        return
-      }
-
-      const changedProgress = payload.new as TaskProgress
-      if (!taskIdsRef.current.has(changedProgress.task_id)) {
-        return
-      }
-
-      setProgress((current) => upsertById(current, changedProgress))
-      void loadProfilesForIds([changedProgress.user_id])
-    }
-
-    const applyActionChange = (payload: RealtimePayload<TaskStatusAction>) => {
-      if (payload.eventType === 'DELETE') {
-        const deletedId = payload.old.id
-        if (deletedId && actionsRef.current.some((action) => action.id === deletedId)) {
-          setActions((current) => current.filter((action) => action.id !== deletedId))
-        }
-
-        return
-      }
-
-      const changedAction = payload.new as TaskStatusAction
-      if (!taskIdsRef.current.has(changedAction.task_id)) {
-        return
-      }
-
-      setActions((current) => sortActions(upsertById(current, changedAction)))
-      void loadProfilesForIds([changedAction.user_id])
-    }
-
-    const refreshOnRelatedChange = (payload: { new: { task_id?: string }; old: { task_id?: string } }) => {
-      const taskId = payload.new.task_id ?? payload.old.task_id
-
-      if (!taskId || taskIdsRef.current.has(taskId)) {
-        void refreshLiveSessionRef.current()
-      }
-    }
-
-    const channel = realtimeClient
-      .channel(`live-folder:${folderId}`)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'folders', filter: `id=eq.${folderId}` },
-        (payload) => applyFolderChange(payload as RealtimePayload<Folder>),
-      )
-      .on(
-        'postgres_changes',
-        { event: 'DELETE', schema: 'public', table: 'folders' },
-        (payload) => applyFolderChange(payload as RealtimePayload<Folder>),
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'folder_members',
-          filter: `folder_id=eq.${folderId}`,
-        },
-        (payload) => applyMemberChange(payload as RealtimePayload<FolderMember>),
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'folder_members',
-          filter: `folder_id=eq.${folderId}`,
-        },
-        (payload) => applyMemberChange(payload as RealtimePayload<FolderMember>),
-      )
-      .on(
-        'postgres_changes',
-        { event: 'DELETE', schema: 'public', table: 'folder_members' },
-        (payload) => applyMemberChange(payload as RealtimePayload<FolderMember>),
-      )
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'tasks', filter: `folder_id=eq.${folderId}` },
-        (payload) => applyTaskChange(payload as RealtimePayload<Task>),
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'tasks', filter: `folder_id=eq.${folderId}` },
-        (payload) => applyTaskChange(payload as RealtimePayload<Task>),
-      )
-      .on(
-        'postgres_changes',
-        { event: 'DELETE', schema: 'public', table: 'tasks' },
-        (payload) => applyTaskChange(payload as RealtimePayload<Task>),
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'task_levels' },
-        (payload) => refreshOnRelatedChange(payload as { new: { task_id?: string }; old: { task_id?: string } }),
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'task_progress' },
-        (payload) => applyProgressChange(payload as RealtimePayload<TaskProgress>),
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'task_status_actions' },
-        (payload) => applyActionChange(payload as RealtimePayload<TaskStatusAction>),
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`,
-        },
-        () => setNotificationCount((current) => current + 1),
-      )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          setRealtimeStatus('Live')
-          return
-        }
-
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          setRealtimeStatus('Needs attention')
-          return
-        }
-
-        setRealtimeStatus('Connecting')
-      })
-
-    return () => {
-      void realtimeClient.removeChannel(channel)
-    }
-  }, [activeFolder, loadProfilesForIds, user])
-
-  function getProfileLabel(userId: string) {
-    const profile = profilesById[userId]
-
-    if (profile?.display_name) {
-      return profile.display_name
-    }
-
-    if (profile?.username) {
-      return `@${profile.username}`
-    }
-
-    if (userId === user?.id) {
-      return 'You'
-    }
-
-    return `User ${userId.slice(0, 8)}`
-  }
-
-  async function handleMagicLink(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-
-    if (!supabase || !email.trim()) {
+    if (passwordError) {
+      setMessage(passwordError)
       return
     }
 
@@ -598,10 +450,15 @@ function App() {
     setMessage('')
 
     try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email: email.trim(),
+      const { data, error } = await supabase.auth.signUp({
+        email: registerEmail.trim(),
+        password: registerPassword,
         options: {
           emailRedirectTo: window.location.origin,
+          data: {
+            username,
+            display_name: username,
+          },
         },
       })
 
@@ -609,9 +466,126 @@ function App() {
         throw error
       }
 
-      setMessage('Check your email for the GrowT sign-in link.')
+      if (data.session && data.user) {
+        await ensureProfile(supabase, data.user.id, username)
+        await supabase.auth.signOut()
+        setSession(null)
+      }
+
+      setRegisterEmail('')
+      setRegisterUsername('')
+      setRegisterPassword('')
+      setRegisterConfirmPassword('')
+      setAuthView('login')
+      setMessage('Check your email to verify your account, then log in.')
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unable to send sign-in link.')
+      console.error('Registration failed', error)
+      setMessage('Unable to create account. Check details and try again.')
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
+  async function handleLogin(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    const identifier = loginIdentifier.trim()
+
+    if (!supabase || !identifier || !loginPassword) {
+      return
+    }
+
+    setAuthLoading(true)
+    setMessage('')
+
+    try {
+      const email = identifier.includes('@')
+        ? identifier
+        : await resolveLoginEmail(supabase, identifier)
+
+      if (!email) {
+        throw new Error('Login identifier not found.')
+      }
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password: loginPassword,
+      })
+
+      if (error) {
+        throw error
+      }
+
+      setLoginPassword('')
+    } catch (error) {
+      console.error('Login failed', error)
+      setMessage('Invalid username/email or password')
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
+  async function handleForgotPassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (!supabase || !forgotEmail.trim()) {
+      return
+    }
+
+    setAuthLoading(true)
+    setMessage('')
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), {
+        redirectTo: window.location.origin,
+      })
+
+      if (error) {
+        throw error
+      }
+
+      setForgotEmail('')
+      setAuthView('login')
+      setMessage('Check your email for the password reset link.')
+    } catch (error) {
+      console.error('Password reset email failed', error)
+      setMessage('Unable to send password reset email.')
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
+  async function handleResetPassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    const passwordError = getPasswordError(resetPassword, resetConfirmPassword)
+
+    if (!supabase || passwordError) {
+      setMessage(passwordError ?? 'Unable to update password.')
+      return
+    }
+
+    setAuthLoading(true)
+    setMessage('')
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: resetPassword,
+      })
+
+      if (error) {
+        throw error
+      }
+
+      setResetPassword('')
+      setResetConfirmPassword('')
+      await supabase.auth.signOut()
+      setSession(null)
+      setAuthView('login')
+      setMessage('Password updated. Log in with your new password.')
+    } catch (error) {
+      console.error('Password update failed', error)
+      setMessage('Unable to update password.')
     } finally {
       setAuthLoading(false)
     }
@@ -628,10 +602,13 @@ function App() {
     setFolders([])
     setMembers([])
     setTasks([])
+    setStandaloneTasks([])
+    setDeletedFolders([])
+    setDeletedTasks([])
     setProgress([])
     setActions([])
     setSelectedFolderId(null)
-    setRealtimeStatus('Offline')
+    setRealtimeStatus('Idle')
   }
 
   async function handleUpdateProfile(event: FormEvent<HTMLFormElement>) {
@@ -675,7 +652,6 @@ function App() {
     try {
       const folder = await createFolder(
         supabase,
-        user.id,
         folderTitle.trim(),
         folderDescription.trim() || null,
         folderCategory,
@@ -687,7 +663,124 @@ function App() {
       setFolderCategory('personal')
       await refreshFoldersRef.current()
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unable to create folder.')
+      console.error('Folder creation failed', error)
+      setMessage('Unable to create folder.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleUpdateFolder(values: FolderEditValues) {
+    if (!supabase || !activeFolder) {
+      return
+    }
+
+    setSaving(true)
+    setMessage('')
+
+    try {
+      const folder = await updateFolder(supabase, {
+        id: activeFolder.id,
+        title: values.title,
+        description: values.description,
+        category: values.category,
+        dueDate: values.dueDate,
+        isActive: values.isActive,
+      })
+
+      setFolders((current) => sortFolders(upsertById(current, folder)))
+      setIsEditingFolder(false)
+      setMessage('Folder saved.')
+      await refreshFoldersRef.current()
+    } catch (error) {
+      console.error('Folder update failed', error)
+      setMessage('Unable to save folder.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function requestDeleteFolder(folder: Folder) {
+    setConfirmRequest({
+      confirmLabel: 'Delete folder',
+      message: `Delete "${folder.title}"? The folder will be hidden from normal views but kept in the database for recovery work later.`,
+      onConfirm: async () => {
+        if (!supabase) {
+          return
+        }
+
+        try {
+          await softDeleteFolder(supabase, folder.id)
+          setFolders((current) => current.filter((currentFolder) => currentFolder.id !== folder.id))
+          setDeletedFolders((current) =>
+            sortFolders(upsertById(current, { ...folder, deleted_at: new Date().toISOString(), is_active: false })),
+          )
+          setSelectedFolderId((currentId) => (currentId === folder.id ? null : currentId))
+          setMembers([])
+          setTasks([])
+          setProgress([])
+          setActions([])
+          setIsEditingFolder(false)
+          setMessage('Folder deleted.')
+          await refreshFoldersRef.current()
+          await refreshArchive()
+        } catch (error) {
+          console.error('Folder delete failed', error)
+          setMessage('Unable to delete folder.')
+          throw error
+        }
+      },
+      title: 'Delete folder',
+    })
+  }
+
+  async function handleRestoreFolder(folder: Folder) {
+    if (!supabase) {
+      return
+    }
+
+    setSaving(true)
+    setMessage('')
+
+    try {
+      const restoredFolder = await restoreFolder(supabase, folder.id)
+      setDeletedFolders((current) => current.filter((currentFolder) => currentFolder.id !== folder.id))
+      setFolders((current) => sortFolders(upsertById(current, restoredFolder)))
+      setMessage('Folder restored.')
+      await Promise.all([refreshFoldersRef.current(), refreshArchive()])
+    } catch (error) {
+      console.error('Folder restore failed', error)
+      setMessage('Unable to restore folder.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleRestoreTask(task: Task) {
+    if (!supabase) {
+      return
+    }
+
+    setSaving(true)
+    setMessage('')
+
+    try {
+      const restoredTask = await restoreTask(supabase, task.id)
+      setDeletedTasks((current) => current.filter((currentTask) => currentTask.id !== task.id))
+
+      if (restoredTask.folder_id) {
+        if (restoredTask.folder_id === activeFolder?.id) {
+          setTasks((current) => sortByPositionAndCreatedAt(upsertById(current, restoredTask)))
+        }
+      } else {
+        setStandaloneTasks((current) => sortByPositionAndCreatedAt(upsertById(current, restoredTask)))
+      }
+
+      setMessage('Task restored.')
+      await Promise.all([refreshLiveSessionRef.current(), refreshStandaloneTasks(), refreshArchive()])
+    } catch (error) {
+      console.error('Task restore failed', error)
+      setMessage('Unable to restore task.')
     } finally {
       setSaving(false)
     }
@@ -697,6 +790,11 @@ function App() {
     event.preventDefault()
 
     if (!supabase || !activeFolder || !memberUsername.trim()) {
+      return
+    }
+
+    if (!isSharedFolder(activeFolder)) {
+      setMessage('Convert this folder to Shared before adding members.')
       return
     }
 
@@ -722,16 +820,15 @@ function App() {
       setMemberUsername('')
       await refreshLiveSessionRef.current()
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unable to add member.')
+      console.error('Member invite failed', error)
+      setMessage('Unable to add member.')
     } finally {
       setSaving(false)
     }
   }
 
-  async function handleCreateTask(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-
-    if (!supabase || !user || !activeFolder || !taskTitle.trim()) {
+  async function handleCreateFolderTask(values: TaskCreateValues) {
+    if (!supabase || !user || !activeFolder) {
       return
     }
 
@@ -741,20 +838,169 @@ function App() {
     try {
       const task = await createTask(supabase, {
         folderId: activeFolder.id,
-        ownerId: user.id,
-        title: taskTitle.trim(),
-        description: taskDescription.trim() || null,
-        category: activeFolder.category,
+        title: values.title,
+        description: values.description,
+        category: values.category,
       })
       setTasks((current) => sortByPositionAndCreatedAt(upsertById(current, task)))
-      setTaskTitle('')
-      setTaskDescription('')
       await refreshLiveSessionRef.current()
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unable to create task.')
+      console.error('Task creation failed', error)
+      setMessage('Unable to create task.')
     } finally {
       setSaving(false)
     }
+  }
+
+  async function handleCreateStandaloneTask(values: TaskCreateValues) {
+    if (!supabase || !user) {
+      return
+    }
+
+    setSaving(true)
+    setMessage('')
+
+    try {
+      const task = await createStandaloneTask(supabase, {
+        title: values.title,
+        description: values.description,
+        category: values.category,
+        assignedUserId: null,
+        dueDate: null,
+      })
+      setStandaloneTasks((current) => sortByPositionAndCreatedAt(upsertById(current, task)))
+      await refreshStandaloneTasks()
+    } catch (error) {
+      console.error('Standalone task creation failed', error)
+      setMessage('Unable to create task.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleAddTaskMember(task: Task, username: string) {
+    if (!supabase) {
+      return
+    }
+
+    const nextUsername = normalizeUsername(username)
+
+    if (!nextUsername) {
+      setMessage('Enter a username.')
+      return
+    }
+
+    if (task.folder_id || task.category !== 'shared') {
+      setMessage('Change this task to Shared before adding members.')
+      return
+    }
+
+    setSaving(true)
+    setMessage('')
+
+    try {
+      const { member, profile } = await addTaskMemberByUsername(supabase, task.id, nextUsername)
+      const profileLabel = profile.display_name ?? (profile.username ? `@${profile.username}` : 'Member')
+
+      setTaskMembers((current) => sortTaskMembers(upsertById(current, member)))
+      setProfilesById((current) => ({ ...current, [profile.id]: profile }))
+      setMessage(`${profileLabel} can now open this task.`)
+      await refreshStandaloneTasks()
+    } catch (error) {
+      console.error('Task member add failed', error)
+      setMessage('Unable to add member.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleRemoveTaskMember(task: Task, userId: string) {
+    if (!supabase) {
+      return
+    }
+
+    setSaving(true)
+    setMessage('')
+
+    try {
+      const removedMember = await removeTaskMember(supabase, task.id, userId)
+
+      setTaskMembers((current) => current.filter((member) => member.id !== removedMember.id))
+      setMessage(`${getProfileLabel(userId)} was removed from this task.`)
+      await refreshStandaloneTasks()
+    } catch (error) {
+      console.error('Task member remove failed', error)
+      setMessage('Unable to remove member.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleUpdateTask(taskId: string, values: TaskEditValues) {
+    if (!supabase) {
+      return
+    }
+
+    setSaving(true)
+    setMessage('')
+
+    try {
+      const task = await updateTask(supabase, {
+        id: taskId,
+        title: values.title,
+        description: values.description,
+        category: values.category,
+        dueDate: values.dueDate,
+        isActive: values.isActive,
+        assignedUserId: values.assignedUserId,
+      })
+
+      if (task.folder_id) {
+        setTasks((current) => sortByPositionAndCreatedAt(upsertById(current, task)))
+      } else {
+        setStandaloneTasks((current) => sortByPositionAndCreatedAt(upsertById(current, task)))
+      }
+      setEditingTaskId(null)
+      setMessage('Task saved.')
+      await Promise.all([refreshLiveSessionRef.current(), refreshStandaloneTasks()])
+    } catch (error) {
+      console.error('Task update failed', error)
+      setMessage('Unable to save task.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function requestDeleteTask(task: Task) {
+    setConfirmRequest({
+      confirmLabel: 'Delete task',
+      message: `Delete "${task.title}"? The task will be hidden from normal views but kept in the database for recovery work later.`,
+      onConfirm: async () => {
+        if (!supabase) {
+          return
+        }
+
+        try {
+          await softDeleteTask(supabase, task.id)
+          if (task.folder_id) {
+            setTasks((current) => current.filter((currentTask) => currentTask.id !== task.id))
+          } else {
+            setStandaloneTasks((current) => current.filter((currentTask) => currentTask.id !== task.id))
+          }
+          setProgress((current) => current.filter((item) => item.task_id !== task.id))
+          setActions((current) => current.filter((action) => action.task_id !== task.id))
+          setDeletedTasks((current) => sortByPositionAndCreatedAt(upsertById(current, { ...task, deleted_at: new Date().toISOString() })))
+          setEditingTaskId((currentId) => (currentId === task.id ? null : currentId))
+          setMessage('Task deleted.')
+          await Promise.all([refreshLiveSessionRef.current(), refreshStandaloneTasks(), refreshArchive()])
+        } catch (error) {
+          console.error('Task delete failed', error)
+          setMessage('Unable to delete task.')
+          throw error
+        }
+      },
+      title: 'Delete task',
+    })
   }
 
   async function handleSetTaskStatus(taskId: string, status: TaskProgressStatus) {
@@ -767,28 +1013,49 @@ function App() {
     setMessage('')
 
     try {
-      await setTaskProgress(supabase, taskId, null, status)
-      await refreshLiveSessionRef.current()
+      const action = await setTaskProgress(supabase, taskId, null, status)
+      setActions((current) => sortActions(upsertById(current, action)))
+      await Promise.all([refreshLiveSessionRef.current(), refreshStandaloneTasks()])
     } catch (error) {
+      console.error('Task status update failed', error)
       setMessage(error instanceof Error ? error.message : 'Unable to update task status.')
     } finally {
       setPendingAction(null)
     }
   }
 
-  async function handleUndoTaskStatus(taskId: string) {
+  async function handleConfirmDialog() {
+    if (!confirmRequest) {
+      return
+    }
+
+    setSaving(true)
+
+    try {
+      await confirmRequest.onConfirm()
+      setConfirmRequest(null)
+    } catch {
+      // Action-specific handlers log the real error and set a clean message.
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleUndoTaskStatus(action: TaskStatusAction) {
     if (!supabase) {
       return
     }
 
-    setPendingAction(`undo:${taskId}`)
+    setPendingAction(`undo:${action.id}`)
     setMessage('')
 
     try {
-      await undoLatestTaskProgress(supabase, taskId, null)
-      await refreshLiveSessionRef.current()
+      const undoneAction = await undoTaskStatusAction(supabase, action.id)
+      setActions((current) => sortActions(upsertById(current, undoneAction)))
+      await Promise.all([refreshLiveSessionRef.current(), refreshStandaloneTasks()])
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unable to undo task status.')
+      console.error('Task status undo failed', error)
+      setMessage('Unable to undo task status.')
     } finally {
       setPendingAction(null)
     }
@@ -796,322 +1063,168 @@ function App() {
 
   if (!isSupabaseConfigured) {
     return (
-      <main className="app-shell app-shell--centered">
-        <section className="auth-panel">
-          <span className="brand-mark">GT</span>
-          <h1>GrowT needs Supabase env values.</h1>
-          <p>Copy `.env.example` to `.env.local` and restart the dev server.</p>
-        </section>
-      </main>
+      <LoadingState
+        message="Copy `.env.example` to `.env.local` and restart the dev server."
+        title="GrowT needs Supabase env values."
+      />
     )
   }
 
   if (!authReady) {
-    return (
-      <main className="app-shell app-shell--centered">
-        <section className="auth-panel">
-          <span className="brand-mark">GT</span>
-          <h1>Opening GrowT</h1>
-          <p>Checking your session.</p>
-        </section>
-      </main>
-    )
+    return <LoadingState message="Checking your session." title="Opening GrowT" />
   }
 
-  if (!session) {
+  if (authView === 'reset' || !session) {
     return (
-      <main className="app-shell app-shell--centered">
-        <section className="auth-panel">
-          <span className="brand-mark">GT</span>
-          <h1>GrowT</h1>
-          <p>Sign in with email to open your live task sessions.</p>
-          <form className="auth-form" onSubmit={handleMagicLink}>
-            <label htmlFor="email">Email</label>
-            <div className="inline-form">
-              <input
-                id="email"
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="you@example.com"
-                required
-                type="email"
-                value={email}
-              />
-              <button className="button button--primary" disabled={authLoading} type="submit">
-                {authLoading ? 'Sending' : 'Send link'}
-              </button>
-            </div>
-          </form>
-          {message ? <p className="notice">{message}</p> : null}
-        </section>
-      </main>
+      <AuthPanel
+        authLoading={authLoading}
+        authView={authView}
+        forgotEmail={forgotEmail}
+        loginIdentifier={loginIdentifier}
+        loginPassword={loginPassword}
+        message={message}
+        onForgotEmailChange={setForgotEmail}
+        onLoginIdentifierChange={setLoginIdentifier}
+        onLoginPasswordChange={setLoginPassword}
+        onRegisterConfirmPasswordChange={setRegisterConfirmPassword}
+        onRegisterEmailChange={setRegisterEmail}
+        onRegisterPasswordChange={setRegisterPassword}
+        onRegisterUsernameChange={setRegisterUsername}
+        onRememberMeChange={setRememberMe}
+        onResetConfirmPasswordChange={setResetConfirmPassword}
+        onResetPasswordChange={setResetPassword}
+        onSubmitForgot={handleForgotPassword}
+        onSubmitLogin={handleLogin}
+        onSubmitRegister={handleRegister}
+        onSubmitReset={handleResetPassword}
+        onViewChange={setAuthView}
+        registerConfirmPassword={registerConfirmPassword}
+        registerEmail={registerEmail}
+        registerPassword={registerPassword}
+        registerUsername={registerUsername}
+        rememberMe={rememberMe}
+        resetConfirmPassword={resetConfirmPassword}
+        resetPassword={resetPassword}
+      />
     )
   }
 
   return (
-    <main className="app-shell">
-      <header className="topbar">
-        <a className="brand" href="#session" aria-label="GrowT live session">
-          <span className="brand-mark">GT</span>
-          <span>GrowT</span>
-        </a>
-        <div className="account-actions">
-          <span>{currentProfile?.display_name ?? user?.email}</span>
-          <button className="button button--secondary" onClick={handleSignOut} type="button">
-            Sign out
-          </button>
-        </div>
-      </header>
+    <AppShell
+      accountLabel={accountLabel}
+      folderCount={folders.length}
+      heroTitle={activeFolder?.title ?? (folders.length ? 'Select a folder to begin.' : 'Create a folder to begin.')}
+      message={message}
+      notificationCount={notificationCount}
+      onSignOut={() => void handleSignOut()}
+      realtimeLabel={activeFolder && dataLoading ? 'Syncing' : realtimeStatus}
+      sidebar={
+        <Sidebar
+          activeFolderId={activeFolder?.id ?? null}
+          deletedFolders={deletedFolders}
+          filteredFolders={filteredFolders}
+          folderCategory={folderCategory}
+          folderDescription={folderDescription}
+          folderTitle={folderTitle}
+          foldersCount={folders.length}
+          isSaving={saving}
+          normalizedSearchQuery={normalizedSearchQuery}
+          onCreateFolder={handleCreateFolder}
+          onFolderCategoryChange={setFolderCategory}
+          onFolderDescriptionChange={setFolderDescription}
+          onFolderTitleChange={setFolderTitle}
+          onProfileDisplayNameChange={setProfileDisplayName}
+          onProfileUsernameChange={setProfileUsername}
+          onRestoreFolder={handleRestoreFolder}
+          onSaveProfile={handleUpdateProfile}
+          onSearchChange={setSearchQuery}
+          onSelectFolder={setSelectedFolderId}
+          profileDisplayName={profileDisplayName}
+          profileUsername={profileUsername}
+          searchQuery={searchQuery}
+        />
+      }
+      taskCount={tasks.length + standaloneTasks.length}
+      confirmDialog={
+        confirmRequest ? (
+        <ConfirmDialog
+          confirmLabel={confirmRequest.confirmLabel}
+          isBusy={saving}
+          message={confirmRequest.message}
+          onCancel={() => setConfirmRequest(null)}
+          onConfirm={() => void handleConfirmDialog()}
+          title={confirmRequest.title}
+        />
+        ) : null
+      }
+    >
+      <StandaloneTasksPanel
+        assignableMembers={standaloneAssignableMembers}
+        contributionsByTask={contributionsByTask}
+        currentUserId={session.user.id}
+        editingTaskId={editingTaskId}
+        emptyMessage={
+          normalizedSearchQuery ? 'No standalone tasks match this search.' : 'Add a standalone task anytime.'
+        }
+        getProfileLabel={getProfileLabel}
+        isSaving={saving}
+        onAddTaskMember={(task, username) => void handleAddTaskMember(task, username)}
+        onCloseEdit={() => setEditingTaskId(null)}
+        onCreateTask={(values) => void handleCreateStandaloneTask(values)}
+        onDeleteTask={requestDeleteTask}
+        onEditTask={(taskId) => setEditingTaskId((currentId) => (currentId === taskId ? null : taskId))}
+        onRemoveTaskMember={(task, userId) => void handleRemoveTaskMember(task, userId)}
+        onSetTaskStatus={(taskId, status) => void handleSetTaskStatus(taskId, status)}
+        onUndoAction={(action) => void handleUndoTaskStatus(action)}
+        onUpdateTask={(taskId, values) => void handleUpdateTask(taskId, values)}
+        pendingAction={pendingAction}
+        taskMembersByTask={taskMembersByTask}
+        tasks={filteredStandaloneTasks}
+      />
 
-      <section className="workspace-hero" id="session">
-        <div>
-          <p className="section-label">Live session</p>
-          <h1>{activeFolder?.title ?? 'Create a folder to begin.'}</h1>
-          <p className="hero-text">
-            Shared task status is written to Supabase and streamed back into this screen through
-            Realtime.
-          </p>
-        </div>
-        <div className="summary-grid">
-          <div className="metric">
-            <span>Folders</span>
-            <strong>{folders.length}</strong>
-          </div>
-          <div className="metric metric--sky">
-            <span>Tasks</span>
-            <strong>{tasks.length}</strong>
-          </div>
-          <div className="metric metric--sun">
-            <span>Realtime</span>
-            <strong>{dataLoading ? 'Syncing' : realtimeStatus}</strong>
-          </div>
-        </div>
-      </section>
+      <TaskRestorePanel
+        getFolderLabel={(folderId) =>
+          folderId ? folders.find((folder) => folder.id === folderId)?.title ?? 'Folder task' : 'Standalone'
+        }
+        isSaving={saving}
+        onRestore={handleRestoreTask}
+        tasks={deletedTasks}
+      />
 
-      <section className="workspace-grid">
-        <aside className="side-panel">
-          <div className="panel-heading">
-            <h2>Folders</h2>
-            <span>{folders.length}</span>
-          </div>
-
-          <div className="folder-list" aria-label="GrowT folders">
-            {folders.map((folder) => (
-              <button
-                className={`folder-row ${
-                  folder.id === activeFolder?.id ? 'folder-row--selected' : ''
-                }`}
-                key={folder.id}
-                onClick={() => setSelectedFolderId(folder.id)}
-                type="button"
-              >
-                <strong>{folder.title}</strong>
-                <span>{folder.description || `${folder.category} folder`}</span>
-              </button>
-            ))}
-            {!folders.length ? <p className="empty-state">No folders yet.</p> : null}
-          </div>
-
-          <form className="stack-form" onSubmit={handleCreateFolder}>
-            <label htmlFor="folder-title">New folder</label>
-            <input
-              id="folder-title"
-              onChange={(event) => setFolderTitle(event.target.value)}
-              placeholder="Launch plan"
-              required
-              value={folderTitle}
-            />
-            <textarea
-              onChange={(event) => setFolderDescription(event.target.value)}
-              placeholder="What this folder is for"
-              rows={3}
-              value={folderDescription}
-            />
-            <select
-              aria-label="Folder category"
-              onChange={(event) => setFolderCategory(event.target.value as FolderCategory)}
-              value={folderCategory}
-            >
-              {categoryOptions.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.label}
-                </option>
-              ))}
-            </select>
-            <button className="button button--primary" disabled={saving} type="submit">
-              Create folder
-            </button>
-          </form>
-
-          <form className="stack-form profile-form" onSubmit={handleUpdateProfile}>
-            <label htmlFor="profile-name">Profile</label>
-            <input
-              id="profile-name"
-              onChange={(event) => setProfileDisplayName(event.target.value)}
-              placeholder="Display name"
-              value={profileDisplayName}
-            />
-            <input
-              aria-label="Username"
-              onChange={(event) => setProfileUsername(event.target.value)}
-              placeholder="username"
-              value={profileUsername}
-            />
-            <button className="button button--secondary" disabled={saving} type="submit">
-              Save profile
-            </button>
-          </form>
-        </aside>
-
-        <section className="main-panel">
-          <div className="panel-heading">
-            <div>
-              <p className="section-label">Folder</p>
-              <h2>{activeFolder?.title ?? 'No folder selected'}</h2>
-            </div>
-            {activeFolder ? <span>{activeFolder.description ?? activeFolder.category}</span> : null}
-          </div>
-
-          {activeFolder ? (
-            <>
-              <div className="session-toolbar">
-                <div className="member-strip">
-                  <span className="section-label">Members</span>
-                  <div>
-                    {members.map((member) => (
-                      <span className="member-chip" key={member.id}>
-                        {getProfileLabel(member.user_id)}
-                      </span>
-                    ))}
-                    {!members.length ? <span className="member-chip">Owner only</span> : null}
-                  </div>
-                </div>
-
-                {activeFolder.owner_id === session.user.id ? (
-                  <form className="invite-form" onSubmit={handleInviteMember}>
-                    <input
-                      aria-label="Member username"
-                      onChange={(event) => setMemberUsername(event.target.value)}
-                      placeholder="username"
-                      value={memberUsername}
-                    />
-                    <button className="button button--secondary" disabled={saving} type="submit">
-                      Add member
-                    </button>
-                  </form>
-                ) : null}
-              </div>
-
-              <form className="task-form" onSubmit={handleCreateTask}>
-                <input
-                  onChange={(event) => setTaskTitle(event.target.value)}
-                  placeholder="Task title"
-                  required
-                  value={taskTitle}
-                />
-                <input
-                  onChange={(event) => setTaskDescription(event.target.value)}
-                  placeholder="Description"
-                  value={taskDescription}
-                />
-                <button className="button button--primary" disabled={saving} type="submit">
-                  Add task
-                </button>
-              </form>
-
-              <div className="status-summary" aria-label="Status totals">
-                {statusColumns.map((status) => (
-                  <div className={`status-total status-total--${status.id}`} key={status.id}>
-                    <span>{status.label}</span>
-                    <strong>{statusTotals[status.id]}</strong>
-                  </div>
-                ))}
-              </div>
-
-              <div className="task-list">
-                {tasks.map((task) => {
-                  const taskProgress = progressByTask.get(task.id)
-                  const undoableAction = latestUndoableActionByTask.get(actionKey(task.id, null))
-
-                  return (
-                    <article className="task-row" key={task.id}>
-                      <div className="task-row__header">
-                        <div>
-                          <strong>{task.title}</strong>
-                          <span>{task.description || 'No description yet'}</span>
-                        </div>
-                        <div className="status-actions">
-                          {statusColumns.map((status) => (
-                            <button
-                              className={`button status-button status-button--${status.id}`}
-                              disabled={pendingAction === `${task.id}:${status.id}`}
-                              key={status.id}
-                              onClick={() => void handleSetTaskStatus(task.id, status.id)}
-                              type="button"
-                            >
-                              {status.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="task-status-grid">
-                        {statusColumns.map((status) => {
-                          const rows = taskProgress?.[status.id] ?? []
-
-                          return (
-                            <div className="task-status-column" key={status.id}>
-                              <span className={`status-heading status-heading--${status.id}`}>
-                                {status.label}
-                              </span>
-                              <div className="contributor-list">
-                                {rows.map((row) => {
-                                  const canUndo =
-                                    row.user_id === session.user.id &&
-                                    undoableAction &&
-                                    undoableAction.new_status === row.status
-
-                                  return (
-                                    <span className="contributor-chip" key={row.id}>
-                                      {getProfileLabel(row.user_id)}
-                                      {canUndo ? (
-                                        <button
-                                          disabled={pendingAction === `undo:${task.id}`}
-                                          onClick={() => void handleUndoTaskStatus(task.id)}
-                                          type="button"
-                                        >
-                                          Undo
-                                        </button>
-                                      ) : null}
-                                    </span>
-                                  )
-                                })}
-                                {!rows.length ? <span className="empty-chip">No one yet</span> : null}
-                              </div>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </article>
-                  )
-                })}
-                {!tasks.length ? (
-                  <p className="empty-state">Add a task to start the live session.</p>
-                ) : null}
-              </div>
-            </>
-          ) : (
-            <p className="empty-state">Create a folder to unlock the live session.</p>
-          )}
-        </section>
-      </section>
-
-      {message ? <p className="toast">{message}</p> : null}
-      {notificationCount ? (
-        <p className="notification-badge" aria-live="polite">
-          {notificationCount}
-        </p>
-      ) : null}
-    </main>
+      <FolderDetail
+        activeFolder={activeFolder}
+        assignableMembers={assignableMembers}
+        canInviteMembers={canInviteMembers}
+        contributionsByTask={contributionsByTask}
+        currentUserId={session.user.id}
+        editingTaskId={editingTaskId}
+        folderCount={folders.length}
+        folderMemberUserIds={folderMemberUserIds}
+        getContributionCounts={getContributionCounts}
+        getProfileLabel={getProfileLabel}
+        isEditingFolder={isEditingFolder}
+        isSaving={saving}
+        isSharedFolder={activeFolderIsShared}
+        memberUsername={memberUsername}
+        normalizedSearchQuery={normalizedSearchQuery}
+        onCancelFolderEdit={() => setIsEditingFolder(false)}
+        onCloseTaskEdit={() => setEditingTaskId(null)}
+        onCreateFolderTask={(values) => void handleCreateFolderTask(values)}
+        onDeleteFolder={requestDeleteFolder}
+        onDeleteTask={requestDeleteTask}
+        onEditTask={(taskId) => setEditingTaskId((currentId) => (currentId === taskId ? null : taskId))}
+        onInviteMember={handleInviteMember}
+        onMemberUsernameChange={setMemberUsername}
+        onSetTaskStatus={(taskId, status) => void handleSetTaskStatus(taskId, status)}
+        onToggleFolderEdit={() => setIsEditingFolder((current) => !current)}
+        onUndoAction={(action) => void handleUndoTaskStatus(action)}
+        onUpdateFolder={(values) => void handleUpdateFolder(values)}
+        onUpdateTask={(taskId, values) => void handleUpdateTask(taskId, values)}
+        pendingAction={pendingAction}
+        statusTotals={statusTotals}
+        tasks={filteredTasks}
+      />
+    </AppShell>
   )
 }
 

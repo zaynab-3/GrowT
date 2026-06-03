@@ -2,6 +2,45 @@
 
 Last updated: June 2, 2026
 
+## Latest Checkpoints
+
+- Folder creation now uses `public.create_folder`, which sets `owner_id` from `auth.uid()` and creates the owner row in `folder_members`.
+- Auth now uses normal email/password registration and login instead of magic-link-first login.
+- Registration collects email, username, password, and confirm password.
+- Username login is supported through `public.resolve_login_email(identifier text)`.
+- Task creation now uses `public.create_task`, so shared folder members can create tasks without direct browser inserts into `tasks`.
+- Folder task loading now uses `public.list_folder_tasks`.
+- The live folder view subscribes to Realtime for folder, member, task, task level, progress, status action, and notification tables.
+- Task status contributor columns now display non-undone `task_status_actions` history, not only current `task_progress`.
+- A user can appear in multiple status stages for the same task when their non-undone action history includes those stages.
+- Undo buttons appear only beside the current user's latest undoable action.
+- Member summaries now show blue ongoing, yellow half-done, and green completed contribution counts.
+- Folder info now shows category, shared/private access, active state, dates, task count, status totals, and member counts.
+- Add Member is only active for shared folders; personal/work private folders show the message to convert to Shared first.
+- Folder edit/delete was added through `public.update_folder` and `public.soft_delete_folder`.
+- Task edit/delete was added through `public.update_task` and `public.soft_delete_task`.
+- Folder and task deletes are soft deletes using `deleted_at`; normal UI state updates immediately without reload.
+- Basic local search was added for already-loaded accessible folders/tasks, including title, description, category, status, assignee, contributors, and loaded member profile values.
+- `App.tsx` was partially split into display helpers, search, confirm dialog, folder edit/info, task edit, and task status grid components.
+- Selected-folder empty state now distinguishes between zero folders and folders that simply have not been selected.
+- Undo is now action-scoped through `public.undo_task_status_action(action_id)`, so users can undo each of their own visible contributions independently.
+- Standalone tasks were added under "Standalone Tasks"; these have `folder_id = null`.
+- Shared standalone tasks now use `task_members` for database-backed membership and visibility.
+- Owners can add members by username only on Shared standalone tasks.
+- Personal and Work standalone tasks stay private and do not show standalone Add Member controls.
+- Shared standalone task members can see the shared task through `public.list_standalone_tasks()`.
+- Shared standalone task member management uses `public.add_task_member(task_id, username)`, `public.remove_task_member(task_id, user_id)`, and `public.list_task_members(task_id)`.
+- `private.can_access_task()` now includes standalone shared task membership, while folder tasks still use `folder_members`.
+- Deleted folder/task restore basics were added through archive panels and restore RPCs.
+- `App.tsx` was further split with `src/auth/AuthPanel.tsx`, `src/features/tasks/TaskForm.tsx`, `src/features/tasks/TaskList.tsx`, `src/features/tasks/StandaloneTasksPanel.tsx`, `src/features/folders/FolderRestorePanel.tsx`, and `src/features/tasks/TaskRestorePanel.tsx`.
+- Deep modular cleanup reduced `App.tsx` from 2,274 lines to 1,231 lines without changing database logic or product behavior.
+- Added layout modules for `AppShell`, `Topbar`, and `Sidebar`.
+- Added folder presentation modules for `FolderCard`, `FolderList`, `FolderDetail`, and `FolderMembersPanel`.
+- Added `TaskCard` so `TaskList` no longer owns the full task-row rendering.
+- Added `useAuthSession`, `useGrowTData`, and `useGrowTRealtime` hooks.
+- Added `folderApi` and `taskApi` feature wrapper modules that preserve the existing Supabase calls.
+- Added `EmptyState`, `LoadingState`, and `SearchResults` utility components.
+
 ## Project Identity
 
 - Project name corrected to `GrowT`.
@@ -42,15 +81,34 @@ Last updated: June 2, 2026
   - `folder_share_links`
   - `tasks`
   - `task_levels`
-  - `task_progress`
-  - `task_status_actions`
-  - `notifications`
+- `task_progress`
+- `task_status_actions`
+- `notifications`
+- `task_members`
 - Enabled RLS on canonical public tables.
 - Added RLS policies for profiles, folders, members, tasks, task progress, task status actions, and notifications.
 - Added database RPCs:
   - `public.set_task_progress(task_id, task_level_id, new_status)`
   - `public.undo_latest_task_progress(task_id, task_level_id)`
+  - `public.create_folder(title, description, category)`
+  - `public.resolve_login_email(identifier)`
+  - `public.list_folder_tasks(folder_id)`
+  - `public.create_task(folder_id, title, description, category, assigned_user_id, due_date)`
+  - `public.update_folder(folder_id, title, description, category, due_date, is_active)`
+  - `public.soft_delete_folder(folder_id)`
+  - `public.update_task(task_id, title, description, category, due_date, is_active, assigned_user_id)`
+  - `public.soft_delete_task(task_id)`
+  - `public.undo_task_status_action(action_id)`
+  - `public.list_standalone_tasks()`
+  - `public.create_standalone_task(title, description, category, assigned_user_id, due_date)`
+  - `public.list_deleted_folders()`
+  - `public.restore_folder(folder_id)`
+  - `public.list_deleted_tasks()`
+  - `public.restore_task(task_id)`
 - Kept privileged status logic inside the private schema.
+- Kept privileged edit/delete logic inside the private schema.
+- Added `task_status_actions_active_contrib_idx` for non-undone status contribution lookups.
+- Added `tasks_standalone_owner_idx` and `task_status_actions_action_user_idx`.
 - Added canonical Realtime publication entries for:
   - `acquaintance_requests`
   - `folders`
@@ -74,7 +132,8 @@ Last updated: June 2, 2026
 
 ## Frontend Work Completed
 
-- Built the first Supabase-backed auth flow with email magic link sign-in.
+- Built the first Supabase-backed auth flow, then replaced it with normal email/password auth.
+- Added registration, login, forgot-password, and reset-password flows.
 - Built the starter workspace/checkpoint prototype to confirm Supabase auth and data access worked.
 - Replaced the prototype app flow with canonical GrowT app data:
   - folders
@@ -88,6 +147,42 @@ Last updated: June 2, 2026
   - username
 - Added invite-by-username for folder owners so two accounts can join the same live folder.
 - Added task creation inside a folder.
+- Added folder editing for title, description, category, due date, and active/inactive.
+- Added folder soft delete with confirmation.
+- Added task editing for title, description, category, due date, active/inactive, and assignee.
+- Added task soft delete with confirmation.
+- Added local search over loaded authorized data.
+- Added initial modular files:
+  - `src/auth/AuthPanel.tsx`
+  - `src/lib/growtDisplay.ts`
+  - `src/components/ConfirmDialog.tsx`
+  - `src/features/search/SearchBar.tsx`
+  - `src/features/folders/FolderEditForm.tsx`
+  - `src/features/folders/FolderInfoPanel.tsx`
+  - `src/features/folders/FolderRestorePanel.tsx`
+  - `src/features/tasks/TaskForm.tsx`
+  - `src/features/tasks/TaskEditForm.tsx`
+  - `src/features/tasks/TaskList.tsx`
+  - `src/features/tasks/TaskStatusGrid.tsx`
+- `src/features/tasks/StandaloneTasksPanel.tsx`
+- `src/features/tasks/TaskRestorePanel.tsx`
+- Added deeper modular files:
+  - `src/layout/AppShell.tsx`
+  - `src/layout/Topbar.tsx`
+  - `src/layout/Sidebar.tsx`
+  - `src/hooks/useAuthSession.ts`
+  - `src/hooks/useGrowTData.ts`
+  - `src/hooks/useGrowTRealtime.ts`
+  - `src/features/folders/FolderCard.tsx`
+  - `src/features/folders/FolderList.tsx`
+  - `src/features/folders/FolderDetail.tsx`
+  - `src/features/folders/FolderMembersPanel.tsx`
+  - `src/features/folders/folderApi.ts`
+  - `src/features/search/SearchResults.tsx`
+  - `src/features/tasks/TaskCard.tsx`
+  - `src/features/tasks/taskApi.ts`
+  - `src/components/EmptyState.tsx`
+  - `src/components/LoadingState.tsx`
 - Added task status buttons:
   - Ongoing
   - Half Done
@@ -115,6 +210,8 @@ The folder page now behaves as a live session.
 - No `window.location.reload()` or `location.reload()` exists in `src`.
 - Status changes go through the database RPC first, then state refreshes from database/Realtimes events.
 - Undo goes through the database RPC first, updates `task_progress`, marks `task_status_actions.is_undone`, and broadcasts through Realtime.
+- Shared standalone tasks subscribe to standalone task/member/progress/action Realtime events and filter them against visible standalone task IDs in React state.
+- When a user is added to a Shared standalone task, the `task_members` event refreshes their standalone task list without a browser reload.
 
 ## Current Acceptance Flow
 
@@ -132,24 +229,82 @@ To test with two users:
 10. User B should see the status update without refresh.
 11. User A clicks `Undo`.
 12. User B should see the reverted state without refresh.
-13. Refresh both browsers and confirm the database state remains correct.
+13. User A edits a task title; User B should see the edited title without refresh.
+14. User A deletes a task; User B should see it disappear without refresh.
+15. User A edits folder details; User B should see changed folder metadata without refresh.
+16. Search for a folder/task/member term and confirm results update immediately.
+17. User A creates a standalone task without selecting a folder.
+18. Confirm Personal and Work standalone tasks do not show Add Member.
+19. Create or edit a standalone task as category `Shared`.
+20. Add User B by username from the Shared standalone task's Members area.
+21. User B should see the Shared standalone task appear without refresh.
+22. User A clicks `Ongoing`, `Half Done`, or `Completed` on the Shared standalone task.
+23. User B should see the status update without refresh.
+24. User A clicks `Undo`.
+25. User B should see the reverted state without refresh.
+26. User A edits/deletes/restores a standalone task.
+27. User A deletes and restores a folder.
+28. User A sees Undo beside each of their own status contributions, not only the latest one.
+29. Refresh both browsers and confirm the database state remains correct.
+
+## Current Project Status
+
+Completed:
+- Password auth, username login, forgot/reset password basics.
+- Folder creation through secure RPC with owner membership.
+- Task creation through secure RPC.
+- Live folder subscriptions for the MVP tables.
+- Task status action history display and undo display.
+- Folder/task edit and soft delete.
+- Folder/task restore basics.
+- Standalone task creation/edit/delete/restore.
+- Shared standalone task membership through `task_members`.
+- Owner-only Add Member by username for Shared standalone tasks.
+- Action-scoped undo for individual status contributions.
+- Basic local search over loaded authorized data.
+- Deep modular extraction away from one-file UI.
+
+Partial:
+- Two-browser realtime acceptance testing is still manual and pending.
+- Modular architecture is much improved; `App.tsx` is now about 1,231 lines. Mutation handlers and some data loading orchestration still remain in `App.tsx` intentionally to avoid risky behavior changes.
+- Restore exists, but restore edge cases need browser QA.
+- Shared standalone tasks now have a real task-members model, but they still need two-account browser QA.
+- Search is local MVP search, not full database/global search.
+
+Missing:
+- Acquaintances.
+- Notifications UI.
+- Task levels/subtasks UI.
+- Reorder controls.
+- Pixel-art design polish.
 
 ## Verification Already Run
 
 - `npm run lint` passes.
 - `npm run build` passes.
 - Search for forbidden reload sync patterns in `src` found no matches.
-- Supabase migration list confirms local and remote migrations are aligned through `20260602085224`.
-- Supabase database advisors now only report the dashboard-only leaked password protection warning.
+- Search for `signInWithOtp` in `src` found no matches.
+- Search for old `growt_*` frontend calls in `src` found no matches.
+- Search for direct `from('tasks')` frontend usage in `src` found no matches.
+- Remote migrations were applied through `20260602185540_standalone_task_members.sql`.
+- Supabase database advisors were not rerun after the latest task, by request.
+- `http://localhost:5173/` responds with HTTP 200.
+- Browser smoke reload showed no fresh console errors after the shared standalone task membership update.
+- Browser smoke reload showed no fresh console errors after the deep modular cleanup.
 
 ## Next Steps
 
-- Enable leaked password protection manually in the Supabase dashboard.
-- Browser-test the two-account realtime acceptance flow.
-- Add richer shared-folder permissions and acquaintances.
-- Add task levels/subtasks UI.
-- Add notifications UI.
-- Add folder/task soft-delete and restore flows.
-- Add search.
-- Add reorder controls.
-- Save the cute visual design pass for later.
+Recommended build order:
+
+1. Manual two-browser realtime test.
+2. Fix any live sync/undo bugs found.
+3. Finish restore edge cases if needed.
+4. Finish standalone task edge cases if needed.
+5. Continue mutation-handler extraction only if future cleanup needs it.
+6. Add acquaintances.
+7. Add notifications UI.
+8. Add reorder controls.
+9. Save pixel-art design polish for later.
+
+Manual dashboard item:
+- Enable leaked password protection in Supabase Auth settings.
