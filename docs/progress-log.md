@@ -1,6 +1,6 @@
 # GrowT Progress Log
 
-Last updated: June 2, 2026
+Last updated: June 3, 2026
 
 ## Latest Checkpoints
 
@@ -40,6 +40,21 @@ Last updated: June 2, 2026
 - Added `useAuthSession`, `useGrowTData`, and `useGrowTRealtime` hooks.
 - Added `folderApi` and `taskApi` feature wrapper modules that preserve the existing Supabase calls.
 - Added `EmptyState`, `LoadingState`, and `SearchResults` utility components.
+- Added the Acquaintances system through secure RPCs and a modular sidebar panel.
+- Acquaintances now support username search, sending requests, incoming requests, outgoing requests, accept, reject, remove, and current acquaintance list display.
+- Acquaintance UI is isolated under `src/features/acquaintances/` and was not added to `App.tsx`.
+- Acquaintance request/acquaintance Realtime subscriptions refresh the panel state without browser reload.
+- Added a shared acquaintance-aware MemberPicker under `src/features/members/`.
+- Shared folder Add Member now shows current acquaintances first, supports relationship-aware username search, and adds selected acquaintances through `folder_members`.
+- Shared standalone task Add Member now uses the same picker and adds selected acquaintances through `public.add_task_member`.
+- Added `public.search_profiles_with_relationship(query_text)` so Add Member search can show acquaintance, pending outgoing, pending incoming, none, and already-member states without exposing emails.
+- Fixed acquaintance remove/state consistency so removed acquaintances no longer appear as still connected in relationship-aware search.
+- Added outgoing acquaintance request cancellation through secure RPC/state refresh, including Pending + Cancel UI.
+- Restore now works for folders, folder tasks, and standalone tasks; restored items reappear without browser reload.
+- Restore panels show the 7-day restore countdown.
+- Added MVP in-app notifications with a bell, unread count, dropdown panel, mark-one-read, mark-all-read, and realtime arrival.
+- Notification rows are now created by real database/RPC actions for acquaintance requests, accepted requests, shared folder membership, and shared standalone task membership.
+- Manual QA confirms restore, acquaintance-aware Add Member, outgoing request cancellation, and MVP in-app notifications are working.
 
 ## Project Identity
 
@@ -105,6 +120,16 @@ Last updated: June 2, 2026
   - `public.restore_folder(folder_id)`
   - `public.list_deleted_tasks()`
   - `public.restore_task(task_id)`
+  - `public.search_profiles_by_username(query_text)`
+  - `public.search_profiles_with_relationship(query_text)`
+  - `public.send_acquaintance_request(username)`
+  - `public.accept_acquaintance_request(request_id)`
+  - `public.reject_acquaintance_request(request_id)`
+  - `public.cancel_acquaintance_request(request_id)`
+  - `public.remove_acquaintance(user_id)`
+  - `public.list_acquaintances()`
+  - `public.list_acquaintance_requests()`
+  - `public.add_folder_member(folder_id, username)`
 - Kept privileged status logic inside the private schema.
 - Kept privileged edit/delete logic inside the private schema.
 - Added `task_status_actions_active_contrib_idx` for non-undone status contribution lookups.
@@ -118,6 +143,7 @@ Last updated: June 2, 2026
   - `task_progress`
   - `task_status_actions`
   - `notifications`
+  - `acquaintances`
 
 ## Security Notes
 
@@ -183,6 +209,20 @@ Last updated: June 2, 2026
   - `src/features/tasks/taskApi.ts`
   - `src/components/EmptyState.tsx`
   - `src/components/LoadingState.tsx`
+- Added acquaintances feature files:
+  - `src/features/acquaintances/AcquaintancesPanel.tsx`
+  - `src/features/acquaintances/UserSearch.tsx`
+  - `src/features/acquaintances/IncomingRequests.tsx`
+  - `src/features/acquaintances/OutgoingRequests.tsx`
+  - `src/features/acquaintances/AcquaintanceList.tsx`
+  - `src/features/acquaintances/acquaintanceApi.ts`
+- Added shared member picker files:
+  - `src/features/members/MemberPicker.tsx`
+  - `src/features/members/memberApi.ts`
+- Added in-app notification files:
+  - `src/features/notifications/NotificationBell.tsx`
+  - `src/features/notifications/NotificationPanel.tsx`
+  - `src/features/notifications/notificationApi.ts`
 - Added task status buttons:
   - Ongoing
   - Half Done
@@ -212,6 +252,8 @@ The folder page now behaves as a live session.
 - Undo goes through the database RPC first, updates `task_progress`, marks `task_status_actions.is_undone`, and broadcasts through Realtime.
 - Shared standalone tasks subscribe to standalone task/member/progress/action Realtime events and filter them against visible standalone task IDs in React state.
 - When a user is added to a Shared standalone task, the `task_members` event refreshes their standalone task list without a browser reload.
+- The Acquaintances panel subscribes to `acquaintance_requests` for current-user sender/receiver changes and `acquaintances` for current-user relationship changes.
+- The notification bell subscribes to the current user's `notifications` rows and updates unread count/panel state without browser reload.
 
 ## Current Acceptance Flow
 
@@ -245,7 +287,19 @@ To test with two users:
 26. User A edits/deletes/restores a standalone task.
 27. User A deletes and restores a folder.
 28. User A sees Undo beside each of their own status contributions, not only the latest one.
-29. Refresh both browsers and confirm the database state remains correct.
+29. User A searches User B by username in Acquaintances.
+30. User A sends an acquaintance request.
+31. User B sees the incoming request without browser reload.
+32. User B accepts or rejects the request.
+33. User A sees outgoing request state update without browser reload.
+34. If accepted, both users see each other in Acquaintances.
+35. Remove the acquaintance and confirm both sides update without browser reload.
+36. Send an outgoing acquaintance request, click `Cancel`, and confirm search/request state returns to Add without refresh.
+37. Delete and restore a folder, folder task, and standalone task; confirm each returns without refresh and shows the 7-day restore countdown while deleted.
+38. Trigger notifications for acquaintance request received, request accepted, shared folder add, and shared standalone task add.
+39. Confirm the notification bell unread count updates in realtime.
+40. Mark one notification read, then mark all read, and confirm unread count updates.
+41. Refresh both browsers and confirm the database state remains correct.
 
 ## Current Project Status
 
@@ -263,17 +317,17 @@ Completed:
 - Action-scoped undo for individual status contributions.
 - Basic local search over loaded authorized data.
 - Deep modular extraction away from one-file UI.
+- Acquaintances system MVP.
+- Acquaintance-aware Add Member.
+- Outgoing acquaintance request cancellation.
+- Folder, folder task, and standalone task restore with 7-day countdown.
+- MVP in-app notifications.
 
 Partial:
-- Two-browser realtime acceptance testing is still manual and pending.
 - Modular architecture is much improved; `App.tsx` is now about 1,231 lines. Mutation handlers and some data loading orchestration still remain in `App.tsx` intentionally to avoid risky behavior changes.
-- Restore exists, but restore edge cases need browser QA.
-- Shared standalone tasks now have a real task-members model, but they still need two-account browser QA.
 - Search is local MVP search, not full database/global search.
 
 Missing:
-- Acquaintances.
-- Notifications UI.
 - Task levels/subtasks UI.
 - Reorder controls.
 - Pixel-art design polish.
@@ -286,25 +340,27 @@ Missing:
 - Search for `signInWithOtp` in `src` found no matches.
 - Search for old `growt_*` frontend calls in `src` found no matches.
 - Search for direct `from('tasks')` frontend usage in `src` found no matches.
-- Remote migrations were applied through `20260602185540_standalone_task_members.sql`.
+- Remote migrations were applied through `20260603192528_in_app_notifications_mvp.sql`.
 - Supabase database advisors were not rerun after the latest task, by request.
 - `http://localhost:5173/` responds with HTTP 200.
 - Browser smoke reload showed no fresh console errors after the shared standalone task membership update.
 - Browser smoke reload showed no fresh console errors after the deep modular cleanup.
+- Browser smoke reload showed no fresh console errors after the Acquaintances feature; the browser was on the auth surface, so signed-in feature QA is still manual.
+- Manual QA confirms restore works for folders, folder tasks, and standalone tasks.
+- Manual QA confirms 7-day restore countdown displays.
+- Manual QA confirms acquaintance-aware Add Member works.
+- Manual QA confirms cancel outgoing acquaintance request works.
+- Manual QA confirms MVP in-app notifications work, including bell, unread count, panel, mark one read, mark all read, realtime arrival, and real notification rows.
 
 ## Next Steps
 
 Recommended build order:
 
-1. Manual two-browser realtime test.
-2. Fix any live sync/undo bugs found.
-3. Finish restore edge cases if needed.
-4. Finish standalone task edge cases if needed.
-5. Continue mutation-handler extraction only if future cleanup needs it.
-6. Add acquaintances.
-7. Add notifications UI.
-8. Add reorder controls.
-9. Save pixel-art design polish for later.
+1. Commit and push the completed checkpoint.
+2. Continue mutation-handler extraction only if future cleanup needs it.
+3. Add task levels/subtasks UI.
+4. Add reorder controls.
+5. Save pixel-art design polish for later.
 
 Manual dashboard item:
 - Enable leaked password protection in Supabase Auth settings.

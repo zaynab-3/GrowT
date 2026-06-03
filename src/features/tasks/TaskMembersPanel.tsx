@@ -1,12 +1,12 @@
-import { type FormEvent, useState } from 'react'
 import type { Task, TaskMember } from '../../lib/growtData'
+import { MemberPicker } from '../members/MemberPicker'
 
 type TaskMembersPanelProps = {
   currentUserId: string
   getProfileLabel: (userId: string) => string
   isSaving: boolean
   members: TaskMember[]
-  onAddMember: (task: Task, username: string) => void
+  onAddMember: (task: Task, username: string) => Promise<void> | void
   onRemoveMember: (task: Task, userId: string) => void
   task: Task
 }
@@ -20,22 +20,14 @@ export function TaskMembersPanel({
   onRemoveMember,
   task,
 }: TaskMembersPanelProps) {
-  const [username, setUsername] = useState('')
   const canManageMembers = task.owner_id === currentUserId
 
   if (task.folder_id || task.category !== 'shared') {
     return null
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-
-    if (!username.trim()) {
-      return
-    }
-
-    onAddMember(task, username.trim())
-    setUsername('')
+  async function handleAddMember(username: string) {
+    await onAddMember(task, username)
   }
 
   return (
@@ -64,17 +56,14 @@ export function TaskMembersPanel({
         {!members.length ? <span className="empty-chip">Owner only</span> : null}
       </div>
       {canManageMembers ? (
-        <form className="invite-form" onSubmit={handleSubmit}>
-          <input
-            aria-label="Standalone task member username"
-            onChange={(event) => setUsername(event.target.value)}
-            placeholder="username"
-            value={username}
-          />
-          <button className="button button--secondary" disabled={isSaving} type="submit">
-            Add member
-          </button>
-        </form>
+        <MemberPicker
+          currentUserId={currentUserId}
+          existingMemberIds={members.map((member) => member.user_id)}
+          isDisabled={isSaving}
+          label={`${task.title} task members`}
+          onAddMember={handleAddMember}
+          targetKey={`task:${task.id}`}
+        />
       ) : null}
     </section>
   )

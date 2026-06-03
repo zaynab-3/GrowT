@@ -117,7 +117,6 @@ function App() {
   const [saving, setSaving] = useState(false)
   const [pendingAction, setPendingAction] = useState<string | null>(null)
   const [realtimeStatus, setRealtimeStatus] = useState('Idle')
-  const [notificationCount, setNotificationCount] = useState(0)
 
   const user = session?.user ?? null
   const profilesByIdRef = useRef<Record<string, Profile>>({})
@@ -418,7 +417,6 @@ function App() {
     setActions,
     setFolders,
     setMembers,
-    setNotificationCount,
     setProgress,
     setRealtimeStatus,
     setSelectedFolderId,
@@ -769,15 +767,25 @@ function App() {
       setDeletedTasks((current) => current.filter((currentTask) => currentTask.id !== task.id))
 
       if (restoredTask.folder_id) {
-        if (restoredTask.folder_id === activeFolder?.id) {
+        const restoringCurrentFolderTask = restoredTask.folder_id === activeFolder?.id
+
+        setSelectedFolderId(restoredTask.folder_id)
+
+        if (restoringCurrentFolderTask) {
           setTasks((current) => sortByPositionAndCreatedAt(upsertById(current, restoredTask)))
+        } else {
+          setTasks([restoredTask])
         }
       } else {
         setStandaloneTasks((current) => sortByPositionAndCreatedAt(upsertById(current, restoredTask)))
       }
 
       setMessage('Task restored.')
-      await Promise.all([refreshLiveSessionRef.current(), refreshStandaloneTasks(), refreshArchive()])
+      await Promise.all([
+        restoredTask.folder_id === activeFolder?.id ? refreshLiveSessionRef.current() : refreshFoldersRef.current(),
+        refreshStandaloneTasks(),
+        refreshArchive(),
+      ])
     } catch (error) {
       console.error('Task restore failed', error)
       setMessage('Unable to restore task.')
@@ -880,7 +888,7 @@ function App() {
 
   async function handleAddTaskMember(task: Task, username: string) {
     if (!supabase) {
-      return
+      throw new Error('Supabase is not configured.')
     }
 
     const nextUsername = normalizeUsername(username)
@@ -909,6 +917,7 @@ function App() {
     } catch (error) {
       console.error('Task member add failed', error)
       setMessage('Unable to add member.')
+      throw error
     } finally {
       setSaving(false)
     }
@@ -1115,7 +1124,6 @@ function App() {
       folderCount={folders.length}
       heroTitle={activeFolder?.title ?? (folders.length ? 'Select a folder to begin.' : 'Create a folder to begin.')}
       message={message}
-      notificationCount={notificationCount}
       onSignOut={() => void handleSignOut()}
       realtimeLabel={activeFolder && dataLoading ? 'Syncing' : realtimeStatus}
       sidebar={

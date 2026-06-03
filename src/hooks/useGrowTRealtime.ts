@@ -35,7 +35,6 @@ type UseGrowTRealtimeParams = {
   setActions: Dispatch<SetStateAction<TaskStatusAction[]>>
   setFolders: Dispatch<SetStateAction<Folder[]>>
   setMembers: Dispatch<SetStateAction<FolderMember[]>>
-  setNotificationCount: Dispatch<SetStateAction<number>>
   setProgress: Dispatch<SetStateAction<TaskProgress[]>>
   setRealtimeStatus: Dispatch<SetStateAction<string>>
   setSelectedFolderId: Dispatch<SetStateAction<string | null>>
@@ -60,7 +59,6 @@ export function useGrowTRealtime({
   setActions,
   setFolders,
   setMembers,
-  setNotificationCount,
   setProgress,
   setRealtimeStatus,
   setSelectedFolderId,
@@ -511,16 +509,6 @@ export function useGrowTRealtime({
         { event: '*', schema: 'public', table: 'task_status_actions' },
         (payload) => applyActionChange(payload as RealtimePayload<TaskStatusAction>),
       )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`,
-        },
-        () => setNotificationCount((current) => current + 1),
-      )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           setRealtimeStatus('Live')
@@ -550,7 +538,6 @@ export function useGrowTRealtime({
     setActions,
     setFolders,
     setMembers,
-    setNotificationCount,
     setProgress,
     setRealtimeStatus,
     setSelectedFolderId,

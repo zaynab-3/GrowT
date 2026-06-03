@@ -12,7 +12,12 @@ export type FolderCategory = 'work' | 'personal' | 'shared'
 export type FolderMemberRole = 'owner' | 'member' | 'viewer'
 export type TaskMemberRole = 'owner' | 'member' | 'viewer'
 export type TaskProgressStatus = 'ongoing' | 'half_done' | 'completed'
-export type AcquaintanceRequestStatus = 'pending' | 'accepted' | 'rejected'
+export type AcquaintanceRequestStatus = 'pending' | 'accepted' | 'rejected' | 'cancelled'
+export type MemberRelationshipStatus =
+  | 'acquaintance'
+  | 'pending_outgoing'
+  | 'pending_incoming'
+  | 'none'
 
 export type ProfileRow = {
   id: string
@@ -282,6 +287,47 @@ type AcquaintanceInsert = {
 
 type AcquaintanceUpdate = Partial<AcquaintanceInsert>
 
+export type ProfileSearchResultRow = {
+  profile_id: string
+  username: string
+  display_name: string | null
+  avatar_url: string | null
+}
+
+export type ProfileRelationshipSearchRow = {
+  user_id: string
+  username: string
+  display_name: string | null
+  avatar_url: string | null
+  relationship_status: MemberRelationshipStatus
+  request_id: string | null
+}
+
+export type AcquaintanceListRow = {
+  relationship_id: string
+  user_id: string
+  username: string
+  display_name: string | null
+  avatar_url: string | null
+  created_at: string
+}
+
+export type AcquaintanceRequestListRow = {
+  request_id: string
+  direction: 'incoming' | 'outgoing'
+  sender_id: string
+  receiver_id: string
+  status: AcquaintanceRequestStatus
+  sender_username: string
+  sender_display_name: string | null
+  sender_avatar_url: string | null
+  receiver_username: string
+  receiver_display_name: string | null
+  receiver_avatar_url: string | null
+  created_at: string
+  updated_at: string
+}
+
 type FolderShareLinkRow = {
   id: string
   folder_id: string
@@ -405,6 +451,18 @@ export type Database = {
     }
     Views: Record<string, never>
     Functions: {
+      accept_acquaintance_request: {
+        Args: {
+          request_id: string
+        }
+        Returns: AcquaintanceRequestRow
+      }
+      cancel_acquaintance_request: {
+        Args: {
+          request_id: string
+        }
+        Returns: AcquaintanceRequestRow
+      }
       create_folder: {
         Args: {
           title: string
@@ -419,6 +477,13 @@ export type Database = {
           username: string
         }
         Returns: TaskMemberRow
+      }
+      add_folder_member: {
+        Args: {
+          folder_id: string
+          username: string
+        }
+        Returns: FolderMemberRow
       }
       create_standalone_task: {
         Args: {
@@ -448,6 +513,14 @@ export type Database = {
       list_deleted_tasks: {
         Args: Record<string, never>
         Returns: TaskRow[]
+      }
+      list_acquaintance_requests: {
+        Args: Record<string, never>
+        Returns: AcquaintanceRequestListRow[]
+      }
+      list_acquaintances: {
+        Args: Record<string, never>
+        Returns: AcquaintanceListRow[]
       }
       list_folder_tasks: {
         Args: {
@@ -482,6 +555,18 @@ export type Database = {
         }
         Returns: string | null
       }
+      reject_acquaintance_request: {
+        Args: {
+          request_id: string
+        }
+        Returns: AcquaintanceRequestRow
+      }
+      remove_acquaintance: {
+        Args: {
+          user_id: string
+        }
+        Returns: string
+      }
       restore_folder: {
         Args: {
           folder_id: string
@@ -513,6 +598,24 @@ export type Database = {
           new_status: TaskProgressStatus
         }
         Returns: TaskStatusActionRow
+      }
+      search_profiles_by_username: {
+        Args: {
+          query_text: string
+        }
+        Returns: ProfileSearchResultRow[]
+      }
+      search_profiles_with_relationship: {
+        Args: {
+          query_text: string
+        }
+        Returns: ProfileRelationshipSearchRow[]
+      }
+      send_acquaintance_request: {
+        Args: {
+          username: string
+        }
+        Returns: AcquaintanceRequestRow
       }
       update_folder: {
         Args: {

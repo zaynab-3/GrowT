@@ -216,31 +216,23 @@ export async function addFolderMemberByUsername(
   folderId: string,
   username: string,
 ) {
-  const { data: profile, error: profileError } = await client
-    .from('profiles')
-    .select('*')
-    .eq('username', username)
-    .maybeSingle()
-
-  if (profileError) {
-    throw profileError
-  }
-
-  if (!profile) {
-    throw new Error('No GrowT user found with that username.')
-  }
-
-  const { data, error } = await client
-    .from('folder_members')
-    .upsert(
-      { folder_id: folderId, user_id: profile.id, role: 'member' },
-      { onConflict: 'folder_id,user_id', ignoreDuplicates: true },
-    )
-    .select('*')
-    .maybeSingle()
+  const { data, error } = await client.rpc('add_folder_member', {
+    folder_id: folderId,
+    username,
+  })
 
   if (error) {
     throw error
+  }
+
+  const { data: profile, error: profileError } = await client
+    .from('profiles')
+    .select('*')
+    .eq('id', data.user_id)
+    .single()
+
+  if (profileError) {
+    throw profileError
   }
 
   return { member: data, profile }

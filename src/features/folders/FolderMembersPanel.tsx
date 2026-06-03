@@ -1,6 +1,9 @@
 import type { FormEvent } from 'react'
 import type { TaskProgressStatus } from '../../lib/database.types'
 import type { Folder } from '../../lib/growtData'
+import { supabase } from '../../lib/supabase'
+import { MemberPicker } from '../members/MemberPicker'
+import { addFolderMemberByUsername } from './folderApi'
 
 type ContributionCounts = Record<TaskProgressStatus, number>
 
@@ -26,11 +29,16 @@ export function FolderMembersPanel({
   getProfileLabel,
   isSaving,
   isShared,
-  memberUsername,
   memberUserIds,
-  onInviteMember,
-  onMemberUsernameChange,
 }: FolderMembersPanelProps) {
+  async function handleAddMember(username: string) {
+    if (!supabase) {
+      throw new Error('Supabase is not configured.')
+    }
+
+    await addFolderMemberByUsername(supabase, folder.id, username)
+  }
+
   return (
     <div className="session-toolbar">
       <div className="member-strip">
@@ -64,17 +72,14 @@ export function FolderMembersPanel({
       </div>
 
       {canInviteMembers ? (
-        <form className="invite-form" onSubmit={onInviteMember}>
-          <input
-            aria-label="Member username"
-            onChange={(event) => onMemberUsernameChange(event.target.value)}
-            placeholder="username"
-            value={memberUsername}
-          />
-          <button className="button button--secondary" disabled={isSaving} type="submit">
-            Add member
-          </button>
-        </form>
+        <MemberPicker
+          currentUserId={currentUserId}
+          existingMemberIds={memberUserIds}
+          isDisabled={isSaving}
+          label={`${folder.title} folder members`}
+          onAddMember={handleAddMember}
+          targetKey={`folder:${folder.id}`}
+        />
       ) : null}
       {folder.owner_id === currentUserId && !isShared ? (
         <p className="invite-note">Convert this folder to Shared before adding members.</p>

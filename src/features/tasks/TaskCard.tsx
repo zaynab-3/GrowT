@@ -23,7 +23,7 @@ type TaskCardProps = {
   folderOwnerId?: string
   getProfileLabel: (userId: string) => string
   isSaving: boolean
-  onAddTaskMember?: (task: Task, username: string) => void
+  onAddTaskMember?: (task: Task, username: string) => Promise<void> | void
   onCloseEdit: () => void
   onDeleteTask: (task: Task) => void
   onEditTask: (taskId: string) => void

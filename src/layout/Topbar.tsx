@@ -1,3 +1,5 @@
+import { NotificationBell } from '../features/notifications/NotificationBell'
+
 type TopbarProps = {
   accountLabel: string
   onSignOut: () => void
@@ -12,6 +14,7 @@ export function Topbar({ accountLabel, onSignOut }: TopbarProps) {
       </a>
       <div className="account-actions">
         <span>{accountLabel}</span>
+        <NotificationBell />
         <button className="button button--secondary" onClick={onSignOut} type="button">
           Sign out
         </button>

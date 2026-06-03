@@ -24,7 +24,7 @@ type TaskListProps = {
   getProfileLabel: (userId: string) => string
   isSaving: boolean
   onCloseEdit: () => void
-  onAddTaskMember?: (task: Task, username: string) => void
+  onAddTaskMember?: (task: Task, username: string) => Promise<void> | void
   onDeleteTask: (task: Task) => void
   onEditTask: (taskId: string) => void
   onRemoveTaskMember?: (task: Task, userId: string) => void

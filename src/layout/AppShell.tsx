@@ -8,7 +8,6 @@ type AppShellProps = {
   folderCount: number
   heroTitle: string
   message: string
-  notificationCount: number
   onSignOut: () => void
   realtimeLabel: string
   sidebar: ReactNode
@@ -22,7 +21,6 @@ export function AppShell({
   folderCount,
   heroTitle,
   message,
-  notificationCount,
   onSignOut,
   realtimeLabel,
   sidebar,
@@ -62,11 +60,6 @@ export function AppShell({
       </section>
 
       {message ? <p className="toast">{message}</p> : null}
-      {notificationCount ? (
-        <p className="notification-badge" aria-live="polite">
-          {notificationCount}
-        </p>
-      ) : null}
       {confirmDialog}
     </main>
   )

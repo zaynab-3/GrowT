@@ -1,4 +1,4 @@
-import { formatDateTime, getCategoryLabel } from '../../lib/growtDisplay'
+import { formatDateTime, formatRestoreWindow, getCategoryLabel } from '../../lib/growtDisplay'
 import type { Folder } from '../../lib/growtData'
 
 type FolderRestorePanelProps = {
@@ -26,6 +26,7 @@ export function FolderRestorePanel({ folders, isSaving, onRestore }: FolderResto
               <span>
                 {getCategoryLabel(folder.category)} · Deleted {formatDateTime(folder.deleted_at)}
               </span>
+              <span>{formatRestoreWindow(folder.deleted_at)}</span>
             </div>
             <button
               className="button button--secondary"

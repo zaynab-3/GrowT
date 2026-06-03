@@ -1,4 +1,4 @@
-import { formatDateTime, getCategoryLabel } from '../../lib/growtDisplay'
+import { formatDateTime, formatRestoreWindow, getCategoryLabel } from '../../lib/growtDisplay'
 import type { Task } from '../../lib/growtData'
 
 type TaskRestorePanelProps = {
@@ -33,6 +33,7 @@ export function TaskRestorePanel({
                 {getCategoryLabel(task.category)} · {getFolderLabel(task.folder_id)} · Deleted{' '}
                 {formatDateTime(task.deleted_at)}
               </span>
+              <span>{formatRestoreWindow(task.deleted_at)}</span>
             </div>
             <button
               className="button button--secondary"

@@ -2,6 +2,7 @@ import type { FormEvent } from 'react'
 import type { FolderCategory } from '../lib/database.types'
 import { categoryOptions } from '../lib/growtDisplay'
 import type { Folder } from '../lib/growtData'
+import { AcquaintancesPanel } from '../features/acquaintances/AcquaintancesPanel'
 import { FolderList } from '../features/folders/FolderList'
 import { FolderRestorePanel } from '../features/folders/FolderRestorePanel'
 import { SearchBar } from '../features/search/SearchBar'
@@ -77,6 +78,8 @@ export function Sidebar({
       />
 
       <FolderRestorePanel folders={deletedFolders} isSaving={isSaving} onRestore={onRestoreFolder} />
+
+      <AcquaintancesPanel />
 
       <form className="stack-form" onSubmit={onCreateFolder}>
         <label htmlFor="folder-title">New folder</label>
