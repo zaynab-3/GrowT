@@ -1,135 +1,50 @@
-import type { FormEvent } from 'react'
-import type { FolderCategory, ReorderDirection } from '../lib/database.types'
-import { categoryOptions } from '../lib/growtDisplay'
-import type { Folder } from '../lib/growtData'
-import { AcquaintancesPanel } from '../features/acquaintances/AcquaintancesPanel'
-import { FolderList } from '../features/folders/FolderList'
-import { FolderRestorePanel } from '../features/folders/FolderRestorePanel'
 import { SearchResults } from '../features/search/SearchResults'
+import type { AppView, AppViewNavItem } from '../views/viewTypes'
 
 type SidebarProps = {
-  activeFolderId: string | null
-  currentUserId: string
-  deletedFolders: Folder[]
-  filteredFolders: Folder[]
-  folderCategory: FolderCategory
-  folderDescription: string
-  folderTitle: string
+  activeView: AppView
   foldersCount: number
-  isSaving: boolean
   normalizedSearchQuery: string
-  onCreateFolder: (event: FormEvent<HTMLFormElement>) => void
-  onFolderCategoryChange: (category: FolderCategory) => void
-  onFolderDescriptionChange: (description: string) => void
-  onFolderTitleChange: (title: string) => void
-  onMoveFolder: (folder: Folder, direction: ReorderDirection) => void
-  onProfileDisplayNameChange: (displayName: string) => void
-  onProfileUsernameChange: (username: string) => void
-  onRestoreFolder: (folder: Folder) => void
-  onSaveProfile: (event: FormEvent<HTMLFormElement>) => void
-  onSelectFolder: (folderId: string) => void
-  profileDisplayName: string
-  profileUsername: string
+  onViewChange: (view: AppView) => void
+  viewItems: AppViewNavItem[]
+  visibleFoldersCount: number
 }
 
 export function Sidebar({
-  activeFolderId,
-  currentUserId,
-  deletedFolders,
-  filteredFolders,
-  folderCategory,
-  folderDescription,
-  folderTitle,
+  activeView,
   foldersCount,
-  isSaving,
   normalizedSearchQuery,
-  onCreateFolder,
-  onFolderCategoryChange,
-  onFolderDescriptionChange,
-  onFolderTitleChange,
-  onMoveFolder,
-  onProfileDisplayNameChange,
-  onProfileUsernameChange,
-  onRestoreFolder,
-  onSaveProfile,
-  onSelectFolder,
-  profileDisplayName,
-  profileUsername,
+  onViewChange,
+  viewItems,
+  visibleFoldersCount,
 }: SidebarProps) {
   return (
     <aside className="side-panel">
       <div className="panel-heading">
-        <h2>Folders</h2>
+        <h2>Views</h2>
         <SearchResults
           hasQuery={Boolean(normalizedSearchQuery)}
           totalCount={foldersCount}
-          visibleCount={filteredFolders.length}
+          visibleCount={visibleFoldersCount}
         />
       </div>
 
-      <FolderList
-        activeFolderId={activeFolderId}
-        currentUserId={currentUserId}
-        emptyMessage={normalizedSearchQuery ? 'No folders match this search.' : 'No folders yet.'}
-        folders={filteredFolders}
-        isSaving={isSaving}
-        onMoveFolder={onMoveFolder}
-        onSelectFolder={onSelectFolder}
-      />
-
-      <FolderRestorePanel folders={deletedFolders} isSaving={isSaving} onRestore={onRestoreFolder} />
-
-      <AcquaintancesPanel />
-
-      <form className="stack-form" onSubmit={onCreateFolder}>
-        <label htmlFor="folder-title">New folder</label>
-        <input
-          id="folder-title"
-          onChange={(event) => onFolderTitleChange(event.target.value)}
-          placeholder="Launch plan"
-          required
-          value={folderTitle}
-        />
-        <textarea
-          onChange={(event) => onFolderDescriptionChange(event.target.value)}
-          placeholder="What this folder is for"
-          rows={3}
-          value={folderDescription}
-        />
-        <select
-          aria-label="Folder category"
-          onChange={(event) => onFolderCategoryChange(event.target.value as FolderCategory)}
-          value={folderCategory}
-        >
-          {categoryOptions.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.label}
-            </option>
-          ))}
-        </select>
-        <button className="button button--primary" disabled={isSaving} type="submit">
-          Create folder
-        </button>
-      </form>
-
-      <form className="stack-form profile-form" onSubmit={onSaveProfile}>
-        <label htmlFor="profile-name">Profile</label>
-        <input
-          id="profile-name"
-          onChange={(event) => onProfileDisplayNameChange(event.target.value)}
-          placeholder="Display name"
-          value={profileDisplayName}
-        />
-        <input
-          aria-label="Username"
-          onChange={(event) => onProfileUsernameChange(event.target.value)}
-          placeholder="username"
-          value={profileUsername}
-        />
-        <button className="button button--secondary" disabled={isSaving} type="submit">
-          Save profile
-        </button>
-      </form>
+      <nav className="view-nav" aria-label="GrowT views">
+        {viewItems.map((item) => (
+          <button
+            className={`view-nav__item${item.id === activeView ? ' view-nav__item--active' : ''}`}
+            key={item.id}
+            onClick={() => onViewChange(item.id)}
+            type="button"
+          >
+            <span>
+              <strong>{item.label}</strong>
+              <small>{item.description}</small>
+            </span>
+            {item.meta ? <em>{item.meta}</em> : null}
+          </button>
+        ))}
+      </nav>
     </aside>
   )
 }

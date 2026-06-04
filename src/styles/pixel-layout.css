@@ -1,8 +1,12 @@
 /* GrowT pixel-art design pass 1: app shell, topbar, sidebar, layout */
 .app-shell {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100vh;
   min-height: 100vh;
+  overflow: hidden;
   color: var(--ink);
-  padding: 10px 0 34px;
+  padding: 10px 0 14px;
 }
 
 .app-shell::before {
@@ -23,8 +27,7 @@
 }
 
 .topbar {
-  position: sticky;
-  top: 10px;
+  position: relative;
   z-index: 12;
   display: grid;
   grid-template-columns: auto minmax(280px, 620px) auto;
@@ -119,8 +122,9 @@
 .workspace-grid {
   grid-template-columns: minmax(300px, 355px) minmax(0, 1fr);
   width: min(1480px, calc(100% - 24px));
+  min-height: 0;
   gap: 18px;
-  padding-top: 18px;
+  padding-top: 14px;
 }
 
 .side-panel {
@@ -172,9 +176,16 @@
 }
 
 .main-panel {
+  min-height: 0;
+  overflow: auto;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.5), transparent 280px),
     var(--surface-soft);
+}
+
+.side-panel {
+  min-height: 0;
+  overflow: auto;
 }
 
 .standalone-panel,

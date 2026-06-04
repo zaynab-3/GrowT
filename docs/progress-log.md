@@ -62,6 +62,13 @@ Last updated: June 4, 2026
 - Pixel styling is organized into modular CSS layers for tokens/primitives, layout, feature surfaces, and responsive adjustments instead of being dumped into `App.tsx`.
 - Logout race fixes prevent stale authenticated requests from showing `Unable to load deleted items.` or `Unable to load GrowT data.` on login/register/opening-session screens after sign out.
 - Manual QA confirms logout returns to the auth page cleanly; final design/layout polish is still pending.
+- Pixel Design Pass 2 added a page/view-based app layout so the main content shows one active view instead of one giant scrolling dashboard.
+- Sidebar navigation now switches between Dashboard, My Tasks, Shared with Me, Acquaintances, Notifications, Restore, and Settings.
+- The Notifications realtime crash was fixed by sharing one `NotificationProvider`/`useNotifications` store between the bell and Notifications view.
+- Notification realtime subscriptions now register `postgres_changes` callbacks before `subscribe()` and clean up channels on unmount/session changes.
+- Invalid refresh token/session cleanup was improved so stale sessions return to the auth surface without stale app errors.
+- Minimal mobile responsive cleanup was added for a usable pixel-styled phone layout with stacked panels, wrapping buttons, compact navigation, and no obvious horizontal overflow.
+- Manual QA confirms Design Pass 2, notification crash fix, session cleanup, and mobile usability are okay; final visual polish is still pending.
 
 ## Project Identity
 
@@ -348,11 +355,16 @@ Completed:
 - Simple persistent reorder controls for folders, folder tasks, and standalone tasks.
 - Pixel Design Pass 1 visual foundation with modular pixel CSS organization.
 - Logout race fixes after sign out, including stale deleted-items and main GrowT data requests.
+- Pixel Design Pass 2 page/view-based layout.
+- Sidebar-driven views for Dashboard, My Tasks, Shared with Me, Acquaintances, Notifications, Restore, and Settings.
+- Shared notification state/subscription provider for notification bell and Notifications view.
+- Invalid refresh token/session cleanup improvements.
+- Minimal mobile responsive cleanup.
 
 Partial:
 - Modular architecture is much improved; `App.tsx` is now about 1,231 lines. Mutation handlers and some data loading orchestration still remain in `App.tsx` intentionally to avoid risky behavior changes.
 - Search is local MVP search, not full database/global search.
-- Final design/layout polish is still pending; Pixel Design Pass 1 is a foundation, not the final app layout.
+- Final visual polish is still pending; Pixel Design Pass 2 is a working page/view foundation, not the finished app design.
 
 Missing:
 - Task levels/subtasks UI.
@@ -385,12 +397,16 @@ Missing:
 - `npm run lint` passes after Pixel Design Pass 1 and logout race fixes.
 - `npm run build` passes after Pixel Design Pass 1 and logout race fixes.
 - Manual QA confirms sign out returns to the login/auth page cleanly with no deleted-items or GrowT data error message.
+- `npm run lint` passes after Design Pass 2 and notification/mobile QA fixes.
+- `npm run build` passes after Design Pass 2 and notification/mobile QA fixes.
+- Forbidden scans pass after Design Pass 2 and notification/mobile QA fixes.
+- Manual QA confirms the page/view layout, Notifications view, notification bell, session cleanup, and mobile cleanup are okay.
 
 ## Next Steps
 
 Recommended build order:
 
-1. Commit and push the completed pixel design foundation checkpoint.
+1. Commit and push the completed page-based pixel app layout checkpoint.
 2. Continue mutation-handler extraction only if future cleanup needs it.
 3. Add task levels/subtasks UI.
 4. Continue final pixel-art design/layout polish later.

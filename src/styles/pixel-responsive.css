@@ -6,24 +6,142 @@
 
   .workspace-grid,
   .workspace-hero,
+  .view-grid--two,
+  .view-grid--workspace,
+  .view-header,
   .task-row__header {
     grid-template-columns: 1fr;
+  }
+
+  .view-panel--sidebar {
+    position: static;
+    max-height: none;
   }
 }
 
 @media (max-width: 700px) {
   .app-shell {
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
     padding-top: 0;
+    padding-bottom: 16px;
   }
 
   .topbar {
     position: static;
+    grid-template-columns: 1fr;
+    gap: 10px;
     width: calc(100% - 16px);
     margin-top: 8px;
+    padding: 10px;
   }
 
   .brand {
     font-size: 24px;
+  }
+
+  .brand-mark {
+    width: 40px;
+    height: 40px;
+  }
+
+  .topbar .search-control {
+    grid-template-columns: 1fr;
+  }
+
+  .account-actions {
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    width: 100%;
+    font-size: 12px;
+  }
+
+  .account-actions > span {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .workspace-grid {
+    width: calc(100% - 16px);
+    gap: 10px;
+    padding-top: 10px;
+  }
+
+  .side-panel,
+  .main-panel {
+    max-height: none;
+    min-height: 0;
+    overflow: visible;
+    padding: 12px;
+  }
+
+  .view-nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .view-nav__item {
+    grid-template-columns: 1fr;
+    min-height: 58px;
+    padding: 9px;
+  }
+
+  .view-nav__item small {
+    display: none;
+  }
+
+  .view-nav__item em {
+    justify-self: start;
+  }
+
+  .view-stack,
+  .workspace-stack,
+  .view-column {
+    gap: 12px;
+  }
+
+  .view-header,
+  .view-panel,
+  .standalone-panel,
+  .folder-panel {
+    padding: 12px;
+  }
+
+  .view-header h1 {
+    font-size: 24px;
+  }
+
+  .view-header__actions,
+  .panel-actions,
+  .form-actions,
+  .status-actions,
+  .dialog-actions,
+  .reorder-controls {
+    justify-content: flex-start;
+  }
+
+  .view-grid,
+  .summary-grid,
+  .status-summary,
+  .folder-info__grid,
+  .task-status-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .view-stat-row,
+  .folder-row,
+  .task-row,
+  .notification-row,
+  .restore-row {
+    box-shadow: 2px 2px 0 rgba(86, 63, 36, 0.18);
+  }
+
+  .button {
+    min-height: 38px;
+    white-space: normal;
   }
 
   .app-shell--centered {
@@ -50,8 +168,7 @@
     overflow-wrap: anywhere;
   }
 
-  .workspace-hero,
-  .workspace-grid {
+  .workspace-hero {
     width: calc(100% - 16px);
   }
 }

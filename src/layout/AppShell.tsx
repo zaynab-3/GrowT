@@ -1,75 +1,48 @@
 import type { ReactNode } from 'react'
+import { NotificationProvider } from '../features/notifications/useNotifications'
 import { Topbar } from './Topbar'
 
 type AppShellProps = {
   accountLabel: string
   children: ReactNode
   confirmDialog?: ReactNode
-  folderCount: number
-  heroTitle: string
   message: string
   onSearchChange: (query: string) => void
   onSignOut: () => void
-  realtimeLabel: string
   searchQuery: string
   sidebar: ReactNode
-  taskCount: number
+  userId: string
 }
 
 export function AppShell({
   accountLabel,
   children,
   confirmDialog,
-  folderCount,
-  heroTitle,
   message,
   onSearchChange,
   onSignOut,
-  realtimeLabel,
   searchQuery,
   sidebar,
-  taskCount,
+  userId,
 }: AppShellProps) {
   return (
     <main className="app-shell">
-      <Topbar
-        accountLabel={accountLabel}
-        onSearchChange={onSearchChange}
-        onSignOut={onSignOut}
-        searchQuery={searchQuery}
-      />
+      <NotificationProvider userId={userId}>
+        <Topbar
+          accountLabel={accountLabel}
+          onSearchChange={onSearchChange}
+          onSignOut={onSignOut}
+          searchQuery={searchQuery}
+        />
 
-      <section className="workspace-hero" id="session">
-        <div>
-          <p className="section-label">Live session</p>
-          <h1>{heroTitle}</h1>
-          <p className="hero-text">
-            Shared task status is written to Supabase and streamed back into this screen through Realtime.
-          </p>
-        </div>
-        <div className="summary-grid">
-          <div className="metric">
-            <span>Folders</span>
-            <strong>{folderCount}</strong>
-          </div>
-          <div className="metric metric--sky">
-            <span>Tasks</span>
-            <strong>{taskCount}</strong>
-          </div>
-          <div className="metric metric--sun">
-            <span>Realtime</span>
-            <strong>{realtimeLabel}</strong>
-          </div>
-        </div>
-      </section>
+        <section className="workspace-grid">
+          {sidebar}
+          <section className="main-panel workspace-stack">{children}</section>
+        </section>
 
-      <section className="workspace-grid">
-        {sidebar}
-        <section className="main-panel workspace-stack">{children}</section>
-      </section>
-
-      {message ? <p className="toast">{message}</p> : null}
-      {confirmDialog}
+        {message ? <p className="toast">{message}</p> : null}
+        {confirmDialog}
+      </NotificationProvider>
     </main>
   )
 }

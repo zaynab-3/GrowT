@@ -1,6 +1,8 @@
 /* GrowT pixel-art design pass 1: reusable visual primitives */
 .topbar,
 .workspace-hero,
+.view-header,
+.view-panel,
 .side-panel,
 .main-panel,
 .auth-panel,
@@ -14,6 +16,8 @@
 }
 
 .workspace-hero,
+.view-header,
+.view-panel,
 .main-panel,
 .auth-panel,
 .confirm-dialog,

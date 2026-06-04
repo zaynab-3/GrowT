@@ -2,6 +2,7 @@ import { formatDateTime } from '../../lib/growtDisplay'
 import type { GrowTNotification } from './notificationApi'
 
 type NotificationPanelProps = {
+  className?: string
   isBusy: boolean
   notifications: GrowTNotification[]
   onMarkAllRead: () => void
@@ -10,6 +11,7 @@ type NotificationPanelProps = {
 }
 
 export function NotificationPanel({
+  className,
   isBusy,
   notifications,
   onMarkAllRead,
@@ -17,7 +19,7 @@ export function NotificationPanel({
   unreadCount,
 }: NotificationPanelProps) {
   return (
-    <div className="notification-panel" role="dialog" aria-label="Notifications">
+    <div className={`notification-panel${className ? ` ${className}` : ''}`} role="dialog" aria-label="Notifications">
       <div className="notification-panel__heading">
         <span className="section-label">Notifications</span>
         <button

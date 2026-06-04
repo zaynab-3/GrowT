@@ -1,4 +1,4 @@
-import type { ReorderDirection, TaskProgressStatus } from '../../lib/database.types'
+import type { FolderCategory, ReorderDirection, TaskProgressStatus } from '../../lib/database.types'
 import type { Task, TaskMember, TaskStatusAction } from '../../lib/growtData'
 import { TaskForm, type TaskCreateValues } from './TaskForm'
 import { TaskList } from './TaskList'
@@ -18,6 +18,7 @@ type StandaloneTasksPanelProps = {
   assignableMembers: AssignableMember[]
   contributionsByTask: Map<string, Record<TaskProgressStatus, StatusContribution[]>>
   currentUserId: string
+  defaultCategory?: FolderCategory
   editingTaskId: string | null
   emptyMessage: string
   getProfileLabel: (userId: string) => string
@@ -33,14 +34,17 @@ type StandaloneTasksPanelProps = {
   onUndoAction: (action: TaskStatusAction) => void
   onUpdateTask: (taskId: string, values: TaskEditValues) => void
   pendingAction: string | null
+  sectionLabel?: string
   taskMembersByTask: Map<string, TaskMember[]>
   tasks: Task[]
+  title?: string
 }
 
 export function StandaloneTasksPanel({
   assignableMembers,
   contributionsByTask,
   currentUserId,
+  defaultCategory = 'personal',
   editingTaskId,
   emptyMessage,
   getProfileLabel,
@@ -56,20 +60,22 @@ export function StandaloneTasksPanel({
   onUndoAction,
   onUpdateTask,
   pendingAction,
+  sectionLabel = 'My tasks',
   taskMembersByTask,
   tasks,
+  title = 'Standalone Tasks',
 }: StandaloneTasksPanelProps) {
   return (
     <section className="standalone-panel">
       <div className="panel-heading">
         <div>
-          <p className="section-label">My tasks</p>
-          <h2>Standalone Tasks</h2>
+          <p className="section-label">{sectionLabel}</p>
+          <h2>{title}</h2>
         </div>
         <span>{tasks.length}</span>
       </div>
       <TaskForm
-        defaultCategory="personal"
+        defaultCategory={defaultCategory}
         isSaving={isSaving}
         onCreate={onCreateTask}
         showCategory

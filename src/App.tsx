@@ -1,8 +1,7 @@
-import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AuthPanel } from './auth/AuthPanel'
 import { ConfirmDialog } from './components/ConfirmDialog'
 import { LoadingState } from './components/LoadingState'
-import { FolderDetail } from './features/folders/FolderDetail'
 import type { FolderEditValues } from './features/folders/FolderEditForm'
 import {
   addFolderMemberByUsername,
@@ -15,10 +14,8 @@ import {
   softDeleteFolder,
   updateFolder,
 } from './features/folders/folderApi'
-import { StandaloneTasksPanel } from './features/tasks/StandaloneTasksPanel'
 import type { TaskCreateValues } from './features/tasks/TaskForm'
 import type { TaskEditValues } from './features/tasks/TaskEditForm'
-import { TaskRestorePanel } from './features/tasks/TaskRestorePanel'
 import {
   addTaskMemberByUsername,
   createStandaloneTask,
@@ -39,6 +36,8 @@ import {
 } from './features/tasks/taskApi'
 import { AppShell } from './layout/AppShell'
 import { Sidebar } from './layout/Sidebar'
+import { AppViewRouter } from './views/AppViewRouter'
+import type { AppView, AppViewNavItem } from './views/viewTypes'
 import { useGrowTData } from './hooks/useGrowTData'
 import { useAuthSession } from './hooks/useAuthSession'
 import { useGrowTRealtime } from './hooks/useGrowTRealtime'
@@ -111,6 +110,7 @@ function App() {
   const [progress, setProgress] = useState<TaskProgress[]>([])
   const [actions, setActions] = useState<TaskStatusAction[]>([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [activeView, setActiveView] = useState<AppView>('dashboard')
   const [isEditingFolder, setIsEditingFolder] = useState(false)
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
   const [confirmRequest, setConfirmRequest] = useState<ConfirmRequest | null>(null)
@@ -122,6 +122,7 @@ function App() {
   const user = session?.user ?? null
   const sessionKey = session?.access_token ?? null
   const activeSessionKeyRef = useRef<string | null>(null)
+  const previousUserIdRef = useRef<string | null>(null)
   const profilesByIdRef = useRef<Record<string, Profile>>({})
   const taskIdsRef = useRef<Set<string>>(new Set())
   const standaloneTaskIdsRef = useRef<Set<string>>(new Set())
@@ -133,9 +134,7 @@ function App() {
   const {
     accountLabel,
     activeFolder,
-    activeFolderIsShared,
     assignableMembers,
-    canInviteMembers,
     contributionsByTask,
     filteredFolders,
     filteredStandaloneTasks,
@@ -160,6 +159,107 @@ function App() {
     tasks,
     userId: user?.id ?? null,
   })
+
+  const personalFolders = useMemo(
+    () => filteredFolders.filter((folder) => !isSharedFolder(folder)),
+    [filteredFolders],
+  )
+  const sharedFolders = useMemo(
+    () => filteredFolders.filter((folder) => isSharedFolder(folder)),
+    [filteredFolders],
+  )
+  const personalStandaloneTasks = useMemo(
+    () => filteredStandaloneTasks.filter((task) => task.category !== 'shared'),
+    [filteredStandaloneTasks],
+  )
+  const sharedStandaloneTasks = useMemo(
+    () => filteredStandaloneTasks.filter((task) => task.category === 'shared'),
+    [filteredStandaloneTasks],
+  )
+  const deletedItemsCount = deletedFolders.length + deletedTasks.length
+  const appViewItems = useMemo<AppViewNavItem[]>(
+    () => [
+      {
+        description: 'Summary',
+        id: 'dashboard',
+        label: 'Dashboard',
+        meta: realtimeStatus,
+      },
+      {
+        description: 'Personal + work',
+        id: 'my-tasks',
+        label: 'My Tasks',
+        meta: String(personalFolders.length + personalStandaloneTasks.length),
+      },
+      {
+        description: 'Live shared work',
+        id: 'shared',
+        label: 'Shared with Me',
+        meta: String(sharedFolders.length + sharedStandaloneTasks.length),
+      },
+      {
+        description: 'Requests + people',
+        id: 'acquaintances',
+        label: 'Acquaintances',
+      },
+      {
+        description: 'Realtime inbox',
+        id: 'notifications',
+        label: 'Notifications',
+      },
+      {
+        description: 'Deleted items',
+        id: 'restore',
+        label: 'Restore',
+        meta: String(deletedItemsCount),
+      },
+      {
+        description: 'Profile',
+        id: 'settings',
+        label: 'Settings',
+      },
+    ],
+    [
+      deletedItemsCount,
+      personalFolders.length,
+      personalStandaloneTasks.length,
+      realtimeStatus,
+      sharedFolders.length,
+      sharedStandaloneTasks.length,
+    ],
+  )
+
+  useEffect(() => {
+    if (!authReady) {
+      return
+    }
+
+    const nextUserId = user?.id ?? null
+    const previousUserId = previousUserIdRef.current
+
+    if (previousUserId && !nextUserId) {
+      activeSessionKeyRef.current = null
+      setMessage('')
+      setCurrentProfile(null)
+      setFolders([])
+      setMembers([])
+      setTasks([])
+      setStandaloneTasks([])
+      setTaskMembers([])
+      setDeletedFolders([])
+      setDeletedTasks([])
+      setProgress([])
+      setActions([])
+      setSelectedFolderId(null)
+      setConfirmRequest(null)
+      setDataLoading(false)
+      setSaving(false)
+      setPendingAction(null)
+      setRealtimeStatus('Idle')
+    }
+
+    previousUserIdRef.current = nextUserId
+  }, [authReady, user?.id])
 
   useEffect(() => {
     activeSessionKeyRef.current = sessionKey
@@ -1245,123 +1345,102 @@ function App() {
     )
   }
 
+  const userId = session.user.id
   return (
     <AppShell
       accountLabel={accountLabel}
-      folderCount={folders.length}
-      heroTitle={activeFolder?.title ?? (folders.length ? 'Select a folder to begin.' : 'Create a folder to begin.')}
       message={message}
       onSearchChange={setSearchQuery}
       onSignOut={() => void handleSignOut()}
-      realtimeLabel={activeFolder && dataLoading ? 'Syncing' : realtimeStatus}
       searchQuery={searchQuery}
+      userId={userId}
       sidebar={
         <Sidebar
-          activeFolderId={activeFolder?.id ?? null}
-          currentUserId={session.user.id}
-          deletedFolders={deletedFolders}
-          filteredFolders={filteredFolders}
-          folderCategory={folderCategory}
-          folderDescription={folderDescription}
-          folderTitle={folderTitle}
+          activeView={activeView}
           foldersCount={folders.length}
-          isSaving={saving}
           normalizedSearchQuery={normalizedSearchQuery}
-          onCreateFolder={handleCreateFolder}
-          onFolderCategoryChange={setFolderCategory}
-          onFolderDescriptionChange={setFolderDescription}
-          onFolderTitleChange={setFolderTitle}
-          onMoveFolder={(folder, direction) => void handleMoveFolder(folder, direction)}
-          onProfileDisplayNameChange={setProfileDisplayName}
-          onProfileUsernameChange={setProfileUsername}
-          onRestoreFolder={handleRestoreFolder}
-          onSaveProfile={handleUpdateProfile}
-          onSelectFolder={setSelectedFolderId}
-          profileDisplayName={profileDisplayName}
-          profileUsername={profileUsername}
+          onViewChange={setActiveView}
+          viewItems={appViewItems}
+          visibleFoldersCount={filteredFolders.length}
         />
       }
-      taskCount={tasks.length + standaloneTasks.length}
       confirmDialog={
         confirmRequest ? (
-        <ConfirmDialog
-          confirmLabel={confirmRequest.confirmLabel}
-          isBusy={saving}
-          message={confirmRequest.message}
-          onCancel={() => setConfirmRequest(null)}
-          onConfirm={() => void handleConfirmDialog()}
-          title={confirmRequest.title}
-        />
+          <ConfirmDialog
+            confirmLabel={confirmRequest.confirmLabel}
+            isBusy={saving}
+            message={confirmRequest.message}
+            onCancel={() => setConfirmRequest(null)}
+            onConfirm={() => void handleConfirmDialog()}
+            title={confirmRequest.title}
+          />
         ) : null
       }
     >
-      <StandaloneTasksPanel
-        assignableMembers={standaloneAssignableMembers}
-        contributionsByTask={contributionsByTask}
-        currentUserId={session.user.id}
-        editingTaskId={editingTaskId}
-        emptyMessage={
-          normalizedSearchQuery ? 'No standalone tasks match this search.' : 'Add a standalone task anytime.'
-        }
-        getProfileLabel={getProfileLabel}
-        isSaving={saving}
-        onAddTaskMember={(task, username) => void handleAddTaskMember(task, username)}
-        onCloseEdit={() => setEditingTaskId(null)}
-        onCreateTask={(values) => void handleCreateStandaloneTask(values)}
-        onDeleteTask={requestDeleteTask}
-        onEditTask={(taskId) => setEditingTaskId((currentId) => (currentId === taskId ? null : taskId))}
-        onMoveTask={(task, direction) => void handleMoveTask(task, direction)}
-        onRemoveTaskMember={(task, userId) => void handleRemoveTaskMember(task, userId)}
-        onSetTaskStatus={(taskId, status) => void handleSetTaskStatus(taskId, status)}
-        onUndoAction={(action) => void handleUndoTaskStatus(action)}
-        onUpdateTask={(taskId, values) => void handleUpdateTask(taskId, values)}
-        pendingAction={pendingAction}
-        taskMembersByTask={taskMembersByTask}
-        tasks={filteredStandaloneTasks}
-      />
-
-      <TaskRestorePanel
-        getFolderLabel={(folderId) =>
-          folderId ? folders.find((folder) => folder.id === folderId)?.title ?? 'Folder task' : 'Standalone'
-        }
-        isSaving={saving}
-        onRestore={handleRestoreTask}
-        tasks={deletedTasks}
-      />
-
-      <FolderDetail
+      <AppViewRouter
         activeFolder={activeFolder}
+        activeView={activeView}
         assignableMembers={assignableMembers}
-        canInviteMembers={canInviteMembers}
         contributionsByTask={contributionsByTask}
-        currentUserId={session.user.id}
+        currentUserId={userId}
+        dataLoading={dataLoading}
+        deletedFolders={deletedFolders}
+        deletedTasks={deletedTasks}
         editingTaskId={editingTaskId}
-        folderCount={folders.length}
+        filteredTasks={filteredTasks}
+        folderCategory={folderCategory}
+        folderDescription={folderDescription}
         folderMemberUserIds={folderMemberUserIds}
+        folderTitle={folderTitle}
+        folders={folders}
         getContributionCounts={getContributionCounts}
         getProfileLabel={getProfileLabel}
         isEditingFolder={isEditingFolder}
         isSaving={saving}
-        isSharedFolder={activeFolderIsShared}
         memberUsername={memberUsername}
         normalizedSearchQuery={normalizedSearchQuery}
+        onAddTaskMember={(task, username) => void handleAddTaskMember(task, username)}
         onCancelFolderEdit={() => setIsEditingFolder(false)}
         onCloseTaskEdit={() => setEditingTaskId(null)}
+        onCreateFolder={handleCreateFolder}
         onCreateFolderTask={(values) => void handleCreateFolderTask(values)}
+        onCreateStandaloneTask={(values) => void handleCreateStandaloneTask(values)}
         onDeleteFolder={requestDeleteFolder}
         onDeleteTask={requestDeleteTask}
         onEditTask={(taskId) => setEditingTaskId((currentId) => (currentId === taskId ? null : taskId))}
+        onFolderCategoryChange={setFolderCategory}
+        onFolderDescriptionChange={setFolderDescription}
+        onFolderTitleChange={setFolderTitle}
         onInviteMember={handleInviteMember}
         onMemberUsernameChange={setMemberUsername}
+        onMoveFolder={(folder, direction) => void handleMoveFolder(folder, direction)}
         onMoveTask={(task, direction) => void handleMoveTask(task, direction)}
+        onNavigate={setActiveView}
+        onProfileDisplayNameChange={setProfileDisplayName}
+        onProfileUsernameChange={setProfileUsername}
+        onRemoveTaskMember={(task, memberId) => void handleRemoveTaskMember(task, memberId)}
+        onRestoreFolder={handleRestoreFolder}
+        onRestoreTask={handleRestoreTask}
+        onSaveProfile={handleUpdateProfile}
+        onSelectFolder={setSelectedFolderId}
         onSetTaskStatus={(taskId, status) => void handleSetTaskStatus(taskId, status)}
         onToggleFolderEdit={() => setIsEditingFolder((current) => !current)}
         onUndoAction={(action) => void handleUndoTaskStatus(action)}
         onUpdateFolder={(values) => void handleUpdateFolder(values)}
         onUpdateTask={(taskId, values) => void handleUpdateTask(taskId, values)}
         pendingAction={pendingAction}
+        personalFolders={personalFolders}
+        personalStandaloneTasks={personalStandaloneTasks}
+        profileDisplayName={profileDisplayName}
+        profileUsername={profileUsername}
+        realtimeLabel={realtimeStatus}
+        sharedFolders={sharedFolders}
+        sharedStandaloneTasks={sharedStandaloneTasks}
+        standaloneAssignableMembers={standaloneAssignableMembers}
+        standaloneTasks={standaloneTasks}
         statusTotals={statusTotals}
-        tasks={filteredTasks}
+        taskMembersByTask={taskMembersByTask}
+        tasks={tasks}
       />
     </AppShell>
   )
