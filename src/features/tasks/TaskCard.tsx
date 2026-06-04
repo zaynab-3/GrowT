@@ -1,4 +1,4 @@
-import type { TaskProgressStatus } from '../../lib/database.types'
+import type { ReorderDirection, TaskProgressStatus } from '../../lib/database.types'
 import { formatDateTime, getCategoryLabel, statusColumns } from '../../lib/growtDisplay'
 import type { Task, TaskMember, TaskStatusAction } from '../../lib/growtData'
 import { TaskEditForm, type TaskEditValues } from './TaskEditForm'
@@ -23,10 +23,13 @@ type TaskCardProps = {
   folderOwnerId?: string
   getProfileLabel: (userId: string) => string
   isSaving: boolean
+  isFirst: boolean
+  isLast: boolean
   onAddTaskMember?: (task: Task, username: string) => Promise<void> | void
   onCloseEdit: () => void
   onDeleteTask: (task: Task) => void
   onEditTask: (taskId: string) => void
+  onMoveTask: (task: Task, direction: ReorderDirection) => void
   onRemoveTaskMember?: (task: Task, userId: string) => void
   onSetTaskStatus: (taskId: string, status: TaskProgressStatus) => void
   onUndoAction: (action: TaskStatusAction) => void
@@ -44,10 +47,13 @@ export function TaskCard({
   folderOwnerId,
   getProfileLabel,
   isSaving,
+  isFirst,
+  isLast,
   onAddTaskMember,
   onCloseEdit,
   onDeleteTask,
   onEditTask,
+  onMoveTask,
   onRemoveTaskMember,
   onSetTaskStatus,
   onUndoAction,
@@ -57,6 +63,7 @@ export function TaskCard({
   taskMembers,
 }: TaskCardProps) {
   const canManageTask = task.owner_id === currentUserId || folderOwnerId === currentUserId
+  const canReorderTask = task.folder_id ? folderOwnerId === currentUserId : task.owner_id === currentUserId
 
   return (
     <article className="task-row">
@@ -71,6 +78,24 @@ export function TaskCard({
           </span>
         </div>
         <div className="status-actions">
+          <button
+            className="button status-button"
+            disabled={isSaving || !canReorderTask || isFirst}
+            onClick={() => onMoveTask(task, 'up')}
+            title={canReorderTask ? 'Move task up' : 'Only the owner can reorder this task'}
+            type="button"
+          >
+            Move Up
+          </button>
+          <button
+            className="button status-button"
+            disabled={isSaving || !canReorderTask || isLast}
+            onClick={() => onMoveTask(task, 'down')}
+            title={canReorderTask ? 'Move task down' : 'Only the owner can reorder this task'}
+            type="button"
+          >
+            Move Down
+          </button>
           {statusColumns.map((status) => (
             <button
               className={`button status-button status-button--${status.id}`}

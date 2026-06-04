@@ -12,6 +12,7 @@ export type FolderCategory = 'work' | 'personal' | 'shared'
 export type FolderMemberRole = 'owner' | 'member' | 'viewer'
 export type TaskMemberRole = 'owner' | 'member' | 'viewer'
 export type TaskProgressStatus = 'ongoing' | 'half_done' | 'completed'
+export type ReorderDirection = 'up' | 'down'
 export type AcquaintanceRequestStatus = 'pending' | 'accepted' | 'rejected' | 'cancelled'
 export type MemberRelationshipStatus =
   | 'acquaintance'
@@ -566,6 +567,20 @@ export type Database = {
           user_id: string
         }
         Returns: string
+      }
+      reorder_folder: {
+        Args: {
+          folder_id: string
+          direction: ReorderDirection
+        }
+        Returns: FolderRow[]
+      }
+      reorder_task: {
+        Args: {
+          task_id: string
+          direction: ReorderDirection
+        }
+        Returns: TaskRow[]
       }
       restore_folder: {
         Args: {

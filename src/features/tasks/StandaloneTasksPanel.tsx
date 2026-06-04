@@ -1,4 +1,4 @@
-import type { TaskProgressStatus } from '../../lib/database.types'
+import type { ReorderDirection, TaskProgressStatus } from '../../lib/database.types'
 import type { Task, TaskMember, TaskStatusAction } from '../../lib/growtData'
 import { TaskForm, type TaskCreateValues } from './TaskForm'
 import { TaskList } from './TaskList'
@@ -27,6 +27,7 @@ type StandaloneTasksPanelProps = {
   onCreateTask: (values: TaskCreateValues) => void
   onDeleteTask: (task: Task) => void
   onEditTask: (taskId: string) => void
+  onMoveTask: (task: Task, direction: ReorderDirection) => void
   onRemoveTaskMember: (task: Task, userId: string) => void
   onSetTaskStatus: (taskId: string, status: TaskProgressStatus) => void
   onUndoAction: (action: TaskStatusAction) => void
@@ -49,6 +50,7 @@ export function StandaloneTasksPanel({
   onCreateTask,
   onDeleteTask,
   onEditTask,
+  onMoveTask,
   onRemoveTaskMember,
   onSetTaskStatus,
   onUndoAction,
@@ -85,6 +87,7 @@ export function StandaloneTasksPanel({
         onAddTaskMember={onAddTaskMember}
         onDeleteTask={onDeleteTask}
         onEditTask={onEditTask}
+        onMoveTask={onMoveTask}
         onRemoveTaskMember={onRemoveTaskMember}
         onSetTaskStatus={onSetTaskStatus}
         onUndoAction={onUndoAction}

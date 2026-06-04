@@ -1,6 +1,6 @@
 # GrowT Progress Log
 
-Last updated: June 3, 2026
+Last updated: June 4, 2026
 
 ## Latest Checkpoints
 
@@ -55,6 +55,9 @@ Last updated: June 3, 2026
 - Added MVP in-app notifications with a bell, unread count, dropdown panel, mark-one-read, mark-all-read, and realtime arrival.
 - Notification rows are now created by real database/RPC actions for acquaintance requests, accepted requests, shared folder membership, and shared standalone task membership.
 - Manual QA confirms restore, acquaintance-aware Add Member, outgoing request cancellation, and MVP in-app notifications are working.
+- Added simple persistent Up/Down reorder controls for folders, folder tasks, and standalone tasks.
+- Reorder uses the existing `position` columns and secure RPCs instead of frontend-only ordering.
+- Manual QA confirms folder reorder, folder task reorder, standalone task reorder, refresh persistence, and shared folder task realtime updates without browser reload.
 
 ## Project Identity
 
@@ -130,8 +133,11 @@ Last updated: June 3, 2026
   - `public.list_acquaintances()`
   - `public.list_acquaintance_requests()`
   - `public.add_folder_member(folder_id, username)`
+  - `public.reorder_folder(folder_id, direction)`
+  - `public.reorder_task(task_id, direction)`
 - Kept privileged status logic inside the private schema.
 - Kept privileged edit/delete logic inside the private schema.
+- Kept privileged reorder logic inside the private schema.
 - Added `task_status_actions_active_contrib_idx` for non-undone status contribution lookups.
 - Added `tasks_standalone_owner_idx` and `task_status_actions_action_user_idx`.
 - Added canonical Realtime publication entries for:
@@ -228,6 +234,7 @@ Last updated: June 3, 2026
   - Half Done
   - Completed
 - Added persisted undo buttons based on the current user's latest undoable `task_status_actions` row.
+- Added simple Move Up / Move Down controls on folder cards, folder tasks, and standalone tasks.
 
 ## Realtime Work Completed
 
@@ -254,6 +261,7 @@ The folder page now behaves as a live session.
 - When a user is added to a Shared standalone task, the `task_members` event refreshes their standalone task list without a browser reload.
 - The Acquaintances panel subscribes to `acquaintance_requests` for current-user sender/receiver changes and `acquaintances` for current-user relationship changes.
 - The notification bell subscribes to the current user's `notifications` rows and updates unread count/panel state without browser reload.
+- Folder and task reorder persists through database `position` updates and propagates through the existing folder/task Realtime subscriptions.
 
 ## Current Acceptance Flow
 
@@ -299,7 +307,11 @@ To test with two users:
 38. Trigger notifications for acquaintance request received, request accepted, shared folder add, and shared standalone task add.
 39. Confirm the notification bell unread count updates in realtime.
 40. Mark one notification read, then mark all read, and confirm unread count updates.
-41. Refresh both browsers and confirm the database state remains correct.
+41. Move folders up/down and refresh to confirm order persists.
+42. Move folder tasks up/down and refresh to confirm order persists.
+43. Move standalone tasks up/down and refresh to confirm order persists.
+44. In a shared folder, move a task in one browser and confirm the other browser updates without refresh.
+45. Refresh both browsers and confirm the database state remains correct.
 
 ## Current Project Status
 
@@ -322,6 +334,7 @@ Completed:
 - Outgoing acquaintance request cancellation.
 - Folder, folder task, and standalone task restore with 7-day countdown.
 - MVP in-app notifications.
+- Simple persistent reorder controls for folders, folder tasks, and standalone tasks.
 
 Partial:
 - Modular architecture is much improved; `App.tsx` is now about 1,231 lines. Mutation handlers and some data loading orchestration still remain in `App.tsx` intentionally to avoid risky behavior changes.
@@ -329,7 +342,6 @@ Partial:
 
 Missing:
 - Task levels/subtasks UI.
-- Reorder controls.
 - Pixel-art design polish.
 
 ## Verification Already Run
@@ -340,7 +352,7 @@ Missing:
 - Search for `signInWithOtp` in `src` found no matches.
 - Search for old `growt_*` frontend calls in `src` found no matches.
 - Search for direct `from('tasks')` frontend usage in `src` found no matches.
-- Remote migrations were applied through `20260603192528_in_app_notifications_mvp.sql`.
+- Remote migrations were applied through `20260604090012_simple_reorder_controls.sql`.
 - Supabase database advisors were not rerun after the latest task, by request.
 - `http://localhost:5173/` responds with HTTP 200.
 - Browser smoke reload showed no fresh console errors after the shared standalone task membership update.
@@ -351,6 +363,11 @@ Missing:
 - Manual QA confirms acquaintance-aware Add Member works.
 - Manual QA confirms cancel outgoing acquaintance request works.
 - Manual QA confirms MVP in-app notifications work, including bell, unread count, panel, mark one read, mark all read, realtime arrival, and real notification rows.
+- Manual QA confirms folder Up/Down reorder works.
+- Manual QA confirms folder task Up/Down reorder works.
+- Manual QA confirms standalone task Up/Down reorder works.
+- Manual QA confirms reorder persists after refresh.
+- Manual QA confirms shared folder task reorder updates another browser without refresh when tested.
 
 ## Next Steps
 
@@ -359,8 +376,7 @@ Recommended build order:
 1. Commit and push the completed checkpoint.
 2. Continue mutation-handler extraction only if future cleanup needs it.
 3. Add task levels/subtasks UI.
-4. Add reorder controls.
-5. Save pixel-art design polish for later.
+4. Save pixel-art design polish for later.
 
 Manual dashboard item:
 - Enable leaked password protection in Supabase Auth settings.

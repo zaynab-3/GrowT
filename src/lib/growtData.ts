@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type {
   Database,
   FolderCategory,
+  ReorderDirection,
   TaskProgressStatus,
 } from './database.types'
 
@@ -188,6 +189,23 @@ export async function softDeleteFolder(client: GrowTClient, folderId: string) {
 export async function restoreFolder(client: GrowTClient, folderId: string) {
   const { data, error } = await client.rpc('restore_folder', {
     folder_id: folderId,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return data
+}
+
+export async function reorderFolder(
+  client: GrowTClient,
+  folderId: string,
+  direction: ReorderDirection,
+) {
+  const { data, error } = await client.rpc('reorder_folder', {
+    folder_id: folderId,
+    direction,
   })
 
   if (error) {
@@ -420,6 +438,23 @@ export async function softDeleteTask(client: GrowTClient, taskId: string) {
 export async function restoreTask(client: GrowTClient, taskId: string) {
   const { data, error } = await client.rpc('restore_task', {
     task_id: taskId,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return data
+}
+
+export async function reorderTask(
+  client: GrowTClient,
+  taskId: string,
+  direction: ReorderDirection,
+) {
+  const { data, error } = await client.rpc('reorder_task', {
+    task_id: taskId,
+    direction,
   })
 
   if (error) {

@@ -1,5 +1,5 @@
 import type { FormEvent } from 'react'
-import type { FolderCategory } from '../lib/database.types'
+import type { FolderCategory, ReorderDirection } from '../lib/database.types'
 import { categoryOptions } from '../lib/growtDisplay'
 import type { Folder } from '../lib/growtData'
 import { AcquaintancesPanel } from '../features/acquaintances/AcquaintancesPanel'
@@ -10,6 +10,7 @@ import { SearchResults } from '../features/search/SearchResults'
 
 type SidebarProps = {
   activeFolderId: string | null
+  currentUserId: string
   deletedFolders: Folder[]
   filteredFolders: Folder[]
   folderCategory: FolderCategory
@@ -22,6 +23,7 @@ type SidebarProps = {
   onFolderCategoryChange: (category: FolderCategory) => void
   onFolderDescriptionChange: (description: string) => void
   onFolderTitleChange: (title: string) => void
+  onMoveFolder: (folder: Folder, direction: ReorderDirection) => void
   onProfileDisplayNameChange: (displayName: string) => void
   onProfileUsernameChange: (username: string) => void
   onRestoreFolder: (folder: Folder) => void
@@ -35,6 +37,7 @@ type SidebarProps = {
 
 export function Sidebar({
   activeFolderId,
+  currentUserId,
   deletedFolders,
   filteredFolders,
   folderCategory,
@@ -47,6 +50,7 @@ export function Sidebar({
   onFolderCategoryChange,
   onFolderDescriptionChange,
   onFolderTitleChange,
+  onMoveFolder,
   onProfileDisplayNameChange,
   onProfileUsernameChange,
   onRestoreFolder,
@@ -72,8 +76,11 @@ export function Sidebar({
 
       <FolderList
         activeFolderId={activeFolderId}
+        currentUserId={currentUserId}
         emptyMessage={normalizedSearchQuery ? 'No folders match this search.' : 'No folders yet.'}
         folders={filteredFolders}
+        isSaving={isSaving}
+        onMoveFolder={onMoveFolder}
         onSelectFolder={onSelectFolder}
       />
 

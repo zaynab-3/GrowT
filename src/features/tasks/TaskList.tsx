@@ -1,4 +1,4 @@
-import type { TaskProgressStatus } from '../../lib/database.types'
+import type { ReorderDirection, TaskProgressStatus } from '../../lib/database.types'
 import type { Task, TaskMember, TaskStatusAction } from '../../lib/growtData'
 import { EmptyState } from '../../components/EmptyState'
 import { TaskCard } from './TaskCard'
@@ -27,6 +27,7 @@ type TaskListProps = {
   onAddTaskMember?: (task: Task, username: string) => Promise<void> | void
   onDeleteTask: (task: Task) => void
   onEditTask: (taskId: string) => void
+  onMoveTask: (task: Task, direction: ReorderDirection) => void
   onRemoveTaskMember?: (task: Task, userId: string) => void
   onSetTaskStatus: (taskId: string, status: TaskProgressStatus) => void
   onUndoAction: (action: TaskStatusAction) => void
@@ -49,6 +50,7 @@ export function TaskList({
   onAddTaskMember,
   onDeleteTask,
   onEditTask,
+  onMoveTask,
   onRemoveTaskMember,
   onSetTaskStatus,
   onUndoAction,
@@ -57,6 +59,10 @@ export function TaskList({
   taskMembersByTask,
   tasks,
 }: TaskListProps) {
+  const reorderableTaskIds = tasks
+    .filter((task) => (task.folder_id ? folderOwnerId === currentUserId : task.owner_id === currentUserId))
+    .map((task) => task.id)
+
   return (
     <div className="task-list">
       {tasks.map((task) => (
@@ -68,11 +74,14 @@ export function TaskList({
           folderOwnerId={folderOwnerId}
           getProfileLabel={getProfileLabel}
           isSaving={isSaving}
+          isFirst={reorderableTaskIds[0] === task.id}
+          isLast={reorderableTaskIds[reorderableTaskIds.length - 1] === task.id}
           key={task.id}
           onAddTaskMember={onAddTaskMember}
           onCloseEdit={onCloseEdit}
           onDeleteTask={onDeleteTask}
           onEditTask={onEditTask}
+          onMoveTask={onMoveTask}
           onRemoveTaskMember={onRemoveTaskMember}
           onSetTaskStatus={onSetTaskStatus}
           onUndoAction={onUndoAction}

@@ -8,6 +8,7 @@ export {
   listTaskMembers,
   listTaskProgressForTasks,
   listTasks,
+  reorderTask,
   removeTaskMember,
   restoreTask,
   setTaskProgress,

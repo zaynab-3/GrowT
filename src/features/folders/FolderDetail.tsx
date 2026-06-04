@@ -1,5 +1,5 @@
 import type { FormEvent } from 'react'
-import type { FolderCategory, TaskProgressStatus } from '../../lib/database.types'
+import type { FolderCategory, ReorderDirection, TaskProgressStatus } from '../../lib/database.types'
 import { statusColumns } from '../../lib/growtDisplay'
 import type { Folder, Task, TaskStatusAction } from '../../lib/growtData'
 import { EmptyState } from '../../components/EmptyState'
@@ -46,6 +46,7 @@ type FolderDetailProps = {
   onEditTask: (taskId: string) => void
   onInviteMember: (event: FormEvent<HTMLFormElement>) => void
   onMemberUsernameChange: (username: string) => void
+  onMoveTask: (task: Task, direction: ReorderDirection) => void
   onSetTaskStatus: (taskId: string, status: TaskProgressStatus) => void
   onToggleFolderEdit: () => void
   onUndoAction: (action: TaskStatusAction) => void
@@ -80,6 +81,7 @@ export function FolderDetail({
   onEditTask,
   onInviteMember,
   onMemberUsernameChange,
+  onMoveTask,
   onSetTaskStatus,
   onToggleFolderEdit,
   onUndoAction,
@@ -181,6 +183,7 @@ export function FolderDetail({
             onCloseEdit={onCloseTaskEdit}
             onDeleteTask={onDeleteTask}
             onEditTask={onEditTask}
+            onMoveTask={onMoveTask}
             onSetTaskStatus={onSetTaskStatus}
             onUndoAction={onUndoAction}
             onUpdateTask={onUpdateTask}

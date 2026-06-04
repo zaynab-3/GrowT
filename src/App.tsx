@@ -11,6 +11,7 @@ import {
   listDeletedFolders,
   listFolderMembers,
   listFolders,
+  reorderFolder,
   restoreFolder,
   softDeleteFolder,
   updateFolder,
@@ -29,6 +30,7 @@ import {
   listTaskMembers,
   listTaskProgressForTasks,
   listTasks,
+  reorderTask,
   removeTaskMember,
   restoreTask,
   setTaskProgress,
@@ -68,7 +70,7 @@ import {
   type TaskProgress,
   type TaskStatusAction,
 } from './lib/growtData'
-import type { FolderCategory, TaskProgressStatus } from './lib/database.types'
+import type { FolderCategory, ReorderDirection, TaskProgressStatus } from './lib/database.types'
 
 type ConfirmRequest = {
   confirmLabel: string
@@ -754,6 +756,27 @@ function App() {
     }
   }
 
+  async function handleMoveFolder(folder: Folder, direction: ReorderDirection) {
+    if (!supabase) {
+      return
+    }
+
+    setSaving(true)
+    setMessage('')
+
+    try {
+      const nextFolders = await reorderFolder(supabase, folder.id, direction)
+      setFolders(sortFolders(nextFolders))
+      setMessage(`Folder moved ${direction}.`)
+      await refreshFoldersRef.current()
+    } catch (error) {
+      console.error('Folder reorder failed', error)
+      setMessage('Unable to reorder folder.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   async function handleRestoreTask(task: Task) {
     if (!supabase) {
       return
@@ -789,6 +812,34 @@ function App() {
     } catch (error) {
       console.error('Task restore failed', error)
       setMessage('Unable to restore task.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleMoveTask(task: Task, direction: ReorderDirection) {
+    if (!supabase) {
+      return
+    }
+
+    setSaving(true)
+    setMessage('')
+
+    try {
+      const nextTasks = await reorderTask(supabase, task.id, direction)
+
+      if (task.folder_id) {
+        setTasks(sortByPositionAndCreatedAt(nextTasks))
+        await refreshLiveSessionRef.current()
+      } else {
+        setStandaloneTasks(sortByPositionAndCreatedAt(nextTasks))
+        await refreshStandaloneTasks()
+      }
+
+      setMessage(`Task moved ${direction}.`)
+    } catch (error) {
+      console.error('Task reorder failed', error)
+      setMessage('Unable to reorder task.')
     } finally {
       setSaving(false)
     }
@@ -1129,6 +1180,7 @@ function App() {
       sidebar={
         <Sidebar
           activeFolderId={activeFolder?.id ?? null}
+          currentUserId={session.user.id}
           deletedFolders={deletedFolders}
           filteredFolders={filteredFolders}
           folderCategory={folderCategory}
@@ -1141,6 +1193,7 @@ function App() {
           onFolderCategoryChange={setFolderCategory}
           onFolderDescriptionChange={setFolderDescription}
           onFolderTitleChange={setFolderTitle}
+          onMoveFolder={(folder, direction) => void handleMoveFolder(folder, direction)}
           onProfileDisplayNameChange={setProfileDisplayName}
           onProfileUsernameChange={setProfileUsername}
           onRestoreFolder={handleRestoreFolder}
@@ -1181,6 +1234,7 @@ function App() {
         onCreateTask={(values) => void handleCreateStandaloneTask(values)}
         onDeleteTask={requestDeleteTask}
         onEditTask={(taskId) => setEditingTaskId((currentId) => (currentId === taskId ? null : taskId))}
+        onMoveTask={(task, direction) => void handleMoveTask(task, direction)}
         onRemoveTaskMember={(task, userId) => void handleRemoveTaskMember(task, userId)}
         onSetTaskStatus={(taskId, status) => void handleSetTaskStatus(taskId, status)}
         onUndoAction={(action) => void handleUndoTaskStatus(action)}
@@ -1223,6 +1277,7 @@ function App() {
         onEditTask={(taskId) => setEditingTaskId((currentId) => (currentId === taskId ? null : taskId))}
         onInviteMember={handleInviteMember}
         onMemberUsernameChange={setMemberUsername}
+        onMoveTask={(task, direction) => void handleMoveTask(task, direction)}
         onSetTaskStatus={(taskId, status) => void handleSetTaskStatus(taskId, status)}
         onToggleFolderEdit={() => setIsEditingFolder((current) => !current)}
         onUndoAction={(action) => void handleUndoTaskStatus(action)}

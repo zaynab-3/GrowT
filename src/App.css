@@ -494,18 +494,29 @@ h2 {
 
 .folder-row {
   display: grid;
-  gap: 5px;
+  gap: 10px;
   width: 100%;
   padding: 14px;
   color: var(--ink);
   text-align: left;
-  cursor: pointer;
 }
 
 .folder-row:hover,
 .folder-row--selected {
   border-color: rgba(69, 141, 84, 0.44);
   box-shadow: 0 14px 32px rgba(42, 57, 45, 0.08);
+}
+
+.folder-row__select {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
 }
 
 .folder-row span,
@@ -764,6 +775,18 @@ h2 {
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 8px;
+}
+
+.reorder-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.reorder-button {
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 12px;
 }
 
 .status-button {
