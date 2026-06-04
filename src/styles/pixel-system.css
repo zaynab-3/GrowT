@@ -1,0 +1,186 @@
+/* GrowT pixel-art design pass 1: reusable visual primitives */
+.topbar,
+.workspace-hero,
+.side-panel,
+.main-panel,
+.auth-panel,
+.confirm-dialog,
+.notification-panel,
+.notification-bell__message,
+.toast {
+  border: 2px solid var(--line);
+  border-radius: 6px;
+  box-shadow: 5px 5px 0 var(--pixel-shadow);
+}
+
+.workspace-hero,
+.main-panel,
+.auth-panel,
+.confirm-dialog,
+.notification-panel,
+.notification-bell__message,
+.toast {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.52), transparent 42%),
+    var(--surface);
+}
+
+h1,
+h2,
+.panel-heading h2 {
+  font-family: var(--pixel-font);
+  letter-spacing: 0;
+}
+
+h2 {
+  font-size: 27px;
+}
+
+.section-label,
+label,
+.metric span,
+.status-total span,
+.meta-chip small,
+.status-heading {
+  color: var(--sprout);
+  font-family: var(--pixel-font);
+  font-size: 12px;
+  letter-spacing: 0;
+}
+
+.hero-text,
+.panel-heading > span,
+.panel-heading__meta,
+.folder-row span,
+.task-row span,
+.empty-state,
+.notice,
+.notification-row span,
+.notification-row small,
+.notification-bell__message,
+.restore-row span {
+  color: var(--muted);
+}
+
+.metric,
+.status-total,
+.meta-chip,
+.member-summary,
+.task-members-panel,
+.restore-panel,
+.empty-state,
+.invite-note,
+.edit-form--task {
+  border: 2px solid var(--line-soft);
+  border-radius: 5px;
+  background: var(--surface-soft);
+  box-shadow: 3px 3px 0 rgba(86, 63, 36, 0.22);
+}
+
+input,
+textarea,
+select {
+  border: 2px solid var(--line);
+  border-radius: 5px;
+  background: #fff9df;
+  box-shadow: inset 3px 3px 0 rgba(86, 63, 36, 0.08);
+  color: var(--ink);
+  font-family: var(--pixel-font);
+  font-size: 13px;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--sprout);
+  outline: 3px solid rgba(61, 139, 75, 0.18);
+}
+
+input[type="checkbox"] {
+  accent-color: var(--sprout);
+}
+
+.button,
+.chip-button,
+.contributor-chip button {
+  border: 2px solid var(--line);
+  border-radius: 5px;
+  box-shadow: 3px 3px 0 rgba(23, 39, 24, 0.32);
+  font-family: var(--pixel-font);
+  font-size: 12px;
+  letter-spacing: 0;
+}
+
+.button {
+  min-height: 40px;
+  padding: 0 14px;
+}
+
+.button:active:not(:disabled),
+.chip-button:active:not(:disabled),
+.contributor-chip button:active:not(:disabled) {
+  box-shadow: 1px 1px 0 rgba(23, 39, 24, 0.32);
+  transform: translate(2px, 2px);
+}
+
+.button:hover:not(:disabled),
+.notification-bell__button:hover,
+.folder-row:hover,
+.task-row:hover,
+.restore-row:hover,
+.notification-row:hover,
+.meta-chip:hover {
+  transform: translate(-1px, -1px);
+}
+
+.button--primary {
+  border-color: #0b241a;
+  background: var(--sprout);
+  color: #fff8d9;
+}
+
+.button--secondary,
+.status-button {
+  border-color: var(--line);
+  background: #fff1bd;
+  color: var(--ink);
+}
+
+.button--danger {
+  border-color: #6f2b20;
+  background: #f1ad96;
+  color: #5b2018;
+}
+
+.chip-button {
+  border-color: rgba(86, 63, 36, 0.45);
+  background: #fff1bd;
+  color: var(--danger);
+  padding: 6px 9px;
+}
+
+.text-button {
+  color: var(--sprout);
+  font-family: var(--pixel-font);
+  font-size: 13px;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+.empty-state,
+.invite-note {
+  color: var(--muted);
+  font-family: var(--pixel-font);
+  font-size: 13px;
+}
+
+.dialog-backdrop {
+  background:
+    linear-gradient(rgba(16, 46, 33, 0.64), rgba(16, 46, 33, 0.64)),
+    repeating-linear-gradient(45deg, rgba(255, 244, 211, 0.08) 0 4px, transparent 4px 8px);
+}
+
+.confirm-dialog h2 {
+  font-size: 24px;
+}

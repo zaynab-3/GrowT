@@ -5,7 +5,6 @@ import type { Folder } from '../lib/growtData'
 import { AcquaintancesPanel } from '../features/acquaintances/AcquaintancesPanel'
 import { FolderList } from '../features/folders/FolderList'
 import { FolderRestorePanel } from '../features/folders/FolderRestorePanel'
-import { SearchBar } from '../features/search/SearchBar'
 import { SearchResults } from '../features/search/SearchResults'
 
 type SidebarProps = {
@@ -28,11 +27,9 @@ type SidebarProps = {
   onProfileUsernameChange: (username: string) => void
   onRestoreFolder: (folder: Folder) => void
   onSaveProfile: (event: FormEvent<HTMLFormElement>) => void
-  onSearchChange: (query: string) => void
   onSelectFolder: (folderId: string) => void
   profileDisplayName: string
   profileUsername: string
-  searchQuery: string
 }
 
 export function Sidebar({
@@ -55,11 +52,9 @@ export function Sidebar({
   onProfileUsernameChange,
   onRestoreFolder,
   onSaveProfile,
-  onSearchChange,
   onSelectFolder,
   profileDisplayName,
   profileUsername,
-  searchQuery,
 }: SidebarProps) {
   return (
     <aside className="side-panel">
@@ -71,8 +66,6 @@ export function Sidebar({
           visibleCount={filteredFolders.length}
         />
       </div>
-
-      <SearchBar onChange={onSearchChange} value={searchQuery} />
 
       <FolderList
         activeFolderId={activeFolderId}

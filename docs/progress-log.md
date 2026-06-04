@@ -58,6 +58,10 @@ Last updated: June 4, 2026
 - Added simple persistent Up/Down reorder controls for folders, folder tasks, and standalone tasks.
 - Reorder uses the existing `position` columns and secure RPCs instead of frontend-only ordering.
 - Manual QA confirms folder reorder, folder task reorder, standalone task reorder, refresh persistence, and shared folder task realtime updates without browser reload.
+- Pixel Design Pass 1 added a working visual foundation for GrowT, using a cozy retro pixel-art direction while keeping the app usable.
+- Pixel styling is organized into modular CSS layers for tokens/primitives, layout, feature surfaces, and responsive adjustments instead of being dumped into `App.tsx`.
+- Logout race fixes prevent stale authenticated requests from showing `Unable to load deleted items.` or `Unable to load GrowT data.` on login/register/opening-session screens after sign out.
+- Manual QA confirms logout returns to the auth page cleanly; final design/layout polish is still pending.
 
 ## Project Identity
 
@@ -235,6 +239,13 @@ Last updated: June 4, 2026
   - Completed
 - Added persisted undo buttons based on the current user's latest undoable `task_status_actions` row.
 - Added simple Move Up / Move Down controls on folder cards, folder tasks, and standalone tasks.
+- Added Pixel Design Pass 1 visual foundation files:
+  - `src/styles/pixel-system.css`
+  - `src/styles/pixel-layout.css`
+  - `src/styles/pixel-features.css`
+  - `src/styles/pixel-responsive.css`
+- Moved the global search control into the topbar as part of the visual foundation while preserving the existing search state and behavior.
+- Added session-staleness guards for authenticated data loading so late folder/task/archive/profile requests after logout are ignored safely.
 
 ## Realtime Work Completed
 
@@ -335,14 +346,17 @@ Completed:
 - Folder, folder task, and standalone task restore with 7-day countdown.
 - MVP in-app notifications.
 - Simple persistent reorder controls for folders, folder tasks, and standalone tasks.
+- Pixel Design Pass 1 visual foundation with modular pixel CSS organization.
+- Logout race fixes after sign out, including stale deleted-items and main GrowT data requests.
 
 Partial:
 - Modular architecture is much improved; `App.tsx` is now about 1,231 lines. Mutation handlers and some data loading orchestration still remain in `App.tsx` intentionally to avoid risky behavior changes.
 - Search is local MVP search, not full database/global search.
+- Final design/layout polish is still pending; Pixel Design Pass 1 is a foundation, not the final app layout.
 
 Missing:
 - Task levels/subtasks UI.
-- Pixel-art design polish.
+- Final pixel-art design polish and page/view-based layout refinement.
 
 ## Verification Already Run
 
@@ -368,15 +382,18 @@ Missing:
 - Manual QA confirms standalone task Up/Down reorder works.
 - Manual QA confirms reorder persists after refresh.
 - Manual QA confirms shared folder task reorder updates another browser without refresh when tested.
+- `npm run lint` passes after Pixel Design Pass 1 and logout race fixes.
+- `npm run build` passes after Pixel Design Pass 1 and logout race fixes.
+- Manual QA confirms sign out returns to the login/auth page cleanly with no deleted-items or GrowT data error message.
 
 ## Next Steps
 
 Recommended build order:
 
-1. Commit and push the completed checkpoint.
+1. Commit and push the completed pixel design foundation checkpoint.
 2. Continue mutation-handler extraction only if future cleanup needs it.
 3. Add task levels/subtasks UI.
-4. Save pixel-art design polish for later.
+4. Continue final pixel-art design/layout polish later.
 
 Manual dashboard item:
 - Enable leaked password protection in Supabase Auth settings.

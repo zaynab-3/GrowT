@@ -1,5 +1,4 @@
 import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
-import './App.css'
 import { AuthPanel } from './auth/AuthPanel'
 import { ConfirmDialog } from './components/ConfirmDialog'
 import { LoadingState } from './components/LoadingState'
@@ -121,6 +120,8 @@ function App() {
   const [realtimeStatus, setRealtimeStatus] = useState('Idle')
 
   const user = session?.user ?? null
+  const sessionKey = session?.access_token ?? null
+  const activeSessionKeyRef = useRef<string | null>(null)
   const profilesByIdRef = useRef<Record<string, Profile>>({})
   const taskIdsRef = useRef<Set<string>>(new Set())
   const standaloneTaskIdsRef = useRef<Set<string>>(new Set())
@@ -161,6 +162,14 @@ function App() {
   })
 
   useEffect(() => {
+    activeSessionKeyRef.current = sessionKey
+  }, [sessionKey])
+
+  const isCurrentSession = useCallback((requestSessionKey: string | null) => {
+    return Boolean(requestSessionKey && activeSessionKeyRef.current === requestSessionKey)
+  }, [])
+
+  useEffect(() => {
     profilesByIdRef.current = profilesById
   }, [profilesById])
 
@@ -178,10 +187,11 @@ function App() {
   }, [actions])
 
   const loadProfilesForIds = useCallback(async (userIds: string[]) => {
-    if (!supabase) {
+    if (!supabase || !sessionKey) {
       return
     }
 
+    const requestSessionKey = sessionKey
     const missingIds = Array.from(new Set(userIds))
       .filter(Boolean)
       .filter((userId) => !profilesByIdRef.current[userId])
@@ -193,6 +203,10 @@ function App() {
     try {
       const nextProfiles = await listProfiles(supabase, missingIds)
 
+      if (!isCurrentSession(requestSessionKey)) {
+        return
+      }
+
       setProfilesById((current) => {
         const merged = { ...current }
 
@@ -203,36 +217,52 @@ function App() {
         return merged
       })
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unable to load member profiles.')
+      if (isCurrentSession(requestSessionKey)) {
+        setMessage(error instanceof Error ? error.message : 'Unable to load member profiles.')
+      }
     }
-  }, [])
+  }, [isCurrentSession, sessionKey])
 
   const refreshFolders = useCallback(async () => {
-    if (!authReady || !supabase || !user) {
+    if (!authReady || !supabase || !user || !sessionKey) {
       return
     }
 
-    const nextFolders = await listFolders(supabase)
-    setFolders(sortFolders(nextFolders))
-    setSelectedFolderId((currentId) => {
-      if (currentId && nextFolders.some((folder) => folder.id === currentId)) {
-        return currentId
+    const requestSessionKey = sessionKey
+
+    try {
+      const nextFolders = await listFolders(supabase)
+
+      if (!isCurrentSession(requestSessionKey)) {
+        return
       }
 
-      return null
-    })
-  }, [authReady, user])
+      setFolders(sortFolders(nextFolders))
+      setSelectedFolderId((currentId) => {
+        if (currentId && nextFolders.some((folder) => folder.id === currentId)) {
+          return currentId
+        }
+
+        return null
+      })
+    } catch (error) {
+      if (isCurrentSession(requestSessionKey)) {
+        throw error
+      }
+    }
+  }, [authReady, isCurrentSession, sessionKey, user])
 
   useEffect(() => {
     refreshFoldersRef.current = refreshFolders
   }, [refreshFolders])
 
   const refreshStandaloneTasks = useCallback(async () => {
-    if (!authReady || !supabase || !user) {
+    if (!authReady || !supabase || !user || !sessionKey) {
       return
     }
 
     const client = supabase
+    const requestSessionKey = sessionKey
 
     try {
       const nextTasks = await listStandaloneTasks(client)
@@ -246,6 +276,10 @@ function App() {
         Promise.all(sharedTaskIds.map((taskId) => listTaskMembers(client, taskId))),
       ])
       const nextTaskMembers = nextMembersByTask.flat()
+
+      if (!isCurrentSession(requestSessionKey)) {
+        return
+      }
 
       setStandaloneTasks(sortByPositionAndCreatedAt(nextTasks))
       setTaskMembers(sortTaskMembers(nextTaskMembers))
@@ -261,14 +295,18 @@ function App() {
       ])
     } catch (error) {
       console.error('Standalone tasks load failed', error)
-      setMessage('Unable to load standalone tasks.')
+      if (isCurrentSession(requestSessionKey)) {
+        setMessage('Unable to load standalone tasks.')
+      }
     }
-  }, [authReady, loadProfilesForIds, user])
+  }, [authReady, isCurrentSession, loadProfilesForIds, sessionKey, user])
 
   const refreshArchive = useCallback(async () => {
-    if (!authReady || !supabase || !user) {
+    if (!authReady || !supabase || !user || !sessionKey) {
       return
     }
+
+    const requestSessionKey = sessionKey
 
     try {
       const [nextDeletedFolders, nextDeletedTasks] = await Promise.all([
@@ -276,20 +314,26 @@ function App() {
         listDeletedTasks(supabase),
       ])
 
+      if (!isCurrentSession(requestSessionKey)) {
+        return
+      }
+
       setDeletedFolders(sortFolders(nextDeletedFolders))
       setDeletedTasks(sortByPositionAndCreatedAt(nextDeletedTasks))
     } catch (error) {
       console.error('Archive load failed', error)
-      setMessage('Unable to load deleted items.')
+      if (isCurrentSession(requestSessionKey)) {
+        setMessage('Unable to load deleted items.')
+      }
     }
-  }, [authReady, user])
+  }, [authReady, isCurrentSession, sessionKey, user])
 
   const loadUserData = useCallback(async () => {
     if (!authReady) {
       return
     }
 
-    if (!supabase || !user) {
+    if (!supabase || !user || !sessionKey) {
       setCurrentProfile(null)
       setFolders([])
       setStandaloneTasks([])
@@ -300,23 +344,39 @@ function App() {
       return
     }
 
+    const requestSessionKey = sessionKey
+
     setDataLoading(true)
     setMessage('')
 
     try {
       const nextProfile = await ensureProfile(supabase, user.id, null)
+
+      if (!isCurrentSession(requestSessionKey)) {
+        return
+      }
+
       setCurrentProfile(nextProfile)
       setProfileDisplayName(nextProfile.display_name ?? '')
       setProfileUsername(nextProfile.username ?? '')
       setProfilesById((current) => ({ ...current, [nextProfile.id]: nextProfile }))
       await refreshFolders()
+
+      if (!isCurrentSession(requestSessionKey)) {
+        return
+      }
+
       await Promise.all([refreshStandaloneTasks(), refreshArchive()])
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unable to load GrowT data.')
+      if (isCurrentSession(requestSessionKey)) {
+        setMessage(error instanceof Error ? error.message : 'Unable to load GrowT data.')
+      }
     } finally {
-      setDataLoading(false)
+      if (isCurrentSession(requestSessionKey)) {
+        setDataLoading(false)
+      }
     }
-  }, [authReady, refreshArchive, refreshFolders, refreshStandaloneTasks, user])
+  }, [authReady, isCurrentSession, refreshArchive, refreshFolders, refreshStandaloneTasks, sessionKey, user])
 
   useEffect(() => {
     void loadUserData()
@@ -356,12 +416,14 @@ function App() {
       return
     }
 
-    if (!supabase || !activeFolder) {
+    if (!supabase || !activeFolder || !sessionKey) {
       setMembers([])
       setTasks([])
       setRealtimeStatus('Idle')
       return
     }
+
+    const requestSessionKey = sessionKey
 
     setDataLoading(true)
     setMessage('')
@@ -376,6 +438,10 @@ function App() {
         listTaskProgressForTasks(supabase, taskIds),
         listTaskActionsForTasks(supabase, taskIds),
       ])
+
+      if (!isCurrentSession(requestSessionKey)) {
+        return
+      }
 
       setTasks(sortByPositionAndCreatedAt(nextTasks))
       setMembers(nextMembers)
@@ -392,11 +458,15 @@ function App() {
       ])
     } catch (error) {
       console.error('Live session load failed', error)
-      setMessage('Unable to load live session.')
+      if (isCurrentSession(requestSessionKey)) {
+        setMessage('Unable to load live session.')
+      }
     } finally {
-      setDataLoading(false)
+      if (isCurrentSession(requestSessionKey)) {
+        setDataLoading(false)
+      }
     }
-  }, [activeFolder, authReady, loadProfilesForIds])
+  }, [activeFolder, authReady, isCurrentSession, loadProfilesForIds, sessionKey])
 
   useEffect(() => {
     refreshLiveSessionRef.current = refreshLiveSession
@@ -596,8 +666,10 @@ function App() {
       return
     }
 
+    activeSessionKeyRef.current = null
     await supabase.auth.signOut()
     setSession(null)
+    setMessage('')
     setCurrentProfile(null)
     setFolders([])
     setMembers([])
@@ -608,6 +680,10 @@ function App() {
     setProgress([])
     setActions([])
     setSelectedFolderId(null)
+    setConfirmRequest(null)
+    setDataLoading(false)
+    setSaving(false)
+    setPendingAction(null)
     setRealtimeStatus('Idle')
   }
 
@@ -1175,8 +1251,10 @@ function App() {
       folderCount={folders.length}
       heroTitle={activeFolder?.title ?? (folders.length ? 'Select a folder to begin.' : 'Create a folder to begin.')}
       message={message}
+      onSearchChange={setSearchQuery}
       onSignOut={() => void handleSignOut()}
       realtimeLabel={activeFolder && dataLoading ? 'Syncing' : realtimeStatus}
+      searchQuery={searchQuery}
       sidebar={
         <Sidebar
           activeFolderId={activeFolder?.id ?? null}
@@ -1198,11 +1276,9 @@ function App() {
           onProfileUsernameChange={setProfileUsername}
           onRestoreFolder={handleRestoreFolder}
           onSaveProfile={handleUpdateProfile}
-          onSearchChange={setSearchQuery}
           onSelectFolder={setSelectedFolderId}
           profileDisplayName={profileDisplayName}
           profileUsername={profileUsername}
-          searchQuery={searchQuery}
         />
       }
       taskCount={tasks.length + standaloneTasks.length}

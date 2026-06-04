@@ -8,8 +8,10 @@ type AppShellProps = {
   folderCount: number
   heroTitle: string
   message: string
+  onSearchChange: (query: string) => void
   onSignOut: () => void
   realtimeLabel: string
+  searchQuery: string
   sidebar: ReactNode
   taskCount: number
 }
@@ -21,14 +23,21 @@ export function AppShell({
   folderCount,
   heroTitle,
   message,
+  onSearchChange,
   onSignOut,
   realtimeLabel,
+  searchQuery,
   sidebar,
   taskCount,
 }: AppShellProps) {
   return (
     <main className="app-shell">
-      <Topbar accountLabel={accountLabel} onSignOut={onSignOut} />
+      <Topbar
+        accountLabel={accountLabel}
+        onSearchChange={onSearchChange}
+        onSignOut={onSignOut}
+        searchQuery={searchQuery}
+      />
 
       <section className="workspace-hero" id="session">
         <div>

@@ -79,7 +79,7 @@ export function TaskCard({
         </div>
         <div className="status-actions">
           <button
-            className="button status-button"
+            className="button status-button reorder-button"
             disabled={isSaving || !canReorderTask || isFirst}
             onClick={() => onMoveTask(task, 'up')}
             title={canReorderTask ? 'Move task up' : 'Only the owner can reorder this task'}
@@ -88,7 +88,7 @@ export function TaskCard({
             Move Up
           </button>
           <button
-            className="button status-button"
+            className="button status-button reorder-button"
             disabled={isSaving || !canReorderTask || isLast}
             onClick={() => onMoveTask(task, 'down')}
             title={canReorderTask ? 'Move task down' : 'Only the owner can reorder this task'}
