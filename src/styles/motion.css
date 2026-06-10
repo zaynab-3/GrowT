@@ -128,10 +128,14 @@
 }
 
 .confirm-dialog,
-.notification-bell > .stitch-panel,
-.notification-bell .absolute,
-.fixed.stitch-panel {
+.notification-bell > .stitch-panel {
   animation: growt-pop-in 220ms var(--motion-pop) both;
+}
+
+.notification-popover,
+.progress-popup {
+  animation: growt-popup-slide-in 180ms var(--motion-ease) both;
+  transform-origin: top center;
 }
 
 .motion-choice,
@@ -286,6 +290,17 @@ select:focus {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes growt-popup-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

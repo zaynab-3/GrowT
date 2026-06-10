@@ -75,7 +75,7 @@ export function ProgressPopup({ isOpen, onClose, title, subtitle, users, anchorR
   return createPortal(
     <div 
       ref={popupRef} 
-      className="progress-popup fixed animate-in fade-in zoom-in-95 duration-200 stitch-panel w-[340px] max-w-[calc(100vw-32px)] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-surface-variant/50 z-[200]" 
+      className="progress-popup fixed stitch-panel w-[340px] max-w-[calc(100vw-32px)] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-surface-variant/50 z-[200]" 
       style={{ top: `${coords.top}px`, left: `${coords.left}px` }}
       onClick={e => e.stopPropagation()}
     >
