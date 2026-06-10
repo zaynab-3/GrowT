@@ -41,10 +41,13 @@ export function ProgressPopup({ isOpen, onClose, title, subtitle, users, anchorR
 
   useEffect(() => {
     if (isOpen && anchorRect) {
-      const popupWidth = 340
       const margin = 16
       const viewportWidth = window.innerWidth
       const viewportHeight = window.innerHeight
+      const isMobile = viewportWidth <= 640
+      const popupWidth = isMobile ? viewportWidth - margin * 2 : 340
+      const minTop = isMobile ? 104 : margin
+      const bottomReserve = isMobile ? 88 : margin
 
       let top = anchorRect.bottom + 8
       let left = anchorRect.left + anchorRect.width / 2 - popupWidth / 2
@@ -57,9 +60,11 @@ export function ProgressPopup({ isOpen, onClose, title, subtitle, users, anchorR
 
       // Check height overflow and adjust to render above the trigger if needed
       const popupHeight = popupRef.current?.offsetHeight || 220
-      if (top + popupHeight > viewportHeight - margin) {
-        top = Math.max(margin, anchorRect.top - popupHeight - 8)
+      if (top + popupHeight > viewportHeight - bottomReserve) {
+        top = Math.max(minTop, anchorRect.top - popupHeight - 8)
       }
+
+      top = Math.max(minTop, Math.min(top, viewportHeight - popupHeight - bottomReserve))
 
       setCoords({ top, left })
     }
@@ -70,11 +75,11 @@ export function ProgressPopup({ isOpen, onClose, title, subtitle, users, anchorR
   return createPortal(
     <div 
       ref={popupRef} 
-      className="fixed animate-in fade-in zoom-in-95 duration-200 stitch-panel w-[340px] max-w-[calc(100vw-32px)] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-surface-variant/50 z-[200]" 
+      className="progress-popup fixed animate-in fade-in zoom-in-95 duration-200 stitch-panel w-[340px] max-w-[calc(100vw-32px)] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-surface-variant/50 z-[200]" 
       style={{ top: `${coords.top}px`, left: `${coords.left}px` }}
       onClick={e => e.stopPropagation()}
     >
-      <div className="stitch-panel__header flex justify-between items-center px-4 py-3 border-b border-surface-variant/50">
+      <div className="stitch-panel__header progress-popup__header flex justify-between items-center px-4 py-3">
         <div className="flex flex-col">
           <h3 className="stitch-panel__title m-0 text-sm font-bold uppercase tracking-wider text-primary flex items-center gap-2">
             <Info size={14} />

@@ -25,7 +25,7 @@ export function NotificationPanel({
 }: NotificationPanelProps) {
   return (
     <div className={`stitch-panel${className ? ` ${className}` : ''}`} role="dialog" aria-label="Notifications">
-      <div className="stitch-panel__header flex justify-between items-center px-4 py-3 border-b border-surface-variant/50">
+      <div className="stitch-panel__header flex justify-between items-center px-4 py-3">
         <h3 className="stitch-panel__title m-0 text-sm font-bold uppercase tracking-wider text-primary">Notifications</h3>
         <button
           className="text-xs font-bold text-on-surface-variant hover:text-primary transition-colors disabled:opacity-50"

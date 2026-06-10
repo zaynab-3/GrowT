@@ -68,7 +68,7 @@ export function GlobalSearchDropdown({ folders, tasks, onOpenFolder, onNavigate,
   }, [value, folders, tasks])
 
   return (
-    <div ref={wrapperRef} className="relative flex-1 md:w-64">
+    <div ref={wrapperRef} className="global-search relative flex-1 md:w-64">
       <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-outline" />
       <input 
         className="w-full bg-surface-container-low dark:bg-dark-card border-none rounded-xl pr-10 py-2.5 font-body-md text-body-md text-on-surface focus:ring-2 focus:ring-primary/50 transition-all shadow-sm"
@@ -91,7 +91,7 @@ export function GlobalSearchDropdown({ folders, tasks, onOpenFolder, onNavigate,
       ) : null}
       
       {isOpen && (
-        <div className="absolute z-50 w-full md:w-[400px] right-0 mt-2 bg-surface border border-surface-variant rounded-xl shadow-lg max-h-80 overflow-y-auto">
+        <div className="global-search__panel absolute z-50 w-full md:w-[400px] right-0 mt-2 bg-surface border border-surface-variant rounded-xl shadow-lg max-h-80 overflow-y-auto">
           {folderResults.length === 0 && taskResults.length === 0 && userResults.length === 0 && !isSearchingUsers ? (
             <div className="p-4 text-center text-on-surface-variant text-sm">No results found</div>
           ) : (

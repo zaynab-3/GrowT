@@ -541,6 +541,10 @@ html, body, #root {
 }
 
 @media (max-width: 900px) {
+  :root {
+    --topbar-height: 112px;
+  }
+
   .app-frame {
     grid-template-columns: 1fr;
   }
@@ -553,8 +557,70 @@ html, body, #root {
   .account-pill__name { display: none; }
 
   .app-main { padding-bottom: 80px; }
-  .app-canvas { padding: 24px 16px 80px; width: 100%; }
-  .topbar { padding: 0 16px; gap: 8px; }
+  .app-canvas { padding: 20px 16px 80px; width: 100%; }
+  .topbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "brand actions"
+      "search search";
+    height: auto;
+    min-height: var(--topbar-height);
+    align-content: center;
+    gap: 10px 12px;
+    border-bottom: 0;
+    padding: 12px 16px 14px;
+  }
+
+  .topbar-brand {
+    grid-area: brand;
+    min-width: 0;
+  }
+
+  .topbar-actions {
+    grid-area: actions;
+    margin-left: 0;
+    justify-self: end;
+  }
+
+  .topbar-center {
+    grid-area: search;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+  }
+
+  .global-search {
+    width: 100%;
+  }
+
+  .global-search input {
+    min-height: 44px;
+    border-radius: 16px;
+  }
+
+  .global-search__panel {
+    position: fixed !important;
+    top: calc(var(--topbar-height) - 2px) !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-height: min(360px, calc(100dvh - var(--topbar-height) - 96px));
+  }
+
+  .notification-popover {
+    position: fixed !important;
+    top: calc(var(--topbar-height) - 2px) !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-width: none !important;
+    margin-top: 0 !important;
+  }
+
+  .notification-popover .stitch-panel__body {
+    max-height: min(360px, calc(100dvh - var(--topbar-height) - 96px));
+  }
 
   .portfolio-board { grid-template-columns: 1fr; }
   .tasks-board { grid-template-columns: 1fr; }
@@ -565,7 +631,23 @@ html, body, #root {
 
 @media (max-width: 600px) {
   .app-canvas { padding: 16px 12px 80px; }
-  .topbar { padding: 0 12px; }
+  .topbar { padding: 12px 12px 14px; }
+  .topbar-actions,
+  .account-cluster {
+    gap: 5px;
+  }
+  .topbar .btn--icon,
+  .notification-bell__button {
+    width: 34px;
+    height: 34px;
+  }
+  .account-pill {
+    padding: 2px;
+  }
+  .account-avatar {
+    width: 28px;
+    height: 28px;
+  }
   .dashboard-bento-grid { gap: 16px; }
   .stats-grid-container { gap: 16px; }
   .dashboard-main-section { gap: 16px; }

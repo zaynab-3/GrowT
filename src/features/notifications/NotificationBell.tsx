@@ -41,7 +41,7 @@ export function NotificationBell({ onNavigate }: NotificationBellProps) {
       </button>
 
       {isOpen ? (
-        <div className="absolute top-full right-0 mt-2 w-[420px] max-w-[calc(100vw-32px)] z-[200] origin-top-right animate-in fade-in slide-in-from-top-4 duration-200 shadow-2xl">
+        <div className="notification-popover absolute top-full right-0 mt-2 w-[420px] max-w-[calc(100vw-32px)] z-[200] origin-top-right animate-in fade-in slide-in-from-top-4 duration-200 shadow-2xl">
         <NotificationPanel
           isBusy={isBusy}
           notifications={notifications}

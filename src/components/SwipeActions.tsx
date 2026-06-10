@@ -1,5 +1,7 @@
 import { useState, useRef, type ReactNode, type TouchEvent } from 'react'
 
+type SwipeIntent = 'horizontal' | 'vertical' | null
+
 type SwipeActionsProps = {
   children: ReactNode
   rightAction?: ReactNode
@@ -22,20 +24,48 @@ export function SwipeActions({
   const [actionTriggered, setActionTriggered] = useState(false)
   
   const startX = useRef<number | null>(null)
+  const startY = useRef<number | null>(null)
   const currentX = useRef<number | null>(null)
+  const swipeIntent = useRef<SwipeIntent>(null)
 
   const handleTouchStart = (e: TouchEvent) => {
     startX.current = e.touches[0].clientX
+    startY.current = e.touches[0].clientY
     currentX.current = e.touches[0].clientX
-    setIsSwiping(true)
+    swipeIntent.current = null
+    setIsSwiping(false)
     setActionTriggered(false)
   }
 
   const handleTouchMove = (e: TouchEvent) => {
-    if (!startX.current || !isSwiping) return
+    if (startX.current === null || startY.current === null) return
 
     currentX.current = e.touches[0].clientX
+    const currentY = e.touches[0].clientY
     const diff = currentX.current - startX.current
+    const verticalDiff = currentY - startY.current
+    const absHorizontal = Math.abs(diff)
+    const absVertical = Math.abs(verticalDiff)
+
+    if (!swipeIntent.current) {
+      if (absVertical > 8 && absVertical > absHorizontal * 1.15) {
+        swipeIntent.current = 'vertical'
+        setIsSwiping(false)
+        setOffset(0)
+        return
+      }
+
+      if (absHorizontal < 12 || absHorizontal < absVertical * 1.25) {
+        return
+      }
+
+      swipeIntent.current = 'horizontal'
+      setIsSwiping(true)
+    }
+
+    if (swipeIntent.current !== 'horizontal') return
+
+    e.preventDefault()
 
     // Limit swipe based on available actions
     if (diff < 0 && !rightAction) return
@@ -51,7 +81,7 @@ export function SwipeActions({
       if ('vibrate' in navigator && (!navigator.userActivation || navigator.userActivation.hasBeenActive)) {
         try {
           navigator.vibrate(50)
-        } catch (e) {
+        } catch {
           // Ignore
         }
       }
@@ -64,7 +94,7 @@ export function SwipeActions({
   const handleTouchEnd = () => {
     setIsSwiping(false)
     
-    if (startX.current !== null && currentX.current !== null) {
+    if (swipeIntent.current === 'horizontal' && startX.current !== null && currentX.current !== null) {
       const diff = currentX.current - startX.current
       
       if (diff < -threshold && rightActionCallback) {
@@ -76,7 +106,9 @@ export function SwipeActions({
 
     // Reset state
     startX.current = null
+    startY.current = null
     currentX.current = null
+    swipeIntent.current = null
     setOffset(0)
     setActionTriggered(false)
   }
@@ -108,7 +140,8 @@ export function SwipeActions({
         className="relative z-10 w-full transition-transform"
         style={{ 
           transform: `translateX(${offset}px)`,
-          transitionDuration: isSwiping ? '0ms' : '300ms'
+          transitionDuration: isSwiping ? '0ms' : '300ms',
+          touchAction: 'pan-y'
         }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}

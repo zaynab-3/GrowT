@@ -673,6 +673,33 @@ label {
   margin-bottom: 0;
 }
 
+.notification-popover .stitch-panel {
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.progress-popup {
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.progress-popup__header {
+  background: linear-gradient(180deg, rgba(var(--primary-rgb), 0.08), transparent);
+}
+
+@media (max-width: 640px) {
+  .progress-popup {
+    width: calc(100vw - 32px) !important;
+    left: 16px !important;
+    right: 16px !important;
+    border-radius: 20px;
+  }
+
+  .progress-popup .stitch-panel__body {
+    max-height: min(320px, calc(100dvh - 210px));
+  }
+}
+
 /* =================== SCREEN HEADER ======================== */
 /* Used by DashboardView > ViewHeader component */
 
