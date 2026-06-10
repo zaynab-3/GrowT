@@ -6,6 +6,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="GrowT — a calm, intentional workspace for managing folders, tasks, and sustainable growth." />
     <title>GrowT — Grow with intention</title>
+    <script>
+      ;(function () {
+        var storedThemeMode
+
+        try {
+          storedThemeMode = window.localStorage.getItem('growt:themeMode')
+        } catch (error) {
+          storedThemeMode = null
+        }
+
+        var preference = storedThemeMode === 'light' || storedThemeMode === 'dark' || storedThemeMode === 'system'
+          ? storedThemeMode
+          : 'system'
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        var resolvedThemeMode = preference === 'system' ? (prefersDark ? 'dark' : 'light') : preference
+
+        document.documentElement.classList.toggle('dark', resolvedThemeMode === 'dark')
+        document.documentElement.setAttribute('data-theme', resolvedThemeMode)
+        document.documentElement.setAttribute('data-theme-preference', preference)
+      })()
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

@@ -1452,7 +1452,7 @@ export const Constants = {
 
 export type AvatarChoice = 'default' | 'duck' | 'penguin' | 'sprout'
 export type ColorPalette = 'sage' | 'duck' | 'penguin' | 'sprout' | 'rose' | 'lavender'
-export type ThemeMode = 'light' | 'dark'
+export type ThemeMode = 'system' | 'light' | 'dark'
 export type FolderCategory = 'work' | 'personal' | 'shared'
 export type TaskProgressStatus = 'ongoing' | 'half_done' | 'completed'
 export type InviteResourceType = 'folder' | 'task'

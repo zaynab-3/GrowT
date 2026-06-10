@@ -1,5 +1,5 @@
 import type { FormEvent } from 'react'
-import { CreditCard, Smile, Palette, Sun, Moon, Paintbrush, Check, AlertTriangle, CheckCircle } from 'lucide-react'
+import { CreditCard, Smile, Palette, Sun, Moon, Monitor, Paintbrush, Check, AlertTriangle, CheckCircle } from 'lucide-react'
 import { avatarOptions, colorPaletteOptions, themeModeOptions, getAvatarSrc } from '../lib/appearance'
 import type { AvatarChoice, ColorPalette, ThemeMode } from '../lib/database.types'
 
@@ -17,6 +17,18 @@ type SettingsViewProps = {
   profileDisplayName: string
   profileThemeMode: ThemeMode
   profileUsername: string
+}
+
+function ThemeModeIcon({ themeMode }: { themeMode: ThemeMode }) {
+  if (themeMode === 'system') {
+    return <Monitor size={18} />
+  }
+
+  if (themeMode === 'light') {
+    return <Sun size={18} />
+  }
+
+  return <Moon size={18} />
 }
 
 export function SettingsView({
@@ -120,15 +132,15 @@ export function SettingsView({
               <Palette size={18} className="text-primary" />
               Theme Mode
             </h4>
-            <div className="grid grid-cols-2 gap-3 p-1 bg-surface-container-low dark:bg-surface-soft rounded-2xl border border-outline-variant/30 dark:border-border">
+            <div className="grid grid-cols-3 gap-3 p-1 bg-surface-container-low dark:bg-surface-soft rounded-2xl border border-outline-variant/30 dark:border-border">
               {themeModeOptions.map((option) => (
                 <button 
                   key={option.id}
                   type="button"
                   onClick={() => onProfileThemeModeChange(option.id)}
-                  className={`flex flex-col items-center gap-2 py-4 rounded-xl transition-all ${profileThemeMode === option.id ? 'bg-primary shadow-md text-white' : 'bg-surface-variant/20 text-on-surface-variant hover:bg-surface-variant/50 hover:text-on-surface dark:bg-white dark:text-slate-800 dark:hover:bg-white/90 dark:hover:text-slate-900'}`}
+                  className={`flex flex-col items-center gap-2 py-4 rounded-xl transition-all ${profileThemeMode === option.id ? 'bg-primary shadow-md text-white' : 'bg-surface-variant/20 text-on-surface-variant hover:bg-surface-variant/50 hover:text-on-surface dark:bg-white/5 dark:text-[#C7C5D3] dark:hover:bg-white/10 dark:hover:text-white'}`}
                 >
-                  {option.id === 'light' ? <Sun size={18} /> : <Moon size={18} />}
+                  <ThemeModeIcon themeMode={option.id} />
                   <span className="text-label-md">{option.label}</span>
                 </button>
               ))}

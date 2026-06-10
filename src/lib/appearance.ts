@@ -1,13 +1,32 @@
 import type { AvatarChoice, ColorPalette, ThemeMode } from './database.types'
 
-export const defaultThemeMode: ThemeMode = 'light'
+export type ResolvedThemeMode = Extract<ThemeMode, 'light' | 'dark'>
+
+export const defaultThemeMode: ThemeMode = 'system'
 export const defaultColorPalette: ColorPalette = 'sage'
 export const defaultAvatarChoice: AvatarChoice = 'default'
 
 export const themeModeOptions: Array<{ id: ThemeMode; label: string }> = [
+  { id: 'system', label: 'System' },
   { id: 'light', label: 'Light' },
   { id: 'dark', label: 'Dark' },
 ]
+
+export function isThemeMode(value: string | null | undefined): value is ThemeMode {
+  return value === 'system' || value === 'light' || value === 'dark'
+}
+
+export function getSystemThemeMode(): ResolvedThemeMode {
+  if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    return 'dark'
+  }
+
+  return 'light'
+}
+
+export function resolveThemeMode(themeMode: ThemeMode): ResolvedThemeMode {
+  return themeMode === 'system' ? getSystemThemeMode() : themeMode
+}
 
 export const colorPaletteOptions: Array<{ id: ColorPalette; label: string; description: string }> = [
   { id: 'sage', label: 'Sage', description: 'Clean green workspace' },

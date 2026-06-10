@@ -48,7 +48,7 @@ import {
   isSharedFolder,
   normalizeUsername,
 } from './lib/growtDisplay'
-import { defaultAvatarChoice, defaultColorPalette, defaultThemeMode, getAvatarSrc } from './lib/appearance'
+import { defaultAvatarChoice, defaultColorPalette, defaultThemeMode, getAvatarSrc, isThemeMode, resolveThemeMode } from './lib/appearance'
 import {
   getPasswordError,
   replaceRowsForTasks,
@@ -85,6 +85,7 @@ type ConfirmRequest = {
 }
 
 const SKIP_LANDING_STORAGE_KEY = 'growt:skipLanding'
+const THEME_MODE_STORAGE_KEY = 'growt:themeMode'
 
 const authPathByView: Record<Exclude<AuthView, 'reset'>, string> = {
   forgot: '/forgot',
@@ -108,6 +109,23 @@ function setStoredSkipLanding(value: boolean) {
     }
 
     window.localStorage.removeItem(SKIP_LANDING_STORAGE_KEY)
+  } catch {
+    // Storage can be unavailable in private or embedded browsers.
+  }
+}
+
+function getStoredThemeMode(): ThemeMode {
+  try {
+    const storedThemeMode = window.localStorage.getItem(THEME_MODE_STORAGE_KEY)
+    return isThemeMode(storedThemeMode) ? storedThemeMode : defaultThemeMode
+  } catch {
+    return defaultThemeMode
+  }
+}
+
+function setStoredThemeMode(themeMode: ThemeMode) {
+  try {
+    window.localStorage.setItem(THEME_MODE_STORAGE_KEY, themeMode)
   } catch {
     // Storage can be unavailable in private or embedded browsers.
   }
@@ -137,7 +155,7 @@ function App() {
   const [profileDisplayName, setProfileDisplayName] = useState('')
   const [profileUsername, setProfileUsername] = useState('')
   const [profileAvatarChoice, setProfileAvatarChoice] = useState<AvatarChoice>(defaultAvatarChoice)
-  const [profileThemeMode, setProfileThemeMode] = useState<ThemeMode>(defaultThemeMode)
+  const [profileThemeMode, setProfileThemeMode] = useState<ThemeMode>(getStoredThemeMode)
   const [profileColorPalette, setProfileColorPalette] = useState<ColorPalette>(defaultColorPalette)
   const [profilesById, setProfilesById] = useState<Record<string, ProfileSummary>>({})
   const [folders, setFolders] = useState<Folder[]>([])
@@ -207,13 +225,32 @@ function App() {
 
   useEffect(() => {
     const root = document.documentElement
-    if (profileThemeMode === 'dark') {
-      root.classList.add('dark')
-    } else {
-      root.classList.remove('dark')
+    const applyTheme = () => {
+      const resolvedThemeMode = resolveThemeMode(profileThemeMode)
+
+      root.classList.toggle('dark', resolvedThemeMode === 'dark')
+      root.setAttribute('data-theme', resolvedThemeMode)
+      root.setAttribute('data-theme-preference', profileThemeMode)
+      root.setAttribute('data-palette', profileColorPalette)
     }
-    root.setAttribute('data-theme', profileThemeMode)
-    root.setAttribute('data-palette', profileColorPalette)
+
+    applyTheme()
+    setStoredThemeMode(profileThemeMode)
+
+    if (profileThemeMode !== 'system' || typeof window.matchMedia !== 'function') {
+      return undefined
+    }
+
+    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
+    const handleSystemThemeChange = () => applyTheme()
+
+    if (typeof systemTheme.addEventListener === 'function') {
+      systemTheme.addEventListener('change', handleSystemThemeChange)
+      return () => systemTheme.removeEventListener('change', handleSystemThemeChange)
+    }
+
+    systemTheme.addListener(handleSystemThemeChange)
+    return () => systemTheme.removeListener(handleSystemThemeChange)
   }, [profileThemeMode, profileColorPalette])
 
   useEffect(() => {

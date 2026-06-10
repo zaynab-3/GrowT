@@ -19,6 +19,8 @@
 
 /* ---------------------- ROOT TOKENS ----------------------- */
 :root {
+  color-scheme: light;
+
   /* --- App skeleton --- */
   --sidebar-width: 256px;
   --topbar-height: 64px;
