@@ -1,0 +1,365 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Folder Details - GrowT</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "dark-card": "#17112B",
+                    "dark-bg": "#0F0A20",
+                    "surface-dim": "#dad9e2",
+                    "surface-container-high": "#e8e7f0",
+                    "secondary-container": "#795de4",
+                    "error": "#ba1a1a",
+                    "on-tertiary": "#ffffff",
+                    "on-surface": "#1a1b22",
+                    "on-tertiary-container": "#fffbff",
+                    "on-error-container": "#93000a",
+                    "on-secondary-container": "#fffbff",
+                    "surface-variant": "#e2e1ea",
+                    "background": "#faf8ff",
+                    "inverse-on-surface": "#f1f0f9",
+                    "secondary-fixed": "#e6deff",
+                    "primary-fixed": "#e6deff",
+                    "surface-container-low": "#f4f3fc",
+                    "primary-container": "#7858f5",
+                    "light-bg": "#F0EFF8",
+                    "on-primary-container": "#fffbff",
+                    "outline-variant": "#c9c4d7",
+                    "on-primary-fixed-variant": "#481bc6",
+                    "outline": "#797586",
+                    "surface-bright": "#faf8ff",
+                    "on-secondary-fixed": "#1d0061",
+                    "surface": "#faf8ff",
+                    "tertiary-fixed-dim": "#ffb77b",
+                    "light-card": "#FFFFFF",
+                    "primary-fixed-dim": "#cabeff",
+                    "secondary": "#6042ca",
+                    "on-background": "#1a1b22",
+                    "inverse-surface": "#2f3037",
+                    "tertiary": "#8c4c00",
+                    "on-surface-variant": "#484555",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-fixed-variant": "#6d3a00",
+                    "on-error": "#ffffff",
+                    "tertiary-container": "#b06000",
+                    "surface-container": "#eeedf6",
+                    "surface-tint": "#613ede",
+                    "secondary-fixed-dim": "#cbbeff",
+                    "glass-overlay": "rgba(255, 255, 255, 0.4)",
+                    "on-secondary-fixed-variant": "#4a28b3",
+                    "on-tertiary-fixed": "#2e1500",
+                    "tertiary-fixed": "#ffdcc2",
+                    "on-secondary": "#ffffff",
+                    "on-primary-fixed": "#1c0062",
+                    "error-container": "#ffdad6",
+                    "inverse-primary": "#cabeff",
+                    "surface-container-highest": "#e2e1ea",
+                    "on-primary": "#ffffff",
+                    "primary": "#5e3bdb",
+                    "dark-text": "#F0EEFF"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "container-padding": "32px",
+                    "stack-gap": "12px",
+                    "sidebar-width": "256px",
+                    "margin-sm": "16px",
+                    "gutter-md": "24px"
+            },
+            "fontFamily": {
+                    "display-lg": ["Plus Jakarta Sans"],
+                    "label-md": ["Plus Jakarta Sans"],
+                    "body-md": ["Plus Jakarta Sans"],
+                    "body-lg": ["Plus Jakarta Sans"],
+                    "headline-md": ["Plus Jakarta Sans"],
+                    "title-lg": ["Plus Jakarta Sans"],
+                    "headline-lg": ["Plus Jakarta Sans"],
+                    "headline-lg-mobile": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "display-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "700"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body {
+            background-color: #F0EFF8;
+        }
+        .task-expandable {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .task-expanded {
+            max-height: 200px;
+        }
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c9c4d7;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #797586;
+        }
+    </style>
+</head>
+<body class="text-on-background font-body-md antialiased overflow-hidden flex h-screen">
+<!-- SideNavBar -->
+<nav class="hidden md:flex flex-col fixed left-0 top-0 h-full w-sidebar-width bg-white/40 dark:bg-dark-card/40 backdrop-blur-xl border-r border-white/20 dark:border-dark-card/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] z-40 py-container-padding">
+<div class="px-gutter-md mb-8">
+<h1 class="font-display-lg text-display-lg text-primary dark:text-primary-fixed">GrowT</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Project Tracker</p>
+</div>
+<div class="px-4 mb-8">
+<button class="w-full py-3 px-4 bg-primary text-on-primary rounded-xl font-label-md text-label-md flex items-center justify-center gap-2 hover:bg-primary-container transition-colors shadow-sm">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">add</span>
+                New Project
+            </button>
+</div>
+<div class="flex-1 overflow-y-auto flex flex-col gap-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant/70 hover:text-primary transition-all duration-300 ease-in-out hover:bg-white/60 hover:translate-y-[-2px] hover:shadow-md" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="font-body-md text-body-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary dark:text-primary-fixed font-semibold border-l-4 border-primary dark:border-primary-fixed bg-primary/5 transition-all duration-300 ease-in-out hover:bg-white/60 hover:translate-y-[-2px] hover:shadow-md" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_tree</span>
+<span class="font-body-md text-body-md">Projects</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant/70 hover:text-primary transition-all duration-300 ease-in-out hover:bg-white/60 hover:translate-y-[-2px] hover:shadow-md" href="#">
+<span class="material-symbols-outlined">task_alt</span>
+<span class="font-body-md text-body-md">Tasks</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant/70 hover:text-primary transition-all duration-300 ease-in-out hover:bg-white/60 hover:translate-y-[-2px] hover:shadow-md" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-body-md text-body-md">Calendar</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant/70 hover:text-primary transition-all duration-300 ease-in-out hover:bg-white/60 hover:translate-y-[-2px] hover:shadow-md" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="font-body-md text-body-md">Insights</span>
+</a>
+</div>
+<div class="mt-auto flex flex-col gap-2 pt-4 border-t border-surface-variant/50">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant/70 hover:text-primary transition-all duration-300 ease-in-out hover:bg-white/60 hover:translate-y-[-2px] hover:shadow-md" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md text-body-md">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant/70 hover:text-primary transition-all duration-300 ease-in-out hover:bg-white/60 hover:translate-y-[-2px] hover:shadow-md" href="#">
+<span class="material-symbols-outlined">help_outline</span>
+<span class="font-body-md text-body-md">Support</span>
+</a>
+</div>
+</nav>
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 w-full md:w-[calc(100%-256px)] h-16 bg-white/40 dark:bg-dark-card/40 backdrop-blur-xl border-b border-white/20 dark:border-dark-card/20 shadow-sm z-30 flex items-center justify-between px-gutter-md md:ml-sidebar-width">
+<div class="flex items-center gap-6">
+<div class="md:hidden text-primary font-display-lg text-title-lg">GrowT</div>
+<nav class="hidden sm:flex gap-6">
+<a class="font-title-lg text-title-lg text-on-surface-variant dark:text-on-surface-variant/70 hover:bg-surface-container-low dark:hover:bg-dark-card/60 transition-colors py-1 px-2 rounded" href="#">Workspace</a>
+<a class="font-title-lg text-title-lg text-primary dark:text-primary-fixed font-bold border-b-2 border-primary py-1 px-2 rounded" href="#">Team</a>
+<a class="font-title-lg text-title-lg text-on-surface-variant dark:text-on-surface-variant/70 hover:bg-surface-container-low dark:hover:bg-dark-card/60 transition-colors py-1 px-2 rounded" href="#">Reports</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">history</span>
+</button>
+<button class="bg-primary text-on-primary px-4 py-2 rounded-lg font-label-md text-label-md hover:bg-primary-container transition-colors shadow-sm hidden sm:block">
+                Invite
+            </button>
+<img alt="User Avatar" class="w-8 h-8 rounded-full object-cover border border-surface-variant" data-alt="A close-up portrait of a young professional woman with natural makeup and subtle lighting, used as a small circular avatar placeholder in a light-mode productivity dashboard. The aesthetic is clean, modern, and friendly, with a soft lavender-grey background implying a corporate but comfortable setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDde8x8XZVLW2pIE9hLenucmRtUYmhzgDJDPVLzBXwWSJuL1bJAIwW16i3DOxPhwdIjX756yYPsFNZosHeNyabogGIvrfM18guv_sdsedgdWGuTbwaZ9EymnbBJREoHjKlDYsytS9C0357JRqe6fzEJ-wTk1Guyh9tdawSzaOQdk9mDFk3nzLExHx9YOucen5atol-yPMP-pmHZNKiAW9AQ6lgU1jMWfyWmAllEGRScQVPd7UoYSl6n9g8Gdh9JE6UJurAQw_vv6n2w">
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="w-full md:w-[calc(100%-256px)] md:ml-sidebar-width h-full pt-[88px] px-gutter-md pb-container-padding overflow-y-auto">
+<div class="max-w-5xl mx-auto flex flex-col gap-8">
+<!-- Folder Header & Collaborative Actions -->
+<section class="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
+<div>
+<div class="flex items-center gap-3 mb-2">
+<span class="bg-primary-fixed-dim text-on-primary-fixed px-3 py-1 rounded-full font-label-md text-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">group</span> Shared
+                        </span>
+<span class="text-on-surface-variant font-body-md text-body-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">schedule</span> Due Oct 24
+                        </span>
+</div>
+<h2 class="font-headline-lg text-headline-lg md:text-headline-lg text-on-surface">Q4 Marketing Campaign</h2>
+<p class="text-on-surface-variant font-body-lg text-body-lg mt-2 max-w-2xl">Collaborative assets and tasks for the upcoming holiday season push. Review all deliverables before end of week.</p>
+</div>
+<!-- Live Members & Invite -->
+<div class="flex flex-col gap-4 min-w-[300px]">
+<div class="bg-light-card dark:bg-dark-card rounded-xl p-4 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] border border-surface-variant/50">
+<div class="flex items-center justify-between mb-3">
+<span class="font-title-lg text-body-md font-semibold">Live Members</span>
+<span class="flex h-2 w-2 relative">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+</span>
+</div>
+<div class="flex items-center gap-[-8px]">
+<img alt="Member 1" class="w-10 h-10 rounded-full border-2 border-white object-cover relative z-30" data-alt="A small circular avatar placeholder showing a young man with a slight smile. The lighting is soft and natural, fitting a modern light-mode collaborative workspace UI. The background is slightly out of focus, colored in neutral tones to keep the UI feeling clean and professional." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBjDA2IWD2jQlL0F6aTT0_Yx-wALFIYiPCYcPc5DcpDYmzDqTo3FD8qLF7PIPSRRvUpxTb8uviDzZstaoQqRe1KHXwQYRnEkxY8MbTWQQvqsQ6oj1ZlyWcA45OY2P_vFty0WFYyGPOF-e9AyYfdRGS63Af18jAW7_74vCBDvY0axdRW_5XgXGhsTdKUFne3t05WWV9YguvStG-iBPn1vmljXHB7eZj0wnaFl6nWv2JlgBTUKjmAVrrBYlRpmjiR6VOMB1bvOLUE_LQd">
+<img alt="Member 2" class="w-10 h-10 rounded-full border-2 border-white object-cover relative z-20 -ml-3" data-alt="A small circular avatar placeholder showing a woman looking directly at the camera. The style is clean and well-lit, designed for a modern light-mode application. Soft shadows and a neutral background ensure it blends well with the surrounding lavender-grey interface elements." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVWjySnAd8-OJTCOUqazCZAbEsknU5WyKAWzEEvYy_AymJxtoFtUqNle5Y0VuSDfZcM1nDqcME9wd4gBPHilCbSMET-fv9nRcSFcs5Znqqln-gnTWkAW8QO8xCD6v0xppfhNulhcJrdPYWRmMTJrIqoobxISZKkKzZnkovFvBvdLCqqSuU_rJtB8XStpfXmyz5hQaLGtxNhveeODTUyf3O-7Io1b3Z50z1clmTO2JiiXKaTEYF8pRH9smvnKI5zUQ_Qao8fMAG1gtn">
+<div class="w-10 h-10 rounded-full border-2 border-white bg-surface-container flex items-center justify-center font-label-md text-on-surface-variant relative z-10 -ml-3">+3</div>
+</div>
+<div class="mt-4 flex items-center gap-2">
+<div class="relative flex-1">
+<input class="w-full bg-surface-container-low border-none rounded-lg py-2 pl-3 pr-8 font-body-md text-body-md focus:ring-2 focus:ring-primary/50 text-on-surface placeholder:text-outline-variant" placeholder="Invite via username..." type="text">
+</div>
+<button class="bg-surface-variant text-on-surface hover:bg-surface-dim transition-colors rounded-lg w-10 h-10 flex items-center justify-center">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Tasks List (Bento-style layout for rows) -->
+<section class="flex flex-col gap-4">
+<div class="flex items-center justify-between border-b border-surface-variant pb-2">
+<h3 class="font-headline-md text-headline-md text-on-surface">Tasks</h3>
+<button class="text-primary hover:text-primary-container font-label-md text-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">filter_list</span> Filter
+                    </button>
+</div>
+<!-- Task Item 1 -->
+<div class="bg-light-card rounded-xl border border-surface-variant/50 shadow-[0_4px_16px_0_rgba(31,38,135,0.03)] hover:shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] transition-all duration-300 overflow-hidden group">
+<div class="p-4 flex items-center justify-between cursor-pointer" onclick="this.nextElementSibling.classList.toggle('task-expanded')">
+<div class="flex items-center gap-4 flex-1">
+<img alt="Assignee" class="w-8 h-8 rounded-full object-cover" data-alt="A small circular avatar for a task assignee in a project management UI. The image shows a young professional in a softly lit, neutral environment. The styling is consistent with a minimal, modern, and clean interface, using subtle shadows to create depth on the white card background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhqCNcpkSBTjS0kC6p3HOT8BasZyye4k4vWhtfBpP9bmKfgi4XkW6Xsb32PEceiluemN-7FO0Fdp1zvd16FuJ0Ow7-2kZ7pzvBVmX81tC2d62lUuCBCj7TTniqB-Z7Nb6mEcM1leCFrkGSiJDNgrutS-xpdIXD5yNBXGcid366e54nhE_SE90PY5uhSFCRpRb4yjGv0Yd0dPT8bIXTWAc_UO6cBvlgq4QEEMEx6b2VHMdjbVyCOOAkXH1XoDnVlbdTDIaUmjho5bWj">
+<div>
+<h4 class="font-title-lg text-body-lg font-semibold text-on-surface group-hover:text-primary transition-colors">Draft Social Media Copy</h4>
+<p class="text-on-surface-variant font-body-md text-sm">Design &amp; Content Team</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-1.5 rounded-full font-label-md text-xs bg-[#e0f2fe] text-[#0369a1] border border-[#bae6fd] hover:bg-[#bae6fd] transition-colors">
+                                Ongoing
+                            </button>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-on-surface transition-colors">expand_more</span>
+</div>
+</div>
+<!-- Expandable content -->
+<div class="task-expandable bg-surface-container-low px-4 border-t border-surface-variant/30">
+<div class="py-4 font-body-md text-body-md text-on-surface-variant">
+<p class="mb-3">Draft copy for Instagram, Twitter, and LinkedIn focusing on the new product features. Need review by Thursday.</p>
+<div class="flex gap-2">
+<span class="bg-white px-2 py-1 rounded text-xs border border-surface-variant">#copywriting</span>
+<span class="bg-white px-2 py-1 rounded text-xs border border-surface-variant">#social</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Task Item 2 -->
+<div class="bg-light-card rounded-xl border border-surface-variant/50 shadow-[0_4px_16px_0_rgba(31,38,135,0.03)] hover:shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] transition-all duration-300 overflow-hidden group">
+<div class="p-4 flex items-center justify-between cursor-pointer" onclick="this.nextElementSibling.classList.toggle('task-expanded')">
+<div class="flex items-center gap-4 flex-1">
+<img alt="Assignee" class="w-8 h-8 rounded-full object-cover" data-alt="A task assignee avatar showing a smiling woman. The image is cropped to a small circle and fits seamlessly into a white bento-style card in a modern productivity app. The lighting is high-key and soft, complementing the clean lavender-grey aesthetic of the dashboard." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdQa2Eh2qXqfHGM7B-0Sq7LypLJfT8IQOn-kNByYDErWzGljS2GkJvqc5CUdtWNrbuHQej6mdJLCWSj9Fm9tDlZQb8BeC1GnI71or469TloAPQ6vOB1MMJf9t4VCLfzTOQxIi5nnOhy5rUpI3rzZYkwCOoE9ZcbWJEBol5lAbbxKlnCa5HvQHIMR5EPaKgPPnPIPoOPSVkxemhFl0oj3xoxOWvKX2X6HNLTibIj13SF9aoVT4523RIvsgJQQTre0faQDjZNrL-4a6Q">
+<div>
+<h4 class="font-title-lg text-body-lg font-semibold text-on-surface group-hover:text-primary transition-colors">Review Ad Creatives</h4>
+<p class="text-on-surface-variant font-body-md text-sm">Marketing Team</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-1.5 rounded-full font-label-md text-xs bg-[#ffedd5] text-[#c2410c] border border-[#fed7aa] hover:bg-[#fed7aa] transition-colors">
+                                Half Done
+                            </button>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-on-surface transition-colors">expand_more</span>
+</div>
+</div>
+<div class="task-expandable bg-surface-container-low px-4 border-t border-surface-variant/30">
+<div class="py-4 font-body-md text-body-md text-on-surface-variant">
+<p class="mb-3">Awaiting final revisions from the agency. Colors need to align better with the new brand guidelines.</p>
+</div>
+</div>
+</div>
+<!-- Task Item 3 -->
+<div class="bg-light-card rounded-xl border border-surface-variant/50 shadow-[0_4px_16px_0_rgba(31,38,135,0.03)] hover:shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] transition-all duration-300 overflow-hidden group opacity-75">
+<div class="p-4 flex items-center justify-between cursor-pointer" onclick="this.nextElementSibling.classList.toggle('task-expanded')">
+<div class="flex items-center gap-4 flex-1">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-outline-variant">
+<span class="material-symbols-outlined text-[18px]">person</span>
+</div>
+<div>
+<h4 class="font-title-lg text-body-lg font-semibold text-outline line-through">Finalize Budget Approvial</h4>
+<p class="text-outline-variant font-body-md text-sm">Management</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-1.5 rounded-full font-label-md text-xs bg-[#dcfce7] text-[#15803d] border border-[#bbf7d0] hover:bg-[#bbf7d0] transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">check</span> Completed
+                            </button>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-on-surface transition-colors">expand_more</span>
+</div>
+</div>
+<div class="task-expandable bg-surface-container-low px-4 border-t border-surface-variant/30">
+<div class="py-4 font-body-md text-body-md text-on-surface-variant">
+<p>Budget approved on Oct 12th by Finance.</p>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Floating Undo Action Bar -->
+<div class="fixed bottom-container-padding left-1/2 md:left-[calc(50%+128px)] transform -translate-x-1/2 bg-inverse-surface text-inverse-on-surface px-6 py-3 rounded-full shadow-lg flex items-center gap-4 z-50 animate-fade-in-up">
+<span class="font-body-md text-body-md">You completed 'Finalize Budget Approval'</span>
+<div class="h-4 w-px bg-outline/50"></div>
+<button class="font-label-md text-primary-fixed-dim hover:text-primary-fixed transition-colors uppercase tracking-wider">Undo</button>
+<button class="text-outline-variant hover:text-white transition-colors ml-2">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<style>
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translate(-50%, 20px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.4s ease-out forwards;
+        }
+    </style>
+<script>
+        // Simple script to handle floating action bar dismissal for demo purposes
+        document.querySelector('.animate-fade-in-up button:last-child').addEventListener('click', function(e) {
+            e.target.closest('div').style.display = 'none';
+        });
+    </script>
+</body></html>

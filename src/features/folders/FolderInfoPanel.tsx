@@ -6,12 +6,14 @@ import {
   statusColumns,
 } from '../../lib/growtDisplay'
 import type { Folder } from '../../lib/growtData'
+import { UserAvatar } from '../../components/UserAvatar'
 
 type ContributionCounts = Record<TaskProgressStatus, number>
 
 type FolderInfoPanelProps = {
   folder: Folder
   getContributionCounts: (userId: string) => ContributionCounts
+  getProfileAvatar: (userId: string) => string | null
   getProfileLabel: (userId: string) => string
   memberUserIds: string[]
   statusTotals: ContributionCounts
@@ -21,6 +23,7 @@ type FolderInfoPanelProps = {
 export function FolderInfoPanel({
   folder,
   getContributionCounts,
+  getProfileAvatar,
   getProfileLabel,
   memberUserIds,
   statusTotals,
@@ -76,7 +79,10 @@ export function FolderInfoPanel({
 
             return (
               <span className="member-chip member-chip--summary" key={memberId}>
-                <span>{getProfileLabel(memberId)}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                  <UserAvatar label={getProfileLabel(memberId)} avatarUrl={getProfileAvatar(memberId)} className="w-6 h-6 text-[10px]" />
+                  <span>{getProfileLabel(memberId)}</span>
+                </span>
                 <span className="contribution-counts" aria-label="Contribution counts">
                   <span>
                     <i className="status-dot status-dot--ongoing" />

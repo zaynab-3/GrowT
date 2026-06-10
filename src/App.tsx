@@ -31,13 +31,14 @@ import {
   restoreTask,
   setTaskProgress,
   softDeleteTask,
-  undoTaskStatusAction,
+  undoLatestTaskProgress,
   updateTask,
 } from './features/tasks/taskApi'
+import { hardDeleteFolder, hardDeleteTask } from './lib/growtData'
 import { AppShell } from './layout/AppShell'
 import { Sidebar } from './layout/Sidebar'
 import { AppViewRouter } from './views/AppViewRouter'
-import type { AppView, AppViewNavItem } from './views/viewTypes'
+import { getRouteView, parseAppRoute, routeForView, routeToPath, routeFolderId, type AppRoute, type AppView, type AppViewNavItem } from './views/viewTypes'
 import { useGrowTData } from './hooks/useGrowTData'
 import { useAuthSession } from './hooks/useAuthSession'
 import { useGrowTRealtime } from './hooks/useGrowTRealtime'
@@ -45,6 +46,7 @@ import {
   isSharedFolder,
   normalizeUsername,
 } from './lib/growtDisplay'
+import { defaultAvatarChoice, defaultColorPalette, defaultThemeMode, getAvatarSrc } from './lib/appearance'
 import {
   getPasswordError,
   replaceRowsForTasks,
@@ -60,17 +62,20 @@ import {
   listProfiles,
   resolveLoginEmail,
   updateProfile,
+  createInviteWithUser,
   type Folder,
   type FolderMember,
   type Profile,
+  type ProfileSummary,
   type Task,
   type TaskMember,
   type TaskProgress,
   type TaskStatusAction,
 } from './lib/growtData'
-import type { FolderCategory, ReorderDirection, TaskProgressStatus } from './lib/database.types'
+import type { FolderCategory, ReorderDirection, TaskProgressStatus, AvatarChoice, ColorPalette, ThemeMode } from './lib/database.types'
 
 type ConfirmRequest = {
+  actionLabel?: string
   confirmLabel: string
   message: string
   onConfirm: () => Promise<void>
@@ -94,7 +99,10 @@ function App() {
   const [currentProfile, setCurrentProfile] = useState<Profile | null>(null)
   const [profileDisplayName, setProfileDisplayName] = useState('')
   const [profileUsername, setProfileUsername] = useState('')
-  const [profilesById, setProfilesById] = useState<Record<string, Profile>>({})
+  const [profileAvatarChoice, setProfileAvatarChoice] = useState<AvatarChoice>(defaultAvatarChoice)
+  const [profileThemeMode, setProfileThemeMode] = useState<ThemeMode>(defaultThemeMode)
+  const [profileColorPalette, setProfileColorPalette] = useState<ColorPalette>(defaultColorPalette)
+  const [profilesById, setProfilesById] = useState<Record<string, ProfileSummary>>({})
   const [folders, setFolders] = useState<Folder[]>([])
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null)
   const [folderTitle, setFolderTitle] = useState('')
@@ -110,8 +118,8 @@ function App() {
   const [progress, setProgress] = useState<TaskProgress[]>([])
   const [actions, setActions] = useState<TaskStatusAction[]>([])
   const [searchQuery, setSearchQuery] = useState('')
-  const [activeView, setActiveView] = useState<AppView>('dashboard')
-  const [isEditingFolder, setIsEditingFolder] = useState(false)
+  const [route, setRoute] = useState<AppRoute>(() => parseAppRoute(window.location.pathname))
+  const [activeView, setActiveView] = useState<AppView>(() => getRouteView(parseAppRoute(window.location.pathname)))
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
   const [confirmRequest, setConfirmRequest] = useState<ConfirmRequest | null>(null)
   const [dataLoading, setDataLoading] = useState(false)
@@ -123,13 +131,48 @@ function App() {
   const sessionKey = session?.access_token ?? null
   const activeSessionKeyRef = useRef<string | null>(null)
   const previousUserIdRef = useRef<string | null>(null)
-  const profilesByIdRef = useRef<Record<string, Profile>>({})
+  const profilesByIdRef = useRef<Record<string, ProfileSummary>>({})
   const taskIdsRef = useRef<Set<string>>(new Set())
   const standaloneTaskIdsRef = useRef<Set<string>>(new Set())
   const progressRef = useRef<TaskProgress[]>([])
   const actionsRef = useRef<TaskStatusAction[]>([])
   const refreshFoldersRef = useRef<() => Promise<void>>(async () => undefined)
   const refreshLiveSessionRef = useRef<() => Promise<void>>(async () => undefined)
+
+  useEffect(() => {
+    const root = document.documentElement
+    if (profileThemeMode === 'dark') {
+      root.classList.add('dark')
+    } else {
+      root.classList.remove('dark')
+    }
+    root.setAttribute('data-theme', profileThemeMode)
+    root.setAttribute('data-palette', profileColorPalette)
+  }, [profileThemeMode, profileColorPalette])
+
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => setMessage(''), 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [message])
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const newRoute = parseAppRoute(window.location.pathname)
+      setRoute(newRoute)
+      setActiveView(getRouteView(newRoute))
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
+  useEffect(() => {
+    const folderId = routeFolderId(route)
+    if (folderId !== selectedFolderId) {
+      setSelectedFolderId(folderId)
+    }
+  }, [route, selectedFolderId])
 
   const {
     accountLabel,
@@ -141,10 +184,12 @@ function App() {
     filteredTasks,
     folderMemberUserIds,
     getContributionCounts,
+    getProfileAvatar,
     getProfileLabel,
     normalizedSearchQuery,
     standaloneAssignableMembers,
     statusTotals,
+    statusHistoryByTask,
     taskMembersByTask,
   } = useGrowTData({
     actions,
@@ -186,16 +231,16 @@ function App() {
         meta: realtimeStatus,
       },
       {
-        description: 'Personal + work',
-        id: 'my-tasks',
-        label: 'My Tasks',
-        meta: String(personalFolders.length + personalStandaloneTasks.length),
+        description: 'Your workspaces',
+        id: 'folders',
+        label: 'Folders',
+        meta: String(folders.length),
       },
       {
-        description: 'Live shared work',
-        id: 'shared',
-        label: 'Shared with Me',
-        meta: String(sharedFolders.length + sharedStandaloneTasks.length),
+        description: 'Personal + shared',
+        id: 'tasks',
+        label: 'My Tasks',
+        meta: String(standaloneTasks.length),
       },
       {
         description: 'Requests + people',
@@ -228,6 +273,29 @@ function App() {
       sharedStandaloneTasks.length,
     ],
   )
+
+
+  const navigateToRoute = useCallback((newRoute: AppRoute) => {
+    setRoute(newRoute)
+    setActiveView(getRouteView(newRoute))
+    window.history.pushState({}, '', routeToPath(newRoute))
+  }, [])
+
+  const navigateToView = useCallback((view: AppView) => {
+    navigateToRoute(routeForView(view))
+  }, [navigateToRoute])
+
+  const findKnownTask = useCallback((taskId: string) => {
+    return tasks.find((t) => t.id === taskId) ?? standaloneTasks.find((t) => t.id === taskId)
+  }, [standaloneTasks, tasks])
+
+  const addFolderPage = useCallback(() => navigateToRoute({ name: 'folder-new' }), [navigateToRoute])
+  const editFolderPage = useCallback((folderId: string) => navigateToRoute({ name: 'folder-edit', folderId }), [navigateToRoute])
+  const addTaskPage = useCallback((folderId?: string) => navigateToRoute({ name: 'task-new', folderId }), [navigateToRoute])
+  const editTaskPage = useCallback((taskId: string) => {
+    const task = findKnownTask(taskId)
+    navigateToRoute({ name: 'task-edit', taskId, folderId: task?.folder_id || undefined })
+  }, [findKnownTask, navigateToRoute])
 
   useEffect(() => {
     if (!authReady) {
@@ -450,7 +518,10 @@ function App() {
     setMessage('')
 
     try {
-      const nextProfile = await ensureProfile(supabase, user.id, null)
+      const meta = user.user_metadata || {}
+      const fallbackDisplayName = meta.display_name || meta.full_name || meta.name || user.email?.split('@')[0] || 'User'
+      const fallbackUsername = meta.username || user.email?.split('@')[0] || 'user'
+      const nextProfile = await ensureProfile(supabase, user.id, fallbackDisplayName, fallbackUsername)
 
       if (!isCurrentSession(requestSessionKey)) {
         return
@@ -459,6 +530,9 @@ function App() {
       setCurrentProfile(nextProfile)
       setProfileDisplayName(nextProfile.display_name ?? '')
       setProfileUsername(nextProfile.username ?? '')
+      setProfileAvatarChoice(nextProfile.avatar_choice ?? defaultAvatarChoice)
+      setProfileThemeMode(nextProfile.theme_mode ?? defaultThemeMode)
+      setProfileColorPalette(nextProfile.color_palette ?? defaultColorPalette)
       setProfilesById((current) => ({ ...current, [nextProfile.id]: nextProfile }))
       await refreshFolders()
 
@@ -516,7 +590,7 @@ function App() {
       return
     }
 
-    if (!supabase || !activeFolder || !sessionKey) {
+    if (!supabase || !sessionKey) {
       setMembers([])
       setTasks([])
       setRealtimeStatus('Idle')
@@ -529,10 +603,24 @@ function App() {
     setMessage('')
 
     try {
-      const [nextTasks, nextMembers] = await Promise.all([
-        listTasks(supabase, activeFolder.id),
-        listFolderMembers(supabase, activeFolder.id),
-      ])
+      let nextTasks;
+      let nextMembers: FolderMember[] = [];
+      
+      if (activeFolder) {
+        [nextTasks, nextMembers] = await Promise.all([
+          listTasks(supabase, activeFolder.id),
+          listFolderMembers(supabase, activeFolder.id),
+        ])
+      } else {
+        const { data: folderData } = await supabase
+          .from('folders')
+          .select('id')
+          .eq('is_active', true)
+          .is('deleted_at', null);
+        const activeFolderIds = new Set((folderData || []).map((f) => f.id));
+        const { data } = await supabase.from('tasks').select('*').not('folder_id', 'is', null);
+        nextTasks = (data || []).filter((task) => task.folder_id && activeFolderIds.has(task.folder_id));
+      }
       const taskIds = nextTasks.map((task) => task.id)
       const [nextProgress, nextActions] = await Promise.all([
         listTaskProgressForTasks(supabase, taskIds),
@@ -549,7 +637,7 @@ function App() {
       setActions((current) => sortActions(replaceRowsForTasks(current, taskIds, nextActions)))
 
       void loadProfilesForIds([
-        activeFolder.owner_id,
+        ...(activeFolder ? [activeFolder.owner_id] : []),
         ...nextTasks.map((task) => task.owner_id),
         ...nextTasks.flatMap((task) => [task.assigned_user_id ?? '']),
         ...nextMembers.map((member) => member.user_id),
@@ -589,6 +677,7 @@ function App() {
     setActions,
     setFolders,
     setMembers,
+    setProfilesById,
     setProgress,
     setRealtimeStatus,
     setSelectedFolderId,
@@ -637,7 +726,7 @@ function App() {
       }
 
       if (data.session && data.user) {
-        await ensureProfile(supabase, data.user.id, username)
+        await ensureProfile(supabase, data.user.id, username, username)
         await supabase.auth.signOut()
         setSession(null)
       }
@@ -691,6 +780,30 @@ function App() {
       console.error('Login failed', error)
       setMessage('Invalid username/email or password')
     } finally {
+      setAuthLoading(false)
+    }
+  }
+
+  async function handleGoogleLogin() {
+    if (!supabase) return
+
+    setAuthLoading(true)
+    setMessage('')
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        },
+      })
+
+      if (error) {
+        throw error
+      }
+    } catch (error) {
+      console.error('Google login failed', error)
+      setMessage('Unable to sign in with Google.')
       setAuthLoading(false)
     }
   }
@@ -799,13 +912,19 @@ function App() {
 
     try {
       const nextProfile = await updateProfile(supabase, user.id, {
+        avatarChoice: profileAvatarChoice,
+        colorPalette: profileColorPalette,
         displayName: profileDisplayName.trim() || null,
+        themeMode: profileThemeMode,
         username: normalizeUsername(profileUsername),
       })
 
       setCurrentProfile(nextProfile)
       setProfileDisplayName(nextProfile.display_name ?? '')
       setProfileUsername(nextProfile.username ?? '')
+      setProfileAvatarChoice(nextProfile.avatar_choice ?? defaultAvatarChoice)
+      setProfileThemeMode(nextProfile.theme_mode ?? defaultThemeMode)
+      setProfileColorPalette(nextProfile.color_palette ?? defaultColorPalette)
       setProfilesById((current) => ({ ...current, [nextProfile.id]: nextProfile }))
       setMessage('Profile saved.')
     } catch (error) {
@@ -815,7 +934,7 @@ function App() {
     }
   }
 
-  async function handleCreateFolder(event: FormEvent<HTMLFormElement>) {
+  async function handleCreateFolder(event: React.FormEvent, inviteUsernames?: string[]) {
     event.preventDefault()
 
     if (!supabase || !user || !folderTitle.trim()) {
@@ -837,7 +956,25 @@ function App() {
       setFolderTitle('')
       setFolderDescription('')
       setFolderCategory('personal')
+
+      if (inviteUsernames && inviteUsernames.length > 0) {
+        for (const username of inviteUsernames) {
+          try {
+            await addFolderMemberByUsername(
+              supabase,
+              folder.id,
+              normalizeUsername(username) ?? username.trim()
+            )
+          } catch (e) {
+            console.error(`Failed to invite user ${username}`, e)
+          }
+        }
+      }
+
       await refreshFoldersRef.current()
+      if (route.name === 'folder-new') {
+        navigateToRoute({ name: 'folder-detail', folderId: folder.id })
+      }
     } catch (error) {
       console.error('Folder creation failed', error)
       setMessage('Unable to create folder.')
@@ -865,12 +1002,31 @@ function App() {
       })
 
       setFolders((current) => sortFolders(upsertById(current, folder)))
-      setIsEditingFolder(false)
       setMessage('Folder saved.')
       await refreshFoldersRef.current()
+      if (route.name === 'folder-edit') {
+        navigateToRoute({ name: 'folder-detail', folderId: folder.id })
+      }
     } catch (error) {
       console.error('Folder update failed', error)
       setMessage('Unable to save folder.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleCopyShareLink(resourceType: 'folder' | 'task', resourceId: string) {
+    if (!supabase || !user) return
+
+    try {
+      setSaving(true)
+      const invite = await createInviteWithUser(supabase, resourceType, resourceId, user.id)
+      const inviteUrl = `${window.location.origin}/invite/${invite.id}`
+      await navigator.clipboard.writeText(inviteUrl)
+      setMessage('Share link copied to clipboard!')
+    } catch (error) {
+      console.error('Failed to create share link', error)
+      setMessage('Unable to create share link. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -896,7 +1052,6 @@ function App() {
           setTasks([])
           setProgress([])
           setActions([])
-          setIsEditingFolder(false)
           setMessage('Folder deleted.')
           await refreshFoldersRef.current()
           await refreshArchive()
@@ -932,7 +1087,7 @@ function App() {
     }
   }
 
-  async function handleMoveFolder(folder: Folder, direction: ReorderDirection) {
+  async function handleMoveFolder(folder: Folder, direction: ReorderDirection, scopedFolderIds?: string[]) {
     if (!supabase) {
       return
     }
@@ -941,7 +1096,7 @@ function App() {
     setMessage('')
 
     try {
-      const nextFolders = await reorderFolder(supabase, folder.id, direction)
+      const nextFolders = await reorderFolder(supabase, folder.id, direction, scopedFolderIds)
       setFolders(sortFolders(nextFolders))
       setMessage(`Folder moved ${direction}.`)
       await refreshFoldersRef.current()
@@ -951,6 +1106,76 @@ function App() {
     } finally {
       setSaving(false)
     }
+  }
+
+  async function handleHardDeleteFolder(folder: Folder) {
+    const client = supabase
+    if (!client) {
+      return
+    }
+    
+    setConfirmRequest({
+      actionLabel: 'Delete Forever',
+      confirmLabel: 'Delete Forever',
+      message: `Are you sure you want to permanently delete "${folder.title}"? This cannot be undone.`,
+      onConfirm: async () => {
+        try {
+          await hardDeleteFolder(client, folder.id)
+          setDeletedFolders((current) => current.filter((f) => f.id !== folder.id))
+          await refreshFolders()
+          await refreshArchive()
+          setMessage(`"${folder.title}" was permanently deleted.`)
+        } catch (error) {
+  console.error('Failed to permanently delete folder', error)
+
+  if (
+    error instanceof Error &&
+    error.message.includes('Only the folder owner')
+  ) {
+    setMessage('Only the folder owner can permanently delete this folder.')
+    return
+  }
+
+  setMessage('Unable to permanently delete folder.')
+}
+      },
+      title: 'Permanently delete folder?',
+    })
+  }
+
+  async function handleHardDeleteTask(task: Task) {
+    const client = supabase
+    if (!client) {
+      return
+    }
+    
+    setConfirmRequest({
+      actionLabel: 'Delete Forever',
+      confirmLabel: 'Delete Forever',
+      message: `Are you sure you want to permanently delete "${task.title}"? This cannot be undone.`,
+      onConfirm: async () => {
+        try {
+          await hardDeleteTask(client, task.id)
+          setDeletedTasks((current) => current.filter((t) => t.id !== task.id))
+          await refreshStandaloneTasks()
+          if (activeFolder) {
+            await refreshLiveSessionRef.current()
+          }
+          await refreshArchive()
+          setMessage(`"${task.title}" was permanently deleted.`)
+        } catch (error) {
+  console.error('Failed to permanently delete task', error)
+
+  if (error instanceof Error && error.message === 'TASK_DELETE_NOT_ALLOWED_OR_NOT_FOUND') {
+    setMessage('Only the task owner or folder owner can permanently delete this task.')
+    return
+  }
+
+  setMessage('Unable to permanently delete task.')
+}
+      },
+      title: 'Permanently delete task?',
+    })
   }
 
   async function handleRestoreTask(task: Task) {
@@ -993,7 +1218,7 @@ function App() {
     }
   }
 
-  async function handleMoveTask(task: Task, direction: ReorderDirection) {
+  async function handleMoveTask(task: Task, direction: ReorderDirection, scopedTaskIds?: string[]) {
     if (!supabase) {
       return
     }
@@ -1002,7 +1227,7 @@ function App() {
     setMessage('')
 
     try {
-      const nextTasks = await reorderTask(supabase, task.id, direction)
+      const nextTasks = await reorderTask(supabase, task.id, direction, scopedTaskIds)
 
       if (task.folder_id) {
         setTasks(sortByPositionAndCreatedAt(nextTasks))
@@ -1033,6 +1258,17 @@ function App() {
       return
     }
 
+    const nextUsername = normalizeUsername(memberUsername) ?? memberUsername.trim()
+    const existingFolderMember = folderMemberUserIds.some((memberId) => {
+      const profile = profilesByIdRef.current[memberId]
+      return normalizeUsername(profile?.username ?? '') === normalizeUsername(nextUsername)
+    })
+
+    if (existingFolderMember) {
+      setMessage('That collaborator already has access to this folder.')
+      return
+    }
+
     setSaving(true)
     setMessage('')
 
@@ -1040,7 +1276,7 @@ function App() {
       const { member, profile } = await addFolderMemberByUsername(
         supabase,
         activeFolder.id,
-        normalizeUsername(memberUsername) ?? memberUsername.trim(),
+        nextUsername,
       )
 
       setProfilesById((current) => ({ ...current, [profile.id]: profile }))
@@ -1077,8 +1313,26 @@ function App() {
         description: values.description,
         category: values.category,
       })
+
+      if (values.inviteUsernames && values.inviteUsernames.length > 0) {
+        for (const username of values.inviteUsernames) {
+          try {
+            await addTaskMemberByUsername(
+              supabase,
+              task.id,
+              normalizeUsername(username) ?? username.trim()
+            )
+          } catch (e) {
+            console.error(`Failed to invite user ${username} to task`, e)
+          }
+        }
+      }
+
       setTasks((current) => sortByPositionAndCreatedAt(upsertById(current, task)))
       await refreshLiveSessionRef.current()
+      if (route.name === 'task-new') {
+        navigateToRoute({ name: 'folder-detail', folderId: activeFolder.id })
+      }
     } catch (error) {
       console.error('Task creation failed', error)
       setMessage('Unable to create task.')
@@ -1103,8 +1357,26 @@ function App() {
         assignedUserId: null,
         dueDate: null,
       })
+
+      if (values.inviteUsernames && values.inviteUsernames.length > 0) {
+        for (const username of values.inviteUsernames) {
+          try {
+            await addTaskMemberByUsername(
+              supabase,
+              task.id,
+              normalizeUsername(username) ?? username.trim()
+            )
+          } catch (e) {
+            console.error(`Failed to invite user ${username} to standalone task`, e)
+          }
+        }
+      }
+
       setStandaloneTasks((current) => sortByPositionAndCreatedAt(upsertById(current, task)))
       await refreshStandaloneTasks()
+      if (route.name === 'task-new') {
+        navigateToRoute({ name: 'tasks' })
+      }
     } catch (error) {
       console.error('Standalone task creation failed', error)
       setMessage('Unable to create task.')
@@ -1127,6 +1399,20 @@ function App() {
 
     if (task.folder_id || task.category !== 'shared') {
       setMessage('Change this task to Shared before adding members.')
+      return
+    }
+
+    const existingTaskMemberIds = new Set([
+      task.owner_id,
+      ...(taskMembersByTask.get(task.id)?.map((member) => member.user_id) ?? []),
+    ])
+    const existingTaskMember = Array.from(existingTaskMemberIds).some((memberId) => {
+      const profile = profilesByIdRef.current[memberId]
+      return normalizeUsername(profile?.username ?? '') === nextUsername
+    })
+
+    if (existingTaskMember) {
+      setMessage('That collaborator already has access to this task.')
       return
     }
 
@@ -1199,6 +1485,9 @@ function App() {
       setEditingTaskId(null)
       setMessage('Task saved.')
       await Promise.all([refreshLiveSessionRef.current(), refreshStandaloneTasks()])
+      if (route.name === 'task-edit') {
+        navigateToRoute(task.folder_id ? { name: 'folder-detail', folderId: task.folder_id } : { name: 'tasks' })
+      }
     } catch (error) {
       console.error('Task update failed', error)
       setMessage('Unable to save task.')
@@ -1286,7 +1575,7 @@ function App() {
     setMessage('')
 
     try {
-      const undoneAction = await undoTaskStatusAction(supabase, action.id)
+      const undoneAction = await undoLatestTaskProgress(supabase, action.task_id, action.task_level_id)
       setActions((current) => sortActions(upsertById(current, undoneAction)))
       await Promise.all([refreshLiveSessionRef.current(), refreshStandaloneTasks()])
     } catch (error) {
@@ -1334,6 +1623,7 @@ function App() {
         onSubmitRegister={handleRegister}
         onSubmitReset={handleResetPassword}
         onViewChange={setAuthView}
+        onContinueWithGoogle={handleGoogleLogin}
         registerConfirmPassword={registerConfirmPassword}
         registerEmail={registerEmail}
         registerPassword={registerPassword}
@@ -1346,22 +1636,39 @@ function App() {
   }
 
   const userId = session.user.id
+  
+  let contextLabel = appViewItems.find((v) => v.id === activeView)?.label
+  if (route.name === 'folder-detail' || route.name === 'folder-edit') {
+    contextLabel = activeFolder?.title || 'Workspace'
+  } else if (route.name === 'folder-new') {
+    contextLabel = 'New Workspace'
+  } else if (route.name === 'task-detail' || route.name === 'task-edit') {
+    contextLabel = 'Task Details'
+  } else if (route.name === 'task-new') {
+    contextLabel = 'New Task'
+  }
+
+  const accountAvatarUrl = currentProfile?.avatar_url?.trim() || getAvatarSrc(profileAvatarChoice)
+
   return (
     <AppShell
       accountLabel={accountLabel}
+      accountAvatarUrl={accountAvatarUrl}
+      contextLabel={contextLabel}
       message={message}
+      folders={folders}
+      tasks={filteredTasks}
+      onOpenFolder={(folderId) => navigateToRoute({ name: 'folder-detail', folderId })}
       onSearchChange={setSearchQuery}
+      onNavigate={navigateToView}
       onSignOut={() => void handleSignOut()}
       searchQuery={searchQuery}
       userId={userId}
       sidebar={
         <Sidebar
           activeView={activeView}
-          foldersCount={folders.length}
-          normalizedSearchQuery={normalizedSearchQuery}
-          onViewChange={setActiveView}
+          onViewChange={navigateToView}
           viewItems={appViewItems}
-          visibleFoldersCount={filteredFolders.length}
         />
       }
       confirmDialog={
@@ -1394,29 +1701,46 @@ function App() {
         folderTitle={folderTitle}
         folders={folders}
         getContributionCounts={getContributionCounts}
+        getProfileAvatar={getProfileAvatar}
         getProfileLabel={getProfileLabel}
-        isEditingFolder={isEditingFolder}
+        hasUnsavedChanges={
+          profileDisplayName !== (currentProfile?.display_name ?? '') ||
+          profileUsername !== (currentProfile?.username ?? '') ||
+          profileAvatarChoice !== (currentProfile?.avatar_choice ?? defaultAvatarChoice) ||
+          profileThemeMode !== (currentProfile?.theme_mode ?? defaultThemeMode) ||
+          profileColorPalette !== (currentProfile?.color_palette ?? defaultColorPalette)
+        }
         isSaving={saving}
         memberUsername={memberUsername}
         normalizedSearchQuery={normalizedSearchQuery}
+        onAddFolder={addFolderPage}
+        onAddTask={addTaskPage}
         onAddTaskMember={(task, username) => void handleAddTaskMember(task, username)}
-        onCancelFolderEdit={() => setIsEditingFolder(false)}
         onCloseTaskEdit={() => setEditingTaskId(null)}
+        onCopyShareLink={(type, id) => void handleCopyShareLink(type, id)}
         onCreateFolder={handleCreateFolder}
         onCreateFolderTask={(values) => void handleCreateFolderTask(values)}
         onCreateStandaloneTask={(values) => void handleCreateStandaloneTask(values)}
         onDeleteFolder={requestDeleteFolder}
         onDeleteTask={requestDeleteTask}
-        onEditTask={(taskId) => setEditingTaskId((currentId) => (currentId === taskId ? null : taskId))}
+        onEditFolder={editFolderPage}
+        onEditTask={editTaskPage}
         onFolderCategoryChange={setFolderCategory}
         onFolderDescriptionChange={setFolderDescription}
         onFolderTitleChange={setFolderTitle}
+        onHardDeleteFolder={handleHardDeleteFolder}
+        onHardDeleteTask={handleHardDeleteTask}
         onInviteMember={handleInviteMember}
         onMemberUsernameChange={setMemberUsername}
-        onMoveFolder={(folder, direction) => void handleMoveFolder(folder, direction)}
-        onMoveTask={(task, direction) => void handleMoveTask(task, direction)}
-        onNavigate={setActiveView}
+        onMoveFolder={(folder, direction, scopedFolderIds) => void handleMoveFolder(folder, direction, scopedFolderIds)}
+        onMoveTask={(task, direction, scopedTaskIds) => void handleMoveTask(task, direction, scopedTaskIds)}
+        onNavigate={navigateToView}
+        onOpenFolder={(folderId) => navigateToRoute({ name: 'folder-detail', folderId })}
+        onOpenTask={(task) => navigateToRoute({ name: 'task-detail', taskId: task.id, folderId: task.folder_id || undefined })}
+        onProfileAvatarChoiceChange={setProfileAvatarChoice}
+        onProfileColorPaletteChange={setProfileColorPalette}
         onProfileDisplayNameChange={setProfileDisplayName}
+        onProfileThemeModeChange={setProfileThemeMode}
         onProfileUsernameChange={setProfileUsername}
         onRemoveTaskMember={(task, memberId) => void handleRemoveTaskMember(task, memberId)}
         onRestoreFolder={handleRestoreFolder}
@@ -1424,21 +1748,23 @@ function App() {
         onSaveProfile={handleUpdateProfile}
         onSelectFolder={setSelectedFolderId}
         onSetTaskStatus={(taskId, status) => void handleSetTaskStatus(taskId, status)}
-        onToggleFolderEdit={() => setIsEditingFolder((current) => !current)}
         onUndoAction={(action) => void handleUndoTaskStatus(action)}
         onUpdateFolder={(values) => void handleUpdateFolder(values)}
         onUpdateTask={(taskId, values) => void handleUpdateTask(taskId, values)}
         pendingAction={pendingAction}
-        personalFolders={personalFolders}
-        personalStandaloneTasks={personalStandaloneTasks}
+        profileAvatarChoice={profileAvatarChoice}
+        profileColorPalette={profileColorPalette}
         profileDisplayName={profileDisplayName}
+        profileThemeMode={profileThemeMode}
         profileUsername={profileUsername}
         realtimeLabel={realtimeStatus}
+        route={route}
         sharedFolders={sharedFolders}
         sharedStandaloneTasks={sharedStandaloneTasks}
         standaloneAssignableMembers={standaloneAssignableMembers}
         standaloneTasks={standaloneTasks}
         statusTotals={statusTotals}
+        statusHistoryByTask={statusHistoryByTask}
         taskMembersByTask={taskMembersByTask}
         tasks={tasks}
       />

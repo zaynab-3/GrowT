@@ -1,4 +1,5 @@
 import type { AcquaintanceListItem } from './acquaintanceApi'
+import { UserAvatar } from '../../components/UserAvatar'
 
 type AcquaintanceListProps = {
   acquaintances: AcquaintanceListItem[]
@@ -14,20 +15,19 @@ export function AcquaintanceList({
   pendingAction,
 }: AcquaintanceListProps) {
   return (
-    <div className="acquaintance-section">
-      <div className="restore-panel__heading">
-        <span className="section-label">Acquaintances</span>
-        <strong>{acquaintances.length}</strong>
-      </div>
-      <div className="restore-list">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div className="stitch-member-list">
         {acquaintances.map((acquaintance) => (
-          <div className="restore-row" key={acquaintance.relationship_id}>
-            <div>
-              <strong>{acquaintance.display_name ?? `@${acquaintance.username}`}</strong>
-              <span>@{acquaintance.username}</span>
+          <div className="stitch-member-row" key={acquaintance.relationship_id}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <UserAvatar label={acquaintance.display_name ?? acquaintance.username} avatarChoice={acquaintance.avatar_choice} avatarUrl={acquaintance.avatar_url} className="w-8 h-8 text-[12px]" />
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span className="stitch-member-name">{acquaintance.display_name ?? `@${acquaintance.username}`}</span>
+                <span style={{ fontSize: '11px', color: 'var(--ink-3)' }}>@{acquaintance.username}</span>
+              </div>
             </div>
             <button
-              className="button button--danger"
+              className="btn btn--danger btn--sm"
               disabled={isBusy || pendingAction === `remove:${acquaintance.user_id}`}
               onClick={() => onRemove(acquaintance.user_id)}
               type="button"
@@ -36,7 +36,7 @@ export function AcquaintanceList({
             </button>
           </div>
         ))}
-        {!acquaintances.length ? <p className="empty-state">No acquaintances yet.</p> : null}
+        {!acquaintances.length ? <p className="stitch-empty-text">No acquaintances yet.</p> : null}
       </div>
     </div>
   )

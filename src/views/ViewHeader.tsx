@@ -9,13 +9,13 @@ type ViewHeaderProps = {
 
 export function ViewHeader({ actions, description, label, title }: ViewHeaderProps) {
   return (
-    <header className="view-header">
+    <header className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
-        <p className="section-label">{label}</p>
-        <h1>{title}</h1>
-        <p className="hero-text">{description}</p>
+        <p className="font-label-md text-label-md text-primary font-bold uppercase tracking-wider mb-1">{label}</p>
+        <h1 className="font-headline-md text-headline-md font-bold text-on-surface">{title}</h1>
+        <p className="text-on-surface-variant font-body-md mt-1">{description}</p>
       </div>
-      {actions ? <div className="view-header__actions">{actions}</div> : null}
+      {actions ? <div className="flex items-center gap-3">{actions}</div> : null}
     </header>
   )
 }

@@ -9,6 +9,7 @@ import type {
   Folder,
   FolderMember,
   Profile,
+  ProfileSummary,
   Task,
   TaskMember,
   TaskStatusAction,
@@ -19,16 +20,18 @@ import {
   matchesSearch,
   sortActions,
   sortTaskMembers,
+  calculateUserProgress,
   type ContributionCounts,
   type StatusContribution,
 } from '../lib/growtState'
+import { getAvatarSrc } from '../lib/appearance'
 
 type UseGrowTDataParams = {
   actions: TaskStatusAction[]
   currentProfile: Profile | null
   folders: Folder[]
   members: FolderMember[]
-  profilesById: Record<string, Profile>
+  profilesById: Record<string, ProfileSummary>
   searchQuery: string
   selectedFolderId: string | null
   standaloneTasks: Task[]
@@ -103,26 +106,39 @@ export function useGrowTData({
     return grouped
   }, [activeActions])
 
-  const statusTotals = useMemo(() => {
-    const totals = emptyStatusCounts()
-    const seenContributions = new Set<string>()
+  const statusHistoryByTask = useMemo(() => {
+    const grouped = new Map<string, Record<TaskProgressStatus, StatusContribution[]>>()
+    const seenStatusMarks = new Set<string>()
 
-    for (const action of activeActions) {
-      if (!folderTaskIdSet.has(action.task_id)) {
+    for (const action of sortActions(activeActions)) {
+      const key = `${action.task_id}:${action.task_level_id ?? 'root'}:${action.new_status}:${action.user_id}`
+      if (seenStatusMarks.has(key)) {
         continue
       }
 
-      const key = contributionKey(action)
-      if (seenContributions.has(key)) {
-        continue
-      }
+      seenStatusMarks.add(key)
+      const taskGroup =
+        grouped.get(action.task_id) ??
+        ({
+          ongoing: [],
+          half_done: [],
+          completed: [],
+        } satisfies Record<TaskProgressStatus, StatusContribution[]>)
 
-      seenContributions.add(key)
-      totals[action.new_status] += 1
+      taskGroup[action.new_status] = [
+        ...taskGroup[action.new_status],
+        { action, userId: action.user_id },
+      ]
+      grouped.set(action.task_id, taskGroup)
     }
 
-    return totals
-  }, [activeActions, folderTaskIdSet])
+    return grouped
+  }, [activeActions])
+
+  const statusTotals = useMemo(() => {
+    const allActiveTasks = [...tasks, ...standaloneTasks]
+    return calculateUserProgress(allActiveTasks, actions, userId ?? '')
+  }, [tasks, standaloneTasks, actions, userId])
 
   const activeFolderIsShared = activeFolder ? isSharedFolder(activeFolder) : false
   const canInviteMembers = Boolean(activeFolder && activeFolderIsShared && activeFolder.owner_id === userId)
@@ -203,13 +219,16 @@ export function useGrowTData({
     }
 
     return folders.filter((folder) => {
-      const activeFolderMemberValues =
-        folder.id === activeFolder?.id
-          ? folderMemberUserIds.flatMap((memberId) => {
-              const profile = profilesById[memberId]
-              return [profile?.display_name, profile?.username, memberId === userId ? 'you' : null]
-            })
-          : []
+      const folderMembers = members.filter(m => m.folder_id === folder.id)
+      const folderMemberValues = folderMembers.flatMap((member) => {
+        const profile = profilesById[member.user_id]
+        return [profile?.display_name, profile?.username, member.user_id === userId ? 'you' : null]
+      })
+      
+      const ownerProfile = profilesById[folder.owner_id]
+      if (ownerProfile) {
+        folderMemberValues.push(ownerProfile.display_name, ownerProfile.username, folder.owner_id === userId ? 'you' : null)
+      }
 
       return matchesSearch(normalizedSearchQuery, [
         folder.title,
@@ -217,10 +236,10 @@ export function useGrowTData({
         folder.category,
         getCategoryLabel(folder.category),
         isSharedFolder(folder) ? 'shared' : 'private',
-        ...activeFolderMemberValues,
+        ...folderMemberValues,
       ])
     })
-  }, [activeFolder?.id, folderMemberUserIds, folders, normalizedSearchQuery, profilesById, userId])
+  }, [folders, members, normalizedSearchQuery, profilesById, userId])
 
   const filteredTasks = useMemo(() => {
     if (!normalizedSearchQuery) {
@@ -284,8 +303,22 @@ export function useGrowTData({
     })
   }, [contributionsByTask, normalizedSearchQuery, profilesById, standaloneTasks, taskMembersByTask])
 
+  const getProfileAvatar = useCallback(
+    (profileId: string | undefined | null) => {
+      if (!profileId) return null
+      const profile = profilesById[profileId]
+      if (!profile) return null
+      return profile.avatar_url?.trim() || getAvatarSrc(profile.avatar_choice)
+    },
+    [profilesById],
+  )
+
   const getProfileLabel = useCallback(
-    (profileId: string) => {
+    (profileId: string | undefined | null) => {
+      if (!profileId) {
+        return 'Unknown User'
+      }
+
       const profile = profilesById[profileId]
 
       if (profile?.display_name) {
@@ -322,10 +355,12 @@ export function useGrowTData({
     filteredTasks,
     folderMemberUserIds,
     getContributionCounts,
+    getProfileAvatar,
     getProfileLabel,
     normalizedSearchQuery,
     standaloneAssignableMembers,
     statusTotals,
+    statusHistoryByTask,
     taskMembersByTask,
   }
 }

@@ -27,6 +27,7 @@ function acquaintanceToProfile(acquaintance: MemberPickerAcquaintance): MemberPi
     user_id: acquaintance.user_id,
     username: acquaintance.username,
     display_name: acquaintance.display_name,
+    avatar_choice: acquaintance.avatar_choice ?? 'default',
     avatar_url: acquaintance.avatar_url,
     relationship_status: 'acquaintance',
     request_id: null,
@@ -49,15 +50,10 @@ export function MemberPicker({
   const [localMemberIds, setLocalMemberIds] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<MemberPickerProfile[]>([])
-  const [isLoadingAcquaintances, setIsLoadingAcquaintances] = useState(false)
   const [isSearching, setIsSearching] = useState(false)
   const [pendingAction, setPendingAction] = useState<string | null>(null)
   const [message, setMessage] = useState('')
   const searchQueryRef = useRef(searchQuery)
-
-  useEffect(() => {
-    searchQueryRef.current = searchQuery
-  }, [searchQuery])
 
   const memberIdSet = useMemo(
     () => new Set([...existingMemberIds, ...localMemberIds]),
@@ -69,14 +65,21 @@ export function MemberPicker({
     [acquaintances],
   )
 
+  const displayResults = useMemo(() => {
+    if (searchQuery) {
+      return [...searchResults].sort((a, b) => {
+        if (a.relationship_status === 'acquaintance' && b.relationship_status !== 'acquaintance') return -1
+        if (b.relationship_status === 'acquaintance' && a.relationship_status !== 'acquaintance') return 1
+        return 0
+      })
+    }
+    return acquaintanceProfiles
+  }, [searchQuery, searchResults, acquaintanceProfiles])
+
   const loadAcquaintances = useCallback(
     async (quiet = false) => {
       if (!supabase || !currentUserId) {
         return
-      }
-
-      if (!quiet) {
-        setIsLoadingAcquaintances(true)
       }
 
       try {
@@ -86,10 +89,6 @@ export function MemberPicker({
         console.error('Member picker acquaintances load failed', error)
         if (!quiet) {
           setMessage('Unable to load acquaintances.')
-        }
-      } finally {
-        if (!quiet) {
-          setIsLoadingAcquaintances(false)
         }
       }
     },
@@ -138,6 +137,20 @@ export function MemberPicker({
       void searchUsers(searchQueryRef.current, true)
     }
   }, [searchUsers])
+
+  useEffect(() => {
+    searchQueryRef.current = searchQuery
+    
+    const timeoutId = setTimeout(() => {
+      if (searchQuery.length > 0) {
+        void searchUsers(searchQuery, true)
+      } else {
+        setSearchResults([])
+      }
+    }, 300)
+    
+    return () => clearTimeout(timeoutId)
+  }, [searchQuery, searchUsers])
 
   useEffect(() => {
     void loadAcquaintances()
@@ -339,13 +352,23 @@ export function MemberPicker({
   return (
     <section className="member-picker" aria-label={label}>
       <div className="member-picker__section">
-        <div className="restore-panel__heading">
-          <span className="section-label">Acquaintances</span>
-          <strong>{isLoadingAcquaintances ? '...' : acquaintanceProfiles.length}</strong>
-        </div>
+        <form className="flex items-center gap-2" onSubmit={(event) => void handleSearch(event)}>
+          <input
+            aria-label="Search users by username"
+            disabled={isDisabled || isSearching}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Search username to invite..."
+            value={searchQuery}
+            className="stitch-input"
+            style={{ flex: 1, minWidth: 0 }}
+          />
+          <button className="btn btn--secondary" disabled={isDisabled || isSearching} type="submit">
+            Search
+          </button>
+        </form>
 
-        <div className="restore-list">
-          {acquaintanceProfiles.map((profile) => (
+        <div className="mt-4 flex flex-col gap-1">
+          {displayResults.map((profile) => (
             <MemberSearchResult
               isBusy={isProfileBusy(profile)}
               isMember={memberIdSet.has(profile.user_id)}
@@ -358,45 +381,13 @@ export function MemberPicker({
               profile={profile}
             />
           ))}
-          {!acquaintanceProfiles.length ? <p className="empty-state">No acquaintances yet.</p> : null}
+          {!displayResults.length && !isSearching && !searchQuery ? (
+            <p className="empty-state">No acquaintances yet. Search to find people.</p>
+          ) : null}
+          {!displayResults.length && !isSearching && searchQuery ? (
+            <p className="empty-state">No users found.</p>
+          ) : null}
         </div>
-      </div>
-
-      <div className="member-picker__section">
-        <div className="restore-panel__heading">
-          <span className="section-label">Search users</span>
-        </div>
-
-        <form className="invite-form member-picker__search" onSubmit={(event) => void handleSearch(event)}>
-          <input
-            aria-label="Search users by username"
-            disabled={isDisabled || isSearching}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="username"
-            value={searchQuery}
-          />
-          <button className="button button--secondary" disabled={isDisabled || isSearching} type="submit">
-            Search
-          </button>
-        </form>
-
-        {searchResults.length ? (
-          <div className="restore-list">
-            {searchResults.map((profile) => (
-              <MemberSearchResult
-                isBusy={isProfileBusy(profile)}
-                isMember={memberIdSet.has(profile.user_id)}
-                key={profile.user_id}
-                onAccept={(nextProfile) => void handleAcceptRequest(nextProfile)}
-                onAdd={(nextProfile) => void handleAddMember(nextProfile)}
-                onCancelRequest={(nextProfile) => void handleCancelRequest(nextProfile)}
-                onReject={(nextProfile) => void handleRejectRequest(nextProfile)}
-                onSendRequest={(nextProfile) => void handleSendRequest(nextProfile)}
-                profile={profile}
-              />
-            ))}
-          </div>
-        ) : null}
       </div>
 
       {message ? <p className="invite-note">{message}</p> : null}

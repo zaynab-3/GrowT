@@ -1,0 +1,84 @@
+/* ============= FORM PAGES ================================= */
+
+.form-page {
+  display: grid;
+  gap: 24px;
+}
+
+.form-page--centered {
+  max-width: 680px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.form-card {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-2xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Colored top accent line on form cards */
+.form-card::before {
+  content: '';
+  display: block;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), rgba(var(--primary-rgb, 108,82,224), 0.4));
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+}
+
+.form-card__header {
+  padding: 24px 32px 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-soft);
+}
+
+.form-card__header h2 {
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0 0 4px;
+}
+
+.form-card__header p {
+  font-size: 13.5px;
+  color: var(--ink-3);
+  margin: 0;
+}
+
+.form-card__body {
+  padding: 28px 32px;
+  display: grid;
+  gap: 20px;
+}
+
+.form-card__footer {
+  padding: 16px 32px;
+  border-top: 1px solid var(--border);
+  background: var(--surface-soft);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* Individual form field */
+.form-field { display: grid; gap: 8px; }
+
+/* Two-column row */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.stack-form { display: grid; gap: 12px; }
+
+.edit-form { display: grid; gap: 14px; }

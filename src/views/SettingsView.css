@@ -1,0 +1,189 @@
+/* ============================================================
+   GROWT — SettingsView.css
+   Profile & Settings screen styles
+   ============================================================ */
+
+.settings-page {
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+  display: grid;
+  gap: 24px;
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.settings-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.settings-section-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-2);
+  margin: 0 0 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* =================== THEME TOGGLE ========================= */
+
+.theme-mode-toggle {
+  display: flex;
+  gap: 0;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  width: fit-content;
+}
+
+.theme-mode-btn {
+  height: 40px;
+  padding: 0 24px;
+  border: none;
+  border-right: 1px solid var(--border);
+  background: var(--surface-soft);
+  color: var(--ink-3);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  font-family: inherit;
+}
+
+.theme-mode-btn:last-child { border-right: none; }
+.theme-mode-btn:hover { background: var(--surface-muted); color: var(--ink); }
+
+.theme-mode-btn--active {
+  background: var(--primary);
+  color: #fff;
+}
+
+.theme-mode-btn--active:hover { background: var(--primary-dark); }
+
+/* =================== PALETTE GRID ========================= */
+
+.palette-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.palette-option {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  font-family: inherit;
+}
+
+.palette-option:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.palette-option--active {
+  border-color: var(--primary);
+  border-width: 2px;
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.palette-option__name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  display: block;
+}
+
+.palette-option__desc {
+  font-size: 12px;
+  color: var(--ink-3);
+  display: block;
+}
+
+/* Colored swatches via a pseudo-element dot */
+.palette-option::before {
+  content: '';
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  margin-bottom: 6px;
+  border: 2px solid rgba(0,0,0,0.08);
+}
+
+.palette-option--violet::before { background: #5E3BDB; }
+.palette-option--duck::before   { background: #c08a24; }
+.palette-option--penguin::before { background: #2563eb; }
+.palette-option--sprout::before { background: #16a34a; }
+.palette-option--rose::before   { background: #db2777; }
+.palette-option--lavender::before { background: #7c3aed; }
+
+/* =================== AVATAR GRID ========================== */
+
+.avatar-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.avatar-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+  font-family: inherit;
+}
+
+.avatar-choice:hover {
+  background: var(--surface-soft);
+  border-color: var(--border);
+  transform: translateY(-2px);
+}
+
+.avatar-choice--active {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.avatar-choice__img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatar-choice__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+/* =================== SAVE ROW ============================= */
+
+.settings-save-row {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 0 16px;
+}

@@ -1,0 +1,428 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>GrowT - Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "dark-card": "#17112B",
+                        "dark-bg": "#0F0A20",
+                        "surface-dim": "#dad9e2",
+                        "surface-container-high": "#e8e7f0",
+                        "secondary-container": "#795de4",
+                        "error": "#ba1a1a",
+                        "on-tertiary": "#ffffff",
+                        "on-surface": "#1a1b22",
+                        "on-tertiary-container": "#fffbff",
+                        "on-error-container": "#93000a",
+                        "on-secondary-container": "#fffbff",
+                        "surface-variant": "#e2e1ea",
+                        "background": "#faf8ff",
+                        "inverse-on-surface": "#f1f0f9",
+                        "secondary-fixed": "#e6deff",
+                        "primary-fixed": "#e6deff",
+                        "surface-container-low": "#f4f3fc",
+                        "primary-container": "#7858f5",
+                        "light-bg": "#F0EFF8",
+                        "on-primary-container": "#fffbff",
+                        "outline-variant": "#c9c4d7",
+                        "on-primary-fixed-variant": "#481bc6",
+                        "outline": "#797586",
+                        "surface-bright": "#faf8ff",
+                        "on-secondary-fixed": "#1d0061",
+                        "surface": "#faf8ff",
+                        "tertiary-fixed-dim": "#ffb77b",
+                        "light-card": "#FFFFFF",
+                        "primary-fixed-dim": "#cabeff",
+                        "secondary": "#6042ca",
+                        "on-background": "#1a1b22",
+                        "inverse-surface": "#2f3037",
+                        "tertiary": "#8c4c00",
+                        "on-surface-variant": "#484555",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed-variant": "#6d3a00",
+                        "on-error": "#ffffff",
+                        "tertiary-container": "#b06000",
+                        "surface-container": "#eeedf6",
+                        "surface-tint": "#613ede",
+                        "secondary-fixed-dim": "#cbbeff",
+                        "glass-overlay": "rgba(255, 255, 255, 0.4)",
+                        "on-secondary-fixed-variant": "#4a28b3",
+                        "on-tertiary-fixed": "#2e1500",
+                        "tertiary-fixed": "#ffdcc2",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed": "#1c0062",
+                        "error-container": "#ffdad6",
+                        "inverse-primary": "#cabeff",
+                        "surface-container-highest": "#e2e1ea",
+                        "on-primary": "#ffffff",
+                        "primary": "#5e3bdb",
+                        "dark-text": "#F0EEFF"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-padding": "32px",
+                        "stack-gap": "12px",
+                        "sidebar-width": "256px",
+                        "margin-sm": "16px",
+                        "gutter-md": "24px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "label-md": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "title-lg": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "title-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.light-bg');
+            color: theme('colors.on-surface');
+        }
+        .dark body {
+            background-color: theme('colors.dark-bg');
+            color: theme('colors.dark-text');
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined[data-weight="fill"] {
+            font-variation-settings: 'FILL' 1;
+        }
+        
+        /* Glassmorphic utilities */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .dark .glass-panel {
+            background: rgba(23, 17, 43, 0.4);
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        /* Soft Shadow */
+        .shadow-soft {
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+    </style>
+</head>
+<body class="antialiased transition-colors duration-300 min-h-screen flex">
+<!-- SideNavBar (Shared Component) -->
+<nav class="fixed left-0 top-0 h-full w-sidebar-width bg-white/40 dark:bg-dark-card/40 backdrop-blur-xl border-r border-white/20 dark:border-dark-card/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] z-20 flex flex-col py-container-padding transition-all duration-300 hidden md:flex">
+<!-- Header -->
+<div class="px-gutter-md mb-8 flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center shrink-0">
+<span class="font-display-lg text-title-lg text-on-primary-container">G</span>
+</div>
+<div>
+<h1 class="font-display-lg text-title-lg text-primary dark:text-primary-fixed leading-none">GrowT</h1>
+<p class="font-body-md text-label-md text-on-surface-variant dark:text-on-surface-variant/70 mt-1">Project Tracker</p>
+</div>
+</div>
+<!-- Main Nav -->
+<div class="flex-1 overflow-y-auto px-4 space-y-2">
+<!-- Active Item: Dashboard -->
+<a class="flex items-center gap-3 px-4 py-3 text-primary dark:text-primary-fixed font-semibold border-l-4 border-primary dark:border-primary-fixed bg-primary/5 rounded-r-lg transition-all duration-300 ease-in-out hover:bg-white/60" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view" data-weight="fill">grid_view</span>
+<span class="font-body-md text-body-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant/70 hover:text-primary transition-colors rounded-r-lg hover:bg-white/60 dark:hover:bg-dark-card/60" href="#">
+<span class="material-symbols-outlined" data-icon="account_tree">account_tree</span>
+<span class="font-body-md text-body-md">Projects</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant/70 hover:text-primary transition-colors rounded-r-lg hover:bg-white/60 dark:hover:bg-dark-card/60" href="#">
+<span class="material-symbols-outlined" data-icon="task_alt">task_alt</span>
+<span class="font-body-md text-body-md">Tasks</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant/70 hover:text-primary transition-colors rounded-r-lg hover:bg-white/60 dark:hover:bg-dark-card/60" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span class="font-body-md text-body-md">Calendar</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant/70 hover:text-primary transition-colors rounded-r-lg hover:bg-white/60 dark:hover:bg-dark-card/60" href="#">
+<span class="material-symbols-outlined" data-icon="monitoring">monitoring</span>
+<span class="font-body-md text-body-md">Insights</span>
+</a>
+</div>
+<!-- Footer Nav -->
+<div class="px-4 mt-auto space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant/70 hover:text-primary transition-colors rounded-r-lg hover:bg-white/60 dark:hover:bg-dark-card/60" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-body-md text-body-md">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant/70 hover:text-primary transition-colors rounded-r-lg hover:bg-white/60 dark:hover:bg-dark-card/60" href="#">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+<span class="font-body-md text-body-md">Support</span>
+</a>
+<!-- CTA Button -->
+<div class="px-4 pt-4 pb-2">
+<button class="w-full bg-primary hover:bg-surface-tint text-white font-label-md text-label-md py-3 rounded-xl shadow-soft hover:translate-y-[-2px] hover:shadow-md transition-all duration-300">
+                    New Project
+                </button>
+</div>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col md:ml-sidebar-width min-h-screen">
+<!-- TopNavBar (Shared Component) -->
+<header class="fixed top-0 right-0 w-full md:w-[calc(100%-256px)] h-16 bg-white/40 dark:bg-dark-card/40 backdrop-blur-xl border-b border-white/20 dark:border-dark-card/20 shadow-sm z-10 flex items-center justify-between px-gutter-md transition-all duration-300">
+<!-- Left: Workspace & Search -->
+<div class="flex items-center gap-6 flex-1">
+<div class="hidden md:flex items-center gap-2 text-primary dark:text-primary-fixed cursor-pointer">
+<span class="font-title-lg text-body-lg font-semibold">Workspace Alpha</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</div>
+<div class="relative w-full max-w-md hidden md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50">search</span>
+<input class="w-full bg-surface-container-low dark:bg-dark-card/60 border-none rounded-xl pl-10 pr-4 py-2 text-body-md font-body-md text-on-surface focus:ring-2 focus:ring-primary/50 transition-all" placeholder="Search projects, tasks..." type="text">
+</div>
+</div>
+<!-- Right: Links & Actions -->
+<div class="flex items-center gap-4">
+<div class="hidden lg:flex items-center gap-6 mr-4">
+<a class="text-on-surface-variant dark:text-on-surface-variant/70 font-body-md text-body-md hover:text-primary transition-colors" href="#">Workspace</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant/70 font-body-md text-body-md hover:text-primary transition-colors" href="#">Team</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant/70 font-body-md text-body-md hover:text-primary transition-colors" href="#">Reports</a>
+</div>
+<!-- Theme Toggle & Sync -->
+<div class="flex items-center gap-3 border-r border-outline-variant/30 pr-4 mr-2">
+<div class="flex items-center gap-2 bg-surface-container-low dark:bg-dark-card/60 px-3 py-1.5 rounded-full">
+<div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+<span class="font-label-md text-label-md text-on-surface-variant">Syncing</span>
+</div>
+<button class="p-2 rounded-full hover:bg-surface-container-low dark:hover:bg-dark-card/60 transition-colors text-on-surface-variant dark:text-primary-fixed" id="themeToggle">
+<span class="material-symbols-outlined" id="themeIcon">dark_mode</span>
+</button>
+</div>
+<!-- Icons & Profile -->
+<div class="flex items-center gap-2">
+<button class="p-2 rounded-full hover:bg-surface-container-low dark:hover:bg-dark-card/60 transition-colors text-on-surface-variant dark:text-primary-fixed scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface-container-low dark:hover:bg-dark-card/60 transition-colors text-on-surface-variant dark:text-primary-fixed scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">history</span>
+</button>
+<button class="ml-2 bg-primary/10 text-primary dark:text-primary-fixed font-label-md text-label-md px-4 py-2 rounded-xl hover:bg-primary/20 transition-colors">
+                        Invite
+                    </button>
+<img alt="User Avatar" class="w-9 h-9 rounded-full object-cover ml-2 border border-outline-variant/20 shadow-sm" data-alt="A small, circular profile picture of a young professional woman with light skin and dark hair, smiling warmly. The image is bright and cleanly lit, set against a neutral soft background, fitting perfectly into a clean, modern dashboard UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJmjNnwlM2hy90ovBgJP6XfGSEEXiU51as3Z1mJqlJZO3FEW_YgU3CKZyBS5CGArnkuh95aafPKM86azNwiUh3cqbfViz_NheAPUQgWRCA7E_Q8Qop3FwoX6h0xLX9kEeKptoHuMz5v4ickLw1_l8oso-345aJXAgA0izKOusnxDaP_2kmuJ3_cBtTu9UBmFgxlVXi6Y7eDr8gqj_tvc2pwooN8SnXjYVGXuM6eVoQZTmX5UIWFzChpEBLjxurP9gld09_V0885Ca0">
+</div>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="flex-1 p-gutter-md md:p-container-padding mt-16 overflow-y-auto">
+<div class="mb-8">
+<h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface dark:text-on-tertiary">Overview</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Here's what's happening in your workspace today.</p>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Stats Cards Row (Top) -->
+<div class="col-span-1 md:col-span-12 grid grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Card 1 -->
+<div class="bg-light-card dark:bg-dark-card rounded-[18px] p-6 shadow-soft border border-surface-variant/50 dark:border-white/5 hover:-translate-y-1 transition-transform duration-300 group">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">folder_open</span>
+</div>
+<span class="font-label-md text-label-md text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-full">+12%</span>
+</div>
+<h3 class="font-body-md text-label-md text-on-surface-variant dark:text-outline uppercase tracking-wider mb-1">Total Folders</h3>
+<p class="font-display-lg text-headline-lg text-on-surface dark:text-on-tertiary">24</p>
+</div>
+<!-- Card 2 -->
+<div class="bg-light-card dark:bg-dark-card rounded-[18px] p-6 shadow-soft border border-surface-variant/50 dark:border-white/5 hover:-translate-y-1 transition-transform duration-300 group">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary-container group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">task</span>
+</div>
+<span class="font-label-md text-label-md text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-full">+5%</span>
+</div>
+<h3 class="font-body-md text-label-md text-on-surface-variant dark:text-outline uppercase tracking-wider mb-1">Active Tasks</h3>
+<p class="font-display-lg text-headline-lg text-on-surface dark:text-on-tertiary">142</p>
+</div>
+<!-- Card 3 -->
+<div class="bg-light-card dark:bg-dark-card rounded-[18px] p-6 shadow-soft border border-surface-variant/50 dark:border-white/5 hover:-translate-y-1 transition-transform duration-300 group">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-full bg-tertiary-container/10 flex items-center justify-center text-tertiary-container group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">share</span>
+</div>
+<span class="font-label-md text-label-md text-surface-variant bg-surface-variant/20 px-2 py-1 rounded-full text-on-surface-variant dark:text-outline">0%</span>
+</div>
+<h3 class="font-body-md text-label-md text-on-surface-variant dark:text-outline uppercase tracking-wider mb-1">Shared Items</h3>
+<p class="font-display-lg text-headline-lg text-on-surface dark:text-on-tertiary">56</p>
+</div>
+<!-- Card 4 -->
+<div class="bg-light-card dark:bg-dark-card rounded-[18px] p-6 shadow-soft border border-surface-variant/50 dark:border-white/5 hover:-translate-y-1 transition-transform duration-300 group">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant group-hover:scale-110 transition-transform dark:bg-white/5 dark:text-outline">
+<span class="material-symbols-outlined">archive</span>
+</div>
+<span class="font-label-md text-label-md text-error bg-error/10 px-2 py-1 rounded-full">-2%</span>
+</div>
+<h3 class="font-body-md text-label-md text-on-surface-variant dark:text-outline uppercase tracking-wider mb-1">Archive Items</h3>
+<p class="font-display-lg text-headline-lg text-on-surface dark:text-on-tertiary">89</p>
+</div>
+</div>
+<!-- Main Middle Section -->
+<div class="col-span-1 md:col-span-12 grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Contribution Graph (Spans 2 cols) -->
+<div class="col-span-1 lg:col-span-2 bg-light-card dark:bg-dark-card rounded-[18px] p-8 shadow-soft border border-surface-variant/50 dark:border-white/5 flex flex-col justify-between">
+<div class="flex justify-between items-center mb-8">
+<div>
+<h3 class="font-headline-md text-title-lg text-on-surface dark:text-on-tertiary">Task Completion</h3>
+<p class="font-body-md text-label-md text-on-surface-variant dark:text-outline mt-1">Weekly progress overview</p>
+</div>
+<button class="p-2 hover:bg-surface-container-low dark:hover:bg-white/5 rounded-full transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">more_vert</span>
+</button>
+</div>
+<!-- Soft Bar Charts Layout -->
+<div class="flex-1 flex flex-col gap-6 justify-center">
+<!-- Completed -->
+<div>
+<div class="flex justify-between items-end mb-2">
+<span class="font-label-md text-body-md text-on-surface dark:text-on-tertiary flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-emerald-400"></div> Completed
+                                    </span>
+<span class="font-label-md text-label-md text-on-surface-variant font-bold">68%</span>
+</div>
+<div class="w-full bg-surface-container-high dark:bg-white/5 rounded-full h-3 overflow-hidden">
+<div class="bg-emerald-400 h-full rounded-full transition-all duration-1000 ease-out" style="width: 68%"></div>
+</div>
+</div>
+<!-- Half Done -->
+<div>
+<div class="flex justify-between items-end mb-2">
+<span class="font-label-md text-body-md text-on-surface dark:text-on-tertiary flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-amber-400"></div> Half Done
+                                    </span>
+<span class="font-label-md text-label-md text-on-surface-variant font-bold">22%</span>
+</div>
+<div class="w-full bg-surface-container-high dark:bg-white/5 rounded-full h-3 overflow-hidden">
+<div class="bg-amber-400 h-full rounded-full transition-all duration-1000 ease-out delay-100" style="width: 22%"></div>
+</div>
+</div>
+<!-- Ongoing -->
+<div>
+<div class="flex justify-between items-end mb-2">
+<span class="font-label-md text-body-md text-on-surface dark:text-on-tertiary flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-primary"></div> Ongoing
+                                    </span>
+<span class="font-label-md text-label-md text-on-surface-variant font-bold">10%</span>
+</div>
+<div class="w-full bg-surface-container-high dark:bg-white/5 rounded-full h-3 overflow-hidden">
+<div class="bg-primary h-full rounded-full transition-all duration-1000 ease-out delay-200" style="width: 10%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Updates Panel (Spans 1 col) -->
+<div class="col-span-1 bg-light-card dark:bg-dark-card rounded-[18px] p-6 shadow-soft border border-surface-variant/50 dark:border-white/5 flex flex-col">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-headline-md text-title-lg text-on-surface dark:text-on-tertiary">Live Activity</h3>
+<span class="material-symbols-outlined text-primary text-sm animate-pulse">sensors</span>
+</div>
+<div class="flex-1 overflow-y-auto pr-2 space-y-6">
+<!-- Activity Item 1 -->
+<div class="flex gap-4 group">
+<div class="relative">
+<img alt="Avatar" class="w-10 h-10 rounded-full object-cover shadow-sm ring-2 ring-white dark:ring-dark-card z-10 relative" data-alt="A small profile picture of a professional man with short hair and glasses, looking confident. Soft, bright lighting on a clean background, fitting a modern SaaS dashboard interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAT11FnDMxCB3oGq8q-LelnR6-Wmrph2DZwwRooOXx2xaTjkKFnZAaX4NOwTgDRkueKyLr5T_1DvDVuCEOk0ke0bN4U7YvLcuZr-H0PMNOLqRbYq8DO9XzS6gDTI-QEnH7Ls4l526DdeTCg7RKu3zjTg6Uq37WdK4TRRVEfOya2YyE-_rZ14m59uU982Lc6aBFM2TIw2nVxs4GC-5lugYRQmAyDP4bOhGWyP-21fSzzCXg0zCFmkscfgCQeNYOygSI1Vj60vNncjFvs">
+<div class="absolute top-10 left-1/2 -translate-x-1/2 w-px h-full bg-surface-variant dark:bg-white/10 -z-0"></div>
+</div>
+<div class="flex-1 pb-2">
+<p class="font-body-md text-body-md text-on-surface dark:text-on-tertiary">
+<span class="font-semibold">Alex Chen</span> modified status of
+                                        <span class="text-primary dark:text-primary-fixed cursor-pointer hover:underline">Q3 Marketing Deck</span>
+</p>
+<p class="font-label-md text-label-md text-on-surface-variant mt-1">2 mins ago</p>
+</div>
+</div>
+<!-- Activity Item 2 -->
+<div class="flex gap-4 group">
+<div class="relative">
+<div class="w-10 h-10 rounded-full bg-tertiary-container/20 text-tertiary flex items-center justify-center shadow-sm ring-2 ring-white dark:ring-dark-card z-10 relative font-bold text-sm">
+                                        SJ
+                                    </div>
+<div class="absolute top-10 left-1/2 -translate-x-1/2 w-px h-full bg-surface-variant dark:bg-white/10 -z-0"></div>
+</div>
+<div class="flex-1 pb-2">
+<p class="font-body-md text-body-md text-on-surface dark:text-on-tertiary">
+<span class="font-semibold">Sarah Jenkins</span> uploaded 3 new assets to
+                                        <span class="text-primary dark:text-primary-fixed cursor-pointer hover:underline">Brand Guidelines</span>
+</p>
+<p class="font-label-md text-label-md text-on-surface-variant mt-1">15 mins ago</p>
+</div>
+</div>
+<!-- Activity Item 3 -->
+<div class="flex gap-4 group">
+<div class="relative">
+<img alt="Avatar" class="w-10 h-10 rounded-full object-cover shadow-sm ring-2 ring-white dark:ring-dark-card z-10 relative" data-alt="A small profile picture of a cheerful woman with shoulder-length blonde hair. Bright, clear lighting against a soft, unassuming background, suitable for a professional user avatar in a UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoOHmTm1lYuuP9QRJ_mEqiBedcitPBvaBTuCSUy59fG_dNJkZhDgVSsyRN63wOL31j6zsieC976BxBqfbLtPpwv84qbTIGcAJwVsYU9FumxeqpGDNptywfJwLZbxlBw1xR6BKYOt2lxpO39HIKSDcmSOwJgqwfxlC1ol2ybc_gdEN4yPjNvNNjwGoLckouRjximoUGeLrpnPptFiXIR9B1sXWr191455rUKHqiXy09KvlGrRo-KmOsBHxCKsU5IVA-SbvNlLSzYn4a">
+<!-- No line for last item -->
+</div>
+<div class="flex-1 pb-2">
+<p class="font-body-md text-body-md text-on-surface dark:text-on-tertiary">
+<span class="font-semibold">Mia Wong</span> commented on
+                                        <span class="text-primary dark:text-primary-fixed cursor-pointer hover:underline">Dashboard Redesign</span>
+</p>
+<p class="font-label-md text-label-md text-on-surface-variant mt-1">1 hr ago</p>
+</div>
+</div>
+</div>
+<button class="mt-4 w-full text-center font-label-md text-label-md text-primary hover:text-primary-container transition-colors py-2 border border-surface-variant dark:border-white/10 rounded-xl hover:bg-surface-container-low dark:hover:bg-white/5">
+                            View All Activity
+                        </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Simple Dark Mode Toggle Logic
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const html = document.documentElement;
+
+        themeToggle.addEventListener('click', () => {
+            if (html.classList.contains('light')) {
+                html.classList.remove('light');
+                html.classList.add('dark');
+                themeIcon.textContent = 'light_mode';
+            } else {
+                html.classList.remove('dark');
+                html.classList.add('light');
+                themeIcon.textContent = 'dark_mode';
+            }
+        });
+    </script>
+</body></html>

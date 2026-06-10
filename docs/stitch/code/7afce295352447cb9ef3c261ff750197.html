@@ -1,0 +1,221 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>GrowT - Create/Edit Form</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "dark-card": "#17112B",
+                        "dark-bg": "#0F0A20",
+                        "surface-dim": "#dad9e2",
+                        "surface-container-high": "#e8e7f0",
+                        "secondary-container": "#795de4",
+                        "error": "#ba1a1a",
+                        "on-tertiary": "#ffffff",
+                        "on-surface": "#1a1b22",
+                        "on-tertiary-container": "#fffbff",
+                        "on-error-container": "#93000a",
+                        "on-secondary-container": "#fffbff",
+                        "surface-variant": "#e2e1ea",
+                        "background": "#faf8ff",
+                        "inverse-on-surface": "#f1f0f9",
+                        "secondary-fixed": "#e6deff",
+                        "primary-fixed": "#e6deff",
+                        "surface-container-low": "#f4f3fc",
+                        "primary-container": "#7858f5",
+                        "light-bg": "#F0EFF8",
+                        "on-primary-container": "#fffbff",
+                        "outline-variant": "#c9c4d7",
+                        "on-primary-fixed-variant": "#481bc6",
+                        "outline": "#797586",
+                        "surface-bright": "#faf8ff",
+                        "on-secondary-fixed": "#1d0061",
+                        "surface": "#faf8ff",
+                        "tertiary-fixed-dim": "#ffb77b",
+                        "light-card": "#FFFFFF",
+                        "primary-fixed-dim": "#cabeff",
+                        "secondary": "#6042ca",
+                        "on-background": "#1a1b22",
+                        "inverse-surface": "#2f3037",
+                        "tertiary": "#8c4c00",
+                        "on-surface-variant": "#484555",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed-variant": "#6d3a00",
+                        "on-error": "#ffffff",
+                        "tertiary-container": "#b06000",
+                        "surface-container": "#eeedf6",
+                        "surface-tint": "#613ede",
+                        "secondary-fixed-dim": "#cbbeff",
+                        "glass-overlay": "rgba(255, 255, 255, 0.4)",
+                        "on-secondary-fixed-variant": "#4a28b3",
+                        "on-tertiary-fixed": "#2e1500",
+                        "tertiary-fixed": "#ffdcc2",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed": "#1c0062",
+                        "error-container": "#ffdad6",
+                        "inverse-primary": "#cabeff",
+                        "surface-container-highest": "#e2e1ea",
+                        "on-primary": "#ffffff",
+                        "primary": "#5e3bdb",
+                        "dark-text": "#F0EEFF"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-padding": "32px",
+                        "stack-gap": "12px",
+                        "sidebar-width": "256px",
+                        "margin-sm": "16px",
+                        "gutter-md": "24px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "label-md": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "title-lg": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "700"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .glass-panel {
+                @apply bg-white/40 dark:bg-dark-card/40 backdrop-blur-xl border border-white/20 dark:border-dark-card/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)];
+            }
+            .form-input {
+                @apply w-full bg-light-bg border-none rounded-lg px-4 py-3 font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:outline-none transition-shadow;
+            }
+            .form-label {
+                @apply block font-label-md text-on-surface-variant mb-2 uppercase;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light-bg min-h-screen text-on-surface antialiased overflow-x-hidden">
+<!-- Top Bar -->
+<header class="fixed top-0 w-full h-16 glass-panel flex items-center px-gutter-md z-50">
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors group">
+<span class="material-symbols-outlined group-hover:-translate-x-1 transition-transform">arrow_back</span>
+<span class="font-title-lg text-title-lg">Back to list</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-[104px] pb-container-padding px-gutter-md flex justify-center min-h-screen">
+<!-- Form Container -->
+<div class="w-full max-w-2xl">
+<div class="mb-8">
+<h1 class="font-headline-lg text-headline-lg md:font-headline-lg md:text-headline-lg font-headline-lg-mobile text-headline-lg-mobile text-primary">New Item</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2">Create a new folder or task to keep things organized.</p>
+</div>
+<form class="glass-panel rounded-xl p-8 space-y-8 bg-light-card">
+<!-- Title -->
+<div>
+<label class="form-label" for="title">Title</label>
+<input class="form-input" id="title" placeholder="Enter title..." required="" type="text">
+</div>
+<!-- Category Segmented Control -->
+<div>
+<label class="form-label">Category</label>
+<div class="flex bg-light-bg rounded-lg p-1 gap-1">
+<label class="flex-1 cursor-pointer">
+<input checked="" class="peer sr-only" name="category" type="radio" value="personal">
+<div class="text-center py-2 rounded-[10px] font-body-md text-on-surface-variant peer-checked:bg-white peer-checked:text-primary peer-checked:shadow-sm peer-checked:font-semibold transition-all">
+                                Personal
+                            </div>
+</label>
+<label class="flex-1 cursor-pointer">
+<input class="peer sr-only" name="category" type="radio" value="work">
+<div class="text-center py-2 rounded-[10px] font-body-md text-on-surface-variant peer-checked:bg-white peer-checked:text-primary peer-checked:shadow-sm peer-checked:font-semibold transition-all">
+                                Work
+                            </div>
+</label>
+<label class="flex-1 cursor-pointer">
+<input class="peer sr-only" name="category" type="radio" value="shared">
+<div class="text-center py-2 rounded-[10px] font-body-md text-on-surface-variant peer-checked:bg-white peer-checked:text-primary peer-checked:shadow-sm peer-checked:font-semibold transition-all">
+                                Shared
+                            </div>
+</label>
+</div>
+</div>
+<!-- Description -->
+<div>
+<label class="form-label" for="description">Description</label>
+<textarea class="form-input resize-none" id="description" placeholder="Add some details..." rows="4"></textarea>
+</div>
+<!-- Due Date -->
+<div>
+<label class="form-label" for="dueDate">Due Date (Optional)</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">calendar_today</span>
+<input class="form-input pl-12 text-on-surface-variant" id="dueDate" type="date">
+</div>
+</div>
+<!-- Task Levels -->
+<div>
+<div class="flex items-center justify-between mb-4">
+<label class="form-label !mb-0">Task Levels</label>
+<button class="text-primary hover:text-primary-container font-label-md text-label-md flex items-center gap-1 transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                            Add Sub-task
+                        </button>
+</div>
+<div class="space-y-3" id="task-list">
+<!-- Sub-task Item -->
+<div class="flex items-center gap-3 group">
+<div class="w-5 h-5 rounded border border-outline-variant flex items-center justify-center bg-white cursor-pointer hover:border-primary transition-colors"></div>
+<input class="flex-1 bg-transparent border-b border-outline-variant pb-1 font-body-md text-on-surface focus:border-primary focus:outline-none transition-colors" placeholder="Sub-task name..." type="text" value="Research initial concepts">
+<button class="text-on-surface-variant opacity-0 group-hover:opacity-100 hover:text-error transition-all" type="button">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Sub-task Item -->
+<div class="flex items-center gap-3 group">
+<div class="w-5 h-5 rounded border border-outline-variant flex items-center justify-center bg-white cursor-pointer hover:border-primary transition-colors"></div>
+<input class="flex-1 bg-transparent border-b border-outline-variant pb-1 font-body-md text-on-surface focus:border-primary focus:outline-none transition-colors" placeholder="Sub-task name..." type="text">
+<button class="text-on-surface-variant opacity-0 group-hover:opacity-100 hover:text-error transition-all" type="button">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Form Actions -->
+<div class="pt-4 flex justify-end gap-4 border-t border-surface-container-high">
+<button class="px-6 py-2 rounded-lg font-body-md text-body-md text-on-surface-variant hover:bg-surface-container transition-colors" type="button">
+                        Cancel
+                    </button>
+<button class="px-6 py-2 rounded-lg font-body-md text-body-md bg-primary text-white hover:bg-secondary transition-colors hover:-translate-y-[2px] shadow-sm hover:shadow-md" type="submit">
+                        Save
+                    </button>
+</div>
+</form>
+</div>
+</main>
+</body></html>

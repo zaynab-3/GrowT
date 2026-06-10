@@ -1,4 +1,5 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
+import { Search, Users } from 'lucide-react'
 import { normalizeUsername } from '../../lib/growtDisplay'
 import { supabase } from '../../lib/supabase'
 import {
@@ -29,6 +30,7 @@ export function AcquaintancesPanel() {
   const [isSearching, setIsSearching] = useState(false)
   const [pendingAction, setPendingAction] = useState<string | null>(null)
   const [message, setMessage] = useState('')
+  const [activeTab, setActiveTab] = useState<'incoming' | 'outgoing'>('incoming')
 
   const incomingRequests = useMemo(
     () => requests.filter((request) => request.direction === 'incoming'),
@@ -126,6 +128,18 @@ export function AcquaintancesPanel() {
   useEffect(() => {
     void loadAcquaintanceData()
   }, [loadAcquaintanceData])
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchQuery.trim().length > 0) {
+        void loadSearchResults(searchQuery, true)
+      } else {
+        setSearchResults([])
+        setMessage('')
+      }
+    }, 300)
+    return () => clearTimeout(timeoutId)
+  }, [searchQuery, loadSearchResults])
 
   useEffect(() => {
     if (!supabase || !currentUserId) {
@@ -305,46 +319,99 @@ export function AcquaintancesPanel() {
   }
 
   return (
-    <section className="restore-panel acquaintances-panel" aria-label="Acquaintances">
-      <div className="restore-panel__heading">
-        <span className="section-label">Acquaintances</span>
-        <strong>{isLoading ? '...' : acquaintances.length}</strong>
+    <div className="flex flex-col gap-8 w-full max-w-7xl">
+      {message && (
+        <div className="bg-surface-variant text-on-surface p-4 rounded-xl border border-outline-variant/30 text-sm font-medium">
+          {message}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Panel: Search and Requests */}
+        <div className="lg:col-span-2 flex flex-col gap-6">
+          
+          <div className="bg-light-card dark:bg-dark-card rounded-[18px] p-6 shadow-[0_4px_16px_0_rgba(31,38,135,0.03)] border border-surface-variant/50">
+            <div className="mb-4">
+              <h3 className="font-title-lg text-title-lg text-on-surface flex items-center gap-2">
+                <Search size={18} className="text-primary" />
+                Find People
+              </h3>
+            </div>
+            <div>
+              <UserSearch
+                isSearching={isSearching}
+                onCancelRequest={(requestId) => void handleCancelRequest(requestId)}
+                onQueryChange={setSearchQuery}
+                onSearch={(event) => void handleSearch(event)}
+                onSendRequest={(username) => void handleSendRequest(username)}
+                pendingAction={pendingAction}
+                query={searchQuery}
+                results={searchResults}
+              />
+            </div>
+          </div>
+
+          <div className="bg-light-card dark:bg-dark-card rounded-[18px] p-6 shadow-[0_4px_16px_0_rgba(31,38,135,0.03)] border border-surface-variant/50">
+            <div className="flex items-center gap-4 mb-6 border-b border-surface-variant/50">
+              <button
+                className={`pb-3 font-title-lg text-body-lg font-semibold transition-colors border-b-2 ${activeTab === 'incoming' ? 'border-primary text-primary' : 'border-transparent text-on-surface-variant hover:text-on-surface'}`}
+                onClick={() => setActiveTab('incoming')}
+                type="button"
+              >
+                Incoming Requests <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold transition-colors ${activeTab === 'incoming' ? 'bg-primary/10 text-primary' : 'bg-surface-variant text-on-surface-variant'}`}>{incomingRequests.length}</span>
+              </button>
+              <button
+                className={`pb-3 font-title-lg text-body-lg font-semibold transition-colors border-b-2 ${activeTab === 'outgoing' ? 'border-primary text-primary' : 'border-transparent text-on-surface-variant hover:text-on-surface'}`}
+                onClick={() => setActiveTab('outgoing')}
+                type="button"
+              >
+                Sent Requests <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold transition-colors ${activeTab === 'outgoing' ? 'bg-primary/10 text-primary' : 'bg-surface-variant text-on-surface-variant'}`}>{outgoingRequests.length}</span>
+              </button>
+            </div>
+            <div>
+              {activeTab === 'incoming' ? (
+                <IncomingRequests
+                  isBusy={isLoading}
+                  onAccept={(requestId) => void handleAcceptRequest(requestId)}
+                  onReject={(requestId) => void handleRejectRequest(requestId)}
+                  pendingAction={pendingAction}
+                  requests={incomingRequests}
+                />
+              ) : (
+                <OutgoingRequests
+                  isBusy={isLoading}
+                  onCancel={(requestId) => void handleCancelRequest(requestId)}
+                  pendingAction={pendingAction}
+                  requests={outgoingRequests}
+                />
+              )}
+            </div>
+          </div>
+
+        </div>
+
+        {/* Right Panel: Current Acquaintances */}
+        <div className="lg:col-span-1">
+          <div className="bg-light-card dark:bg-dark-card rounded-[18px] p-6 shadow-[0_4px_16px_0_rgba(31,38,135,0.03)] border border-surface-variant/50">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-title-lg text-title-lg text-on-surface flex items-center gap-2">
+                <Users size={18} className="text-primary" />
+                Connections
+              </h3>
+              <span className="bg-primary-container text-on-primary-container px-3 py-1 rounded-full font-label-md text-label-md shadow-sm">{acquaintances.length}</span>
+            </div>
+            <div className="mt-4">
+              <AcquaintanceList
+                acquaintances={acquaintances}
+                isBusy={isLoading}
+                onRemove={(userId) => void handleRemoveAcquaintance(userId)}
+                pendingAction={pendingAction}
+              />
+            </div>
+          </div>
+        </div>
+
       </div>
-
-      <UserSearch
-        isSearching={isSearching}
-        onCancelRequest={(requestId) => void handleCancelRequest(requestId)}
-        onQueryChange={setSearchQuery}
-        onSearch={(event) => void handleSearch(event)}
-        onSendRequest={(username) => void handleSendRequest(username)}
-        pendingAction={pendingAction}
-        query={searchQuery}
-        results={searchResults}
-      />
-
-      <IncomingRequests
-        isBusy={isLoading}
-        onAccept={(requestId) => void handleAcceptRequest(requestId)}
-        onReject={(requestId) => void handleRejectRequest(requestId)}
-        pendingAction={pendingAction}
-        requests={incomingRequests}
-      />
-
-      <OutgoingRequests
-        isBusy={isLoading}
-        onCancel={(requestId) => void handleCancelRequest(requestId)}
-        pendingAction={pendingAction}
-        requests={outgoingRequests}
-      />
-
-      <AcquaintanceList
-        acquaintances={acquaintances}
-        isBusy={isLoading}
-        onRemove={(userId) => void handleRemoveAcquaintance(userId)}
-        pendingAction={pendingAction}
-      />
-
-      {message ? <p className="invite-note">{message}</p> : null}
-    </section>
+    </div>
   )
 }

@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabase'
 import type {
   Folder,
   FolderMember,
+  Profile,
+  ProfileSummary,
   Task,
   TaskMember,
   TaskProgress,
@@ -35,6 +37,7 @@ type UseGrowTRealtimeParams = {
   setActions: Dispatch<SetStateAction<TaskStatusAction[]>>
   setFolders: Dispatch<SetStateAction<Folder[]>>
   setMembers: Dispatch<SetStateAction<FolderMember[]>>
+  setProfilesById: Dispatch<SetStateAction<Record<string, ProfileSummary>>>
   setProgress: Dispatch<SetStateAction<TaskProgress[]>>
   setRealtimeStatus: Dispatch<SetStateAction<string>>
   setSelectedFolderId: Dispatch<SetStateAction<string | null>>
@@ -59,6 +62,7 @@ export function useGrowTRealtime({
   setActions,
   setFolders,
   setMembers,
+  setProfilesById,
   setProgress,
   setRealtimeStatus,
   setSelectedFolderId,
@@ -85,6 +89,26 @@ export function useGrowTRealtime({
     const refreshUserTasks = () => {
       void refreshStandaloneTasks()
       void refreshArchive()
+    }
+
+    const applyProfileChange = (payload: RealtimePayload<Profile>) => {
+      if (payload.eventType === 'UPDATE') {
+        const updatedProfile = payload.new as Profile
+        if (updatedProfile && updatedProfile.id) {
+          setProfilesById((current) => {
+            if (!current[updatedProfile.id]) {
+              return current
+            }
+            return {
+              ...current,
+              [updatedProfile.id]: {
+                ...current[updatedProfile.id],
+                ...updatedProfile,
+              },
+            }
+          })
+        }
+      }
     }
 
     const channel = realtimeClient
@@ -144,12 +168,25 @@ export function useGrowTRealtime({
         { event: '*', schema: 'public', table: 'task_status_actions', filter: `user_id=eq.${userId}` },
         refreshUserTasks,
       )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'profiles' },
+        (payload) => applyProfileChange(payload as RealtimePayload<Profile>),
+      )
       .subscribe()
 
     return () => {
       void realtimeClient.removeChannel(channel)
     }
-  }, [authReady, refreshArchive, refreshFoldersRef, refreshLiveSessionRef, refreshStandaloneTasks, userId])
+  }, [
+    authReady,
+    refreshArchive,
+    refreshFoldersRef,
+    refreshLiveSessionRef,
+    refreshStandaloneTasks,
+    setProfilesById,
+    userId,
+  ])
 
   useEffect(() => {
     if (!authReady || !supabase || !userId) {

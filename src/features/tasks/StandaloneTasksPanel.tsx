@@ -21,6 +21,7 @@ type StandaloneTasksPanelProps = {
   defaultCategory?: FolderCategory
   editingTaskId: string | null
   emptyMessage: string
+  getProfileAvatar: (userId: string | undefined | null) => string | null
   getProfileLabel: (userId: string) => string
   isSaving: boolean
   onCloseEdit: () => void
@@ -28,7 +29,8 @@ type StandaloneTasksPanelProps = {
   onCreateTask: (values: TaskCreateValues) => void
   onDeleteTask: (task: Task) => void
   onEditTask: (taskId: string) => void
-  onMoveTask: (task: Task, direction: ReorderDirection) => void
+  onMoveTask: (task: Task, direction: ReorderDirection, scopedTaskIds?: string[]) => void
+  onOpenTask: (task: Task) => void
   onRemoveTaskMember: (task: Task, userId: string) => void
   onSetTaskStatus: (taskId: string, status: TaskProgressStatus) => void
   onUndoAction: (action: TaskStatusAction) => void
@@ -47,6 +49,7 @@ export function StandaloneTasksPanel({
   defaultCategory = 'personal',
   editingTaskId,
   emptyMessage,
+  getProfileAvatar,
   getProfileLabel,
   isSaving,
   onCloseEdit,
@@ -55,6 +58,7 @@ export function StandaloneTasksPanel({
   onDeleteTask,
   onEditTask,
   onMoveTask,
+  onOpenTask,
   onRemoveTaskMember,
   onSetTaskStatus,
   onUndoAction,
@@ -66,13 +70,13 @@ export function StandaloneTasksPanel({
   title = 'Standalone Tasks',
 }: StandaloneTasksPanelProps) {
   return (
-    <section className="standalone-panel">
-      <div className="panel-heading">
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between">
         <div>
-          <p className="section-label">{sectionLabel}</p>
-          <h2>{title}</h2>
+          <p className="text-sm font-semibold text-primary uppercase tracking-wider">{sectionLabel}</p>
+          <h3 className="text-xl font-bold text-on-surface">{title}</h3>
         </div>
-        <span>{tasks.length}</span>
+        <span className="bg-surface-container-high text-on-surface-variant px-3 py-1 rounded-full font-label-md text-label-md">{tasks.length}</span>
       </div>
       <TaskForm
         defaultCategory={defaultCategory}
@@ -87,6 +91,7 @@ export function StandaloneTasksPanel({
         currentUserId={currentUserId}
         editingTaskId={editingTaskId}
         emptyMessage={emptyMessage}
+        getProfileAvatar={getProfileAvatar}
         getProfileLabel={getProfileLabel}
         isSaving={isSaving}
         onCloseEdit={onCloseEdit}
@@ -94,6 +99,7 @@ export function StandaloneTasksPanel({
         onDeleteTask={onDeleteTask}
         onEditTask={onEditTask}
         onMoveTask={onMoveTask}
+        onOpenTask={onOpenTask}
         onRemoveTaskMember={onRemoveTaskMember}
         onSetTaskStatus={onSetTaskStatus}
         onUndoAction={onUndoAction}
@@ -102,6 +108,6 @@ export function StandaloneTasksPanel({
         taskMembersByTask={taskMembersByTask}
         tasks={tasks}
       />
-    </section>
+    </div>
   )
 }

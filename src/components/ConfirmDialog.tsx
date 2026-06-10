@@ -1,3 +1,5 @@
+import { createPortal } from 'react-dom'
+
 type ConfirmDialogProps = {
   cancelLabel?: string
   confirmLabel?: string
@@ -17,20 +19,23 @@ export function ConfirmDialog({
   onConfirm,
   title,
 }: ConfirmDialogProps) {
-  return (
-    <div className="dialog-backdrop" role="presentation">
+  if (typeof document === 'undefined') return null
+
+  return createPortal(
+    <div className="confirm-overlay" role="presentation">
       <section className="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
         <h2 id="confirm-title">{title}</h2>
         <p>{message}</p>
-        <div className="dialog-actions">
-          <button className="button button--secondary" disabled={isBusy} onClick={onCancel} type="button">
+        <div className="confirm-dialog__actions">
+          <button className="btn btn--secondary" disabled={isBusy} onClick={onCancel} type="button">
             {cancelLabel}
           </button>
-          <button className="button button--danger" disabled={isBusy} onClick={onConfirm} type="button">
+          <button className="btn btn--danger" disabled={isBusy} onClick={onConfirm} type="button">
             {isBusy ? 'Working' : confirmLabel}
           </button>
         </div>
       </section>
-    </div>
+    </div>,
+    document.body
   )
 }

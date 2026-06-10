@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GrowT - Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "dark-card": "#17112B",
+                        "dark-bg": "#0F0A20",
+                        "surface-dim": "#dad9e2",
+                        "surface-container-high": "#e8e7f0",
+                        "secondary-container": "#795de4",
+                        "error": "#ba1a1a",
+                        "on-tertiary": "#ffffff",
+                        "on-surface": "#1a1b22",
+                        "on-tertiary-container": "#fffbff",
+                        "on-error-container": "#93000a",
+                        "on-secondary-container": "#fffbff",
+                        "surface-variant": "#e2e1ea",
+                        "background": "#faf8ff",
+                        "inverse-on-surface": "#f1f0f9",
+                        "secondary-fixed": "#e6deff",
+                        "primary-fixed": "#e6deff",
+                        "surface-container-low": "#f4f3fc",
+                        "primary-container": "#7858f5",
+                        "light-bg": "#F0EFF8",
+                        "on-primary-container": "#fffbff",
+                        "outline-variant": "#c9c4d7",
+                        "on-primary-fixed-variant": "#481bc6",
+                        "outline": "#797586",
+                        "surface-bright": "#faf8ff",
+                        "on-secondary-fixed": "#1d0061",
+                        "surface": "#faf8ff",
+                        "tertiary-fixed-dim": "#ffb77b",
+                        "light-card": "#FFFFFF",
+                        "primary-fixed-dim": "#cabeff",
+                        "secondary": "#6042ca",
+                        "on-background": "#1a1b22",
+                        "inverse-surface": "#2f3037",
+                        "tertiary": "#8c4c00",
+                        "on-surface-variant": "#484555",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed-variant": "#6d3a00",
+                        "on-error": "#ffffff",
+                        "tertiary-container": "#b06000",
+                        "surface-container": "#eeedf6",
+                        "surface-tint": "#613ede",
+                        "secondary-fixed-dim": "#cbbeff",
+                        "glass-overlay": "rgba(255, 255, 255, 0.4)",
+                        "on-secondary-fixed-variant": "#4a28b3",
+                        "on-tertiary-fixed": "#2e1500",
+                        "tertiary-fixed": "#ffdcc2",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed": "#1c0062",
+                        "error-container": "#ffdad6",
+                        "inverse-primary": "#cabeff",
+                        "surface-container-highest": "#e2e1ea",
+                        "on-primary": "#ffffff",
+                        "primary": "#5e3bdb",
+                        "dark-text": "#F0EEFF"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-padding": "32px",
+                        "stack-gap": "12px",
+                        "sidebar-width": "256px",
+                        "margin-sm": "16px",
+                        "gutter-md": "24px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "label-md": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "title-lg": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "title-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden antialiased font-body-md text-body-md bg-background text-on-background max-w-md mx-auto relative shadow-2xl">
+<!-- Top Bar -->
+<header class="h-16 flex items-center px-4 bg-surface/80 backdrop-blur-md border-b border-surface-container shrink-0 sticky top-0 z-10">
+<h1 class="font-title-lg text-title-lg text-on-surface mx-auto font-semibold">Settings</h1>
+</header>
+<!-- Scrollable Content -->
+<main class="flex-1 overflow-y-auto px-6 py-6 space-y-10 pb-32">
+<!-- Public Identity -->
+<section>
+<h2 class="font-title-lg text-title-lg text-on-surface mb-4">Public Identity</h2>
+<div class="space-y-4">
+<div>
+<label class="block font-label-md text-on-surface-variant mb-2">Display Name</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" type="text" value="Jane Doe"/>
+</div>
+<div>
+<label class="block font-label-md text-on-surface-variant mb-2">Username</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" type="text" value="@janedoe"/>
+</div>
+</div>
+</section>
+<!-- Theme Mode -->
+<section>
+<h2 class="font-title-lg text-title-lg text-on-surface mb-4">Theme Mode</h2>
+<div class="grid grid-cols-3 gap-2 p-1 bg-surface-container-low rounded-xl">
+<button class="flex flex-col items-center justify-center gap-1 py-3 bg-white shadow-sm rounded-lg text-primary font-semibold transition-all">
+<span class="material-symbols-outlined">light_mode</span> Light
+        </button>
+<button class="flex flex-col items-center justify-center gap-1 py-3 text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined">dark_mode</span> Dark
+        </button>
+<button class="flex flex-col items-center justify-center gap-1 py-3 text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined">settings_suggest</span> System
+        </button>
+</div>
+</section>
+<!-- Web-app Color -->
+<section>
+<h2 class="font-title-lg text-title-lg text-on-surface mb-4">Web-app Color</h2>
+<div class="flex overflow-x-auto gap-4 pb-2 hide-scrollbar">
+<!-- Violet (Active) -->
+<button class="w-12 h-12 shrink-0 rounded-full bg-[#5e3bdb] ring-2 ring-offset-2 ring-offset-background ring-[#5e3bdb] transition-transform hover:scale-105 flex items-center justify-center"><span class="material-symbols-outlined text-white text-xl">check</span></button>
+<!-- Blue -->
+<button class="w-12 h-12 shrink-0 rounded-full bg-[#3b82f6] hover:scale-110 transition-transform"></button>
+<!-- Green -->
+<button class="w-12 h-12 shrink-0 rounded-full bg-[#10b981] hover:scale-110 transition-transform"></button>
+<!-- Pink -->
+<button class="w-12 h-12 shrink-0 rounded-full bg-[#f43f5e] hover:scale-110 transition-transform"></button>
+<!-- Purple -->
+<button class="w-12 h-12 shrink-0 rounded-full bg-[#a855f7] hover:scale-110 transition-transform"></button>
+<!-- Gold -->
+<button class="w-12 h-12 shrink-0 rounded-full bg-[#eab308] hover:scale-110 transition-transform"></button>
+</div>
+</section>
+<!-- Profile Picture -->
+<section>
+<h2 class="font-title-lg text-title-lg text-on-surface mb-4">Profile Picture</h2>
+<div class="grid grid-cols-3 gap-4">
+<button class="aspect-square rounded-2xl overflow-hidden ring-2 ring-offset-2 ring-offset-background ring-primary relative">
+<img alt="Avatar 1" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBU8Wp30pEAAW7bc_zzwH3j8JMGYA0qyF6cVtDZjtV0eUOm-hf9y5RXlThItKlYN2e5Ma6a6WSb9zEiKYis30tlHzBFd0ys4zbZlr6GcD8xyoBxuZ6kyo_1TDU1Pzw8i70YEju-lFtXffa9JkdKfKY32h4DXsCiZkoGAIHIC9deAKUc25FB0D2kAa7k3Hf_-X4G5BTR0dXnYwaE9yFh3GEsU8kdLsQEsedVSoZtmCNJnmZWcZaSV-Z5oNRw1Amy5QV5D4yIdSPHRZ_y"/>
+<div class="absolute inset-0 bg-primary/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-white">check_circle</span>
+</div>
+</button>
+<button class="aspect-square rounded-2xl overflow-hidden hover:opacity-80 transition-opacity">
+<img alt="Avatar 2" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCq0Cg1qXQ--GmiJ3kBdvbYbl8UsZOfpm-YIhagHXw5QIv1eJnnymvWNUrg7dzSH8awfKflcfuQ9xbifwP8gSWgwo5ku3fv7_m8GBJT54tblQddu8S2sQkepirvf8LVOq6O1axhiSuLCuXTrfNnN33U1bEyQkB2CPOtblZYyKqyKuxC3dRSKP0TB8igVjKTVgIj3mGYY8h_awj-vEhySYkWMRgw7G2IpLl5jXXir9qwkoZeLKGLw-GzenVYG2zSBqHBp6kaesuyt2zw"/>
+</button>
+<button class="aspect-square rounded-2xl overflow-hidden hover:opacity-80 transition-opacity">
+<img alt="Avatar 3" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJfeSpcYExLXYX-dJEW1bWThj_VcaZFDJqvhA9ZR-YUMwFZyEwmNoiCOx-URjhpbC3gHYgDcdBWPERRGZsJ6WMG7JVLe4Dp4wZ77FN5AZScY3_Yl5FTrjWOxP5U7mrlmzH07_OgqXglMHt5pBLmuqMsUCo8O1yR3HYwdjjWbrbqZq2WJkKqYx4G8F0gSnvIASPKRcGN9SbegpMkOqY8hU1hGACykpMhvhJRZg2hhoGsVWibu2UVvHJHk4LuS-ZmhRs4qzMuGO9MUOZ"/>
+</button>
+<button class="aspect-square rounded-2xl overflow-hidden hover:opacity-80 transition-opacity">
+<img alt="Avatar 4" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCK2QaVYjuJfTsir-3KbYCHyOrzTY6B_Mp4jEOyZm7xS04MevC6kip8wbqBh03tqdmQZ4jWuorJOou00XYwhqpx4bg0qnErpUObAW35-FYdFg6rY1RfsjjRHOPYocVXxrVIoWX5iYHmoLC9Rd9RtrHqG3du6r1Kvrb_QFz98N56lN_Rogd-zWkkf0lkFSLJ7VhX3nD0ajW94Xns-iyaMowB2FPOxm-FsInggGdUs7HwanztYfrNQECBUQmI1e6KTlg-l8_Vgr8ECcaG"/>
+</button>
+<button class="aspect-square rounded-2xl overflow-hidden hover:opacity-80 transition-opacity">
+<img alt="Avatar 5" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBN6OeBv-LFbzsXG829TqlWf0PprLzuFWxVDt7xntqT23zp6vapdzFrERhKtWWeMZvhNjaD9I7b9pWcDfhTq-3rUPH95AXsMP5eBIv2wxxZuavk2_dYiU9nKZ1zEgkJw-nMdAcATPkhjsBnKK3FyYJGXm1XIcEuB73g9Esr7narRkOKb2kYdirjBDJdTBnymZhaK-_SutbGWFTflprN1VjOdIezJTjAzNiyP0LLJRRThz7sXWKq6cn32mISH2k3UnMJYWS60cJoPKBG"/>
+</button>
+<button class="aspect-square rounded-2xl overflow-hidden hover:opacity-80 transition-opacity bg-surface-container-high flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-3xl">add_a_photo</span>
+</button>
+</div>
+</section>
+<!-- Save Button -->
+<div class="pt-4 pb-8">
+<button class="w-full bg-primary text-white py-4 rounded-2xl font-title-lg text-title-lg shadow-lg hover:bg-primary/90 transition-colors">
+        Save profile
+      </button>
+</div>
+</main>
+<!-- Bottom Navigation -->
+<nav class="absolute bottom-0 w-full bg-surface/90 backdrop-blur-md border-t border-surface-container pb-safe pt-2 px-6 flex justify-between items-center z-20 pb-4">
+<a class="flex flex-col items-center p-2 text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined mb-1">dashboard</span>
+<span class="text-[10px] font-medium">Home</span>
+</a>
+<a class="flex flex-col items-center p-2 text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined mb-1">task_alt</span>
+<span class="text-[10px] font-medium">Tasks</span>
+</a>
+<a class="flex flex-col items-center p-2 text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined mb-1">notifications</span>
+<span class="text-[10px] font-medium">Alerts</span>
+</a>
+<a class="flex flex-col items-center p-2 text-primary" href="#">
+<div class="bg-primary/10 p-1 rounded-full px-4 flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">settings</span>
+</div>
+<span class="text-[10px] font-medium mt-1">Settings</span>
+</a>
+</nav>
+</body></html>

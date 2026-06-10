@@ -1,7 +1,13 @@
+import type { ReactNode } from 'react'
+
 type EmptyStateProps = {
-  children: string
+  children: ReactNode
 }
 
 export function EmptyState({ children }: EmptyStateProps) {
-  return <p className="empty-state">{children}</p>
+  return (
+    <div className="empty-state">
+      {children}
+    </div>
+  )
 }

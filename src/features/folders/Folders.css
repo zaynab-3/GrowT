@@ -1,0 +1,561 @@
+/* =================== FOLDER CARDS ========================= */
+
+.folders-page { display: grid; gap: 32px; }
+
+/* STITCH FILTERS */
+.stitch-filters {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.stitch-chip {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--ink-2);
+  border: 1.5px solid var(--border);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.stitch-chip:hover {
+  background: var(--surface-muted);
+  border-color: var(--border-strong);
+}
+
+.stitch-chip--active {
+  background: var(--primary);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: var(--shadow-sm);
+}
+
+.stitch-chip--active:hover {
+  background: var(--primary-dark);
+}
+
+/* STITCH GRID */
+.stitch-grid {
+  display: grid;
+  gap: 24px;
+}
+
+.stitch-grid--cards {
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+/* STITCH CARD */
+.stitch-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+  border-radius: 20px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1.5px solid var(--glass-border);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+  overflow: hidden;
+}
+
+.stitch-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.folder-card--tone-0 { --card-tint: var(--folder-tone-0); }
+.folder-card--tone-1 { --card-tint: var(--folder-tone-1); }
+.folder-card--tone-2 { --card-tint: var(--folder-tone-2); }
+.folder-card--tone-3 { --card-tint: var(--folder-tone-3); }
+.folder-card--tone-4 { --card-tint: var(--folder-tone-4); }
+
+.stitch-card.folder-card {
+  background: linear-gradient(145deg, var(--surface), var(--card-tint, var(--surface)));
+}
+
+.folder-card--tone-0 { --folder-bg: var(--folder-tone-0); --folder-tab: var(--folder-tone-0-tab); }
+.folder-card--tone-1 { --folder-bg: var(--folder-tone-1); --folder-tab: var(--folder-tone-1-tab); }
+.folder-card--tone-2 { --folder-bg: var(--folder-tone-2); --folder-tab: var(--folder-tone-2-tab); }
+.folder-card--tone-3 { --folder-bg: var(--folder-tone-3); --folder-tab: var(--folder-tone-3-tab); }
+.folder-card--tone-4 { --folder-bg: var(--folder-tone-4); --folder-tab: var(--folder-tone-4-tab); }
+
+.folder-card__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px 24px 16px;
+}
+
+.folder-card__icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--primary);
+  flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.8);
+  box-shadow: var(--shadow-sm);
+}
+
+.folder-card__header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.folder-card__title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.folder-card__meta {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.stitch-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--ink-2);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.stitch-badge--shared {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-color: rgba(var(--primary-rgb, 108,82,224), 0.2);
+}
+
+.stitch-badge--inactive {
+  background: var(--danger-bg);
+  color: var(--danger-color);
+  border-color: rgba(220, 38, 38, 0.2);
+}
+
+.folder-card__body {
+  padding: 0 24px 24px;
+  flex: 1;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  text-align: left;
+}
+
+.folder-card__desc {
+  font-size: 14px;
+  color: var(--ink-3);
+  line-height: 1.5;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.folder-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.3);
+  margin-top: auto;
+}
+
+.folder-card__count {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* STITCH EMPTY STATE */
+.stitch-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 64px 24px;
+  background: var(--surface-soft);
+  border: 2px dashed var(--border);
+  border-radius: 24px;
+  grid-column: 1 / -1;
+  gap: 16px;
+}
+
+.stitch-empty-icon {
+  color: var(--ink-3);
+  opacity: 0.5;
+  margin-bottom: 8px;
+}
+
+.stitch-empty-state h3 {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0;
+}
+
+.stitch-empty-state p {
+  font-size: 15px;
+  color: var(--ink-3);
+  margin: 0;
+  max-width: 400px;
+}
+
+/* ================== STITCH BOARD (Split Layout) ============= */
+
+.stitch-board {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .stitch-board {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stitch-board__main { min-width: 0; }
+.stitch-board__side { min-width: 0; }
+
+/* Tab bar header (used in panel headers with tabs) */
+.stitch-tab-bar {
+  padding-bottom: 0 !important;
+  gap: 20px;
+  align-items: flex-end;
+}
+
+.stitch-panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: visible;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 24px;
+}
+
+.stitch-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-soft);
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+
+.stitch-panel__title {
+  font-size: 15px;
+  font-weight: 800;
+  margin: 0;
+  color: var(--ink);
+}
+
+.stitch-panel__icon {
+  color: var(--primary);
+}
+
+.stitch-count-badge {
+  background: var(--primary);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+:root[data-theme='dark'] .stitch-count-badge {
+  color: var(--on-primary);
+}
+
+.stitch-panel__body {
+  padding: 20px;
+}
+
+/* Overview Cards */
+.stitch-status-overview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stitch-status-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+}
+
+.stitch-status-card--completed {
+  background: var(--done-bg);
+  border-color: rgba(22, 163, 74, 0.25);
+  color: var(--done-color);
+}
+
+.stitch-status-card--half_done {
+  background: var(--halfdone-bg);
+  border-color: rgba(217, 119, 6, 0.25);
+  color: var(--halfdone-color);
+}
+
+.stitch-status-card--ongoing {
+  background: var(--ongoing-bg);
+  border-color: rgba(37, 99, 235, 0.25);
+  color: var(--ongoing-color);
+}
+
+.stitch-status-card__label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+}
+
+.stitch-status-card__value {
+  font-size: 24px;
+  font-weight: 900;
+}
+
+/* Detail List */
+.stitch-detail-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.stitch-detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.stitch-detail-item:last-child {
+  border-bottom: none;
+}
+
+.stitch-detail-label {
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.stitch-detail-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* Member List */
+.stitch-member-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.stitch-member-list::-webkit-scrollbar {
+  width: 4px;
+}
+.stitch-member-list::-webkit-scrollbar-thumb {
+  background-color: var(--surface-variant);
+  border-radius: 4px;
+}
+
+.stitch-member-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--surface-soft);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.stitch-member-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.stitch-member-stats {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+
+.stitch-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.stitch-dot--ongoing { background: var(--ongoing-color); }
+.stitch-dot--half_done { background: var(--halfdone-color); }
+.stitch-dot--completed { background: var(--done-color); }
+
+.stitch-invite-form {
+  display: flex;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+.stitch-input {
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  padding: 0 12px;
+  font-size: 13px;
+  background: var(--surface);
+}
+
+.detail-hero__footer {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 14px 32px;
+  border-top: 1px solid var(--border);
+  background: var(--surface-soft);
+}
+
+.meta-pill {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.meta-pill small {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.meta-pill strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.portfolio-screen { display: grid; gap: 24px; }
+
+.portfolio-board {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 20px;
+  align-items: start;
+}
+
+.portfolio-projects-panel { display: grid; gap: 16px; }
+
+.portfolio-side-panel {
+  position: sticky;
+  top: calc(var(--topbar-height) + 16px);
+  display: grid;
+  gap: 16px;
+}
+
+.portfolio-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.portfolio-panel-header h2 {
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0 0 4px;
+}
+
+.portfolio-panel-header p {
+  font-size: 13.5px;
+  color: var(--ink-3);
+  margin: 0;
+}
+
+.portfolio-stats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.portfolio-stats > span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  gap: 2px;
+}
+
+.portfolio-stats > span strong {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  text-transform: none;
+}
+
+.portfolio-count {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--ink-3);
+}
+
+.portfolio-task-panel { display: grid; gap: 16px; }

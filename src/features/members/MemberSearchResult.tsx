@@ -1,5 +1,6 @@
 import type { MemberRelationshipStatus } from '../../lib/database.types'
 import type { MemberPickerProfile } from './memberPickerApi'
+import { UserAvatar } from '../../components/UserAvatar'
 
 type MemberSearchResultProps = {
   isBusy: boolean
@@ -33,30 +34,31 @@ export function MemberSearchResult({
   const statusLabel = isMember ? 'Member' : relationshipLabels[profile.relationship_status]
 
   return (
-    <div className="restore-row member-picker__row">
-      <div>
-        <strong>{label}</strong>
-        <span>
-          @{profile.username} · {statusLabel}
-        </span>
+    <div className="flex items-center justify-between p-2 hover:bg-surface-variant/50 rounded-xl transition-colors group">
+      <div className="flex items-center gap-3">
+        <UserAvatar label={label} avatarChoice={profile.avatar_choice} avatarUrl={profile.avatar_url} className="w-8 h-8 text-[12px]" />
+        <div className="flex flex-col">
+          <span className="font-label-md text-on-surface">{label}</span>
+          <span className="text-[11px] text-on-surface-variant">@{profile.username} · {statusLabel}</span>
+        </div>
       </div>
 
-      <div className="member-picker__actions">
+      <div className="flex items-center gap-2">
         {isMember ? (
-          <button className="button button--secondary" disabled type="button">
+          <button className="btn btn--secondary btn--sm opacity-50" disabled type="button">
             Member
           </button>
         ) : null}
 
         {!isMember && profile.relationship_status === 'acquaintance' ? (
-          <button className="button button--secondary" disabled={isBusy} onClick={() => onAdd(profile)} type="button">
+          <button className="btn btn--primary btn--sm" disabled={isBusy} onClick={() => onAdd(profile)} type="button">
             Add
           </button>
         ) : null}
 
         {!isMember && profile.relationship_status === 'none' ? (
           <button
-            className="button button--secondary"
+            className="btn btn--secondary btn--sm"
             disabled={isBusy}
             onClick={() => onSendRequest(profile)}
             type="button"
@@ -67,11 +69,11 @@ export function MemberSearchResult({
 
         {!isMember && profile.relationship_status === 'pending_outgoing' ? (
           <>
-            <button className="button button--secondary" disabled type="button">
+            <button className="btn btn--secondary btn--sm opacity-50" disabled type="button">
               Pending
             </button>
             <button
-              className="chip-button"
+              className="btn btn--danger btn--sm"
               disabled={isBusy || !profile.request_id}
               onClick={() => onCancelRequest(profile)}
               type="button"
@@ -84,7 +86,7 @@ export function MemberSearchResult({
         {!isMember && profile.relationship_status === 'pending_incoming' ? (
           <>
             <button
-              className="button button--secondary"
+              className="btn btn--secondary btn--sm"
               disabled={isBusy || !profile.request_id}
               onClick={() => onAccept(profile)}
               type="button"
@@ -92,7 +94,7 @@ export function MemberSearchResult({
               Accept
             </button>
             <button
-              className="chip-button"
+              className="btn btn--danger btn--sm"
               disabled={isBusy || !profile.request_id}
               onClick={() => onReject(profile)}
               type="button"

@@ -13,6 +13,6 @@ export {
   restoreTask,
   setTaskProgress,
   softDeleteTask,
-  undoTaskStatusAction,
+  undoLatestTaskProgress,
   updateTask,
 } from '../../lib/growtData'

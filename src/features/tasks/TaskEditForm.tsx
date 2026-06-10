@@ -81,6 +81,9 @@ export function TaskEditForm({
         rows={3}
         value={description}
       />
+      <div className="text-xs text-on-surface-variant mt-1.5 mb-3 flex flex-wrap gap-1 items-center" style={{ lineHeight: 1.4 }}>
+        Want to transfer files for this task? Upload them at <a href="https://www.swisstransfer.com/en" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">SwissTransfer</a> and paste the link here.
+      </div>
       <div className="form-grid">
         <label htmlFor={`edit-task-category-${task.id}`}>
           Category

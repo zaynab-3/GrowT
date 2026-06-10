@@ -4,6 +4,7 @@ import type { Folder } from '../../lib/growtData'
 import { supabase } from '../../lib/supabase'
 import { MemberPicker } from '../members/MemberPicker'
 import { addFolderMemberByUsername } from './folderApi'
+import { UserAvatar } from '../../components/UserAvatar'
 
 type ContributionCounts = Record<TaskProgressStatus, number>
 
@@ -12,6 +13,7 @@ type FolderMembersPanelProps = {
   currentUserId: string
   folder: Folder
   getContributionCounts: (userId: string) => ContributionCounts
+  getProfileAvatar: (userId: string) => string | null
   getProfileLabel: (userId: string) => string
   isSaving: boolean
   isShared: boolean
@@ -26,6 +28,7 @@ export function FolderMembersPanel({
   currentUserId,
   folder,
   getContributionCounts,
+  getProfileAvatar,
   getProfileLabel,
   isSaving,
   isShared,
@@ -49,7 +52,10 @@ export function FolderMembersPanel({
 
             return (
               <span className="member-chip" key={memberId}>
-                <span>{getProfileLabel(memberId)}</span>
+                <span className="flex items-center gap-2">
+                  <UserAvatar label={getProfileLabel(memberId)} avatarUrl={getProfileAvatar(memberId)} className="w-6 h-6 text-[10px]" />
+                  <span>{getProfileLabel(memberId)}</span>
+                </span>
                 <span className="contribution-counts" aria-label="Contribution counts">
                   <span>
                     <i className="status-dot status-dot--ongoing" />

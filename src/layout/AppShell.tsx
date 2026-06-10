@@ -1,13 +1,21 @@
-import type { ReactNode } from 'react'
+import { type ReactNode } from 'react'
+import './Layout.css'
 import { NotificationProvider } from '../features/notifications/useNotifications'
 import { Topbar } from './Topbar'
+import type { AppView } from '../views/viewTypes'
 
 type AppShellProps = {
+  accountAvatarUrl?: string | null
   accountLabel: string
   children: ReactNode
   confirmDialog?: ReactNode
+  contextLabel?: string
   message: string
+  folders: any[]
+  tasks: any[]
+  onOpenFolder: (folderId: string) => void
   onSearchChange: (query: string) => void
+  onNavigate: (view: AppView) => void
   onSignOut: () => void
   searchQuery: string
   sidebar: ReactNode
@@ -15,11 +23,17 @@ type AppShellProps = {
 }
 
 export function AppShell({
+  accountAvatarUrl,
   accountLabel,
   children,
+  contextLabel,
   confirmDialog,
   message,
+  folders,
+  tasks,
+  onOpenFolder,
   onSearchChange,
+  onNavigate,
   onSignOut,
   searchQuery,
   sidebar,
@@ -28,17 +42,26 @@ export function AppShell({
   return (
     <main className="app-shell">
       <NotificationProvider userId={userId}>
-        <Topbar
-          accountLabel={accountLabel}
-          onSearchChange={onSearchChange}
-          onSignOut={onSignOut}
-          searchQuery={searchQuery}
-        />
-
-        <section className="workspace-grid">
+        <div className="app-frame">
           {sidebar}
-          <section className="main-panel workspace-stack">{children}</section>
-        </section>
+          <section className="app-main" id="main-content">
+              <Topbar
+                accountAvatarUrl={accountAvatarUrl}
+                accountLabel={accountLabel}
+                contextLabel={contextLabel}
+                folders={folders}
+                tasks={tasks}
+                onOpenFolder={onOpenFolder}
+                onSearchChange={onSearchChange}
+                onNavigate={onNavigate}
+                onSignOut={onSignOut}
+                searchQuery={searchQuery}
+              />
+            <div className="app-content">
+              <div className="app-canvas">{children}</div>
+            </div>
+          </section>
+        </div>
 
         {message ? <p className="toast">{message}</p> : null}
         {confirmDialog}

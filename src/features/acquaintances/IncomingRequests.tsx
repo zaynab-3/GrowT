@@ -1,4 +1,5 @@
 import type { AcquaintanceRequestItem } from './acquaintanceApi'
+import { UserAvatar } from '../../components/UserAvatar'
 
 type IncomingRequestsProps = {
   isBusy: boolean
@@ -16,21 +17,20 @@ export function IncomingRequests({
   requests,
 }: IncomingRequestsProps) {
   return (
-    <div className="acquaintance-section">
-      <div className="restore-panel__heading">
-        <span className="section-label">Incoming</span>
-        <strong>{requests.length}</strong>
-      </div>
-      <div className="restore-list">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div className="stitch-member-list">
         {requests.map((request) => (
-          <div className="restore-row" key={request.request_id}>
-            <div>
-              <strong>{request.sender_display_name ?? `@${request.sender_username}`}</strong>
-              <span>@{request.sender_username}</span>
+          <div className="stitch-member-row" key={request.request_id}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <UserAvatar label={request.sender_display_name ?? request.sender_username} avatarChoice={request.sender_avatar_choice} avatarUrl={request.sender_avatar_url} className="w-8 h-8 text-[12px]" />
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span className="stitch-member-name">{request.sender_display_name ?? `@${request.sender_username}`}</span>
+                <span style={{ fontSize: '11px', color: 'var(--ink-3)' }}>@{request.sender_username}</span>
+              </div>
             </div>
-            <div className="panel-actions">
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <button
-                className="button button--secondary"
+                className="btn btn--secondary btn--sm"
                 disabled={isBusy || pendingAction === `accept:${request.request_id}`}
                 onClick={() => onAccept(request.request_id)}
                 type="button"
@@ -38,7 +38,7 @@ export function IncomingRequests({
                 Accept
               </button>
               <button
-                className="button button--danger"
+                className="btn btn--danger btn--sm"
                 disabled={isBusy || pendingAction === `reject:${request.request_id}`}
                 onClick={() => onReject(request.request_id)}
                 type="button"
@@ -48,7 +48,7 @@ export function IncomingRequests({
             </div>
           </div>
         ))}
-        {!requests.length ? <p className="empty-state">No incoming requests.</p> : null}
+        {!requests.length ? <p className="stitch-empty-text">No incoming requests.</p> : null}
       </div>
     </div>
   )

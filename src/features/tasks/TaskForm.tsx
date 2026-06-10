@@ -6,6 +6,7 @@ export type TaskCreateValues = {
   category: FolderCategory
   description: string | null
   title: string
+  inviteUsernames?: string[]
 }
 
 type TaskFormProps = {

@@ -14,6 +14,8 @@ type AssignableMember = {
   label: string
 }
 
+
+
 type TaskListProps = {
   assignableMembers: AssignableMember[]
   contributionsByTask: Map<string, Record<TaskProgressStatus, StatusContribution[]>>
@@ -21,18 +23,21 @@ type TaskListProps = {
   editingTaskId: string | null
   emptyMessage: string
   folderOwnerId?: string
+  getProfileAvatar: (userId: string) => string | null
   getProfileLabel: (userId: string) => string
   isSaving: boolean
   onCloseEdit: () => void
   onAddTaskMember?: (task: Task, username: string) => Promise<void> | void
   onDeleteTask: (task: Task) => void
   onEditTask: (taskId: string) => void
-  onMoveTask: (task: Task, direction: ReorderDirection) => void
+  onMoveTask: (task: Task, direction: ReorderDirection, scopedTaskIds?: string[]) => void
+  onOpenTask?: (task: Task) => void
   onRemoveTaskMember?: (task: Task, userId: string) => void
   onSetTaskStatus: (taskId: string, status: TaskProgressStatus) => void
   onUndoAction: (action: TaskStatusAction) => void
   onUpdateTask: (taskId: string, values: TaskEditValues) => void
   pendingAction: string | null
+  statusHistoryByTask?: Map<string, Record<TaskProgressStatus, StatusContribution[]>>
   taskMembersByTask?: Map<string, TaskMember[]>
   tasks: Task[]
 }
@@ -44,6 +49,7 @@ export function TaskList({
   editingTaskId,
   emptyMessage,
   folderOwnerId,
+  getProfileAvatar,
   getProfileLabel,
   isSaving,
   onCloseEdit,
@@ -51,11 +57,13 @@ export function TaskList({
   onDeleteTask,
   onEditTask,
   onMoveTask,
+  onOpenTask,
   onRemoveTaskMember,
   onSetTaskStatus,
   onUndoAction,
   onUpdateTask,
   pendingAction,
+  statusHistoryByTask,
   taskMembersByTask,
   tasks,
 }: TaskListProps) {
@@ -64,7 +72,7 @@ export function TaskList({
     .map((task) => task.id)
 
   return (
-    <div className="task-list">
+    <div className="flex flex-col gap-4">
       {tasks.map((task) => (
         <TaskCard
           assignableMembers={assignableMembers}
@@ -72,6 +80,7 @@ export function TaskList({
           currentUserId={currentUserId}
           editingTaskId={editingTaskId}
           folderOwnerId={folderOwnerId}
+          getProfileAvatar={getProfileAvatar}
           getProfileLabel={getProfileLabel}
           isSaving={isSaving}
           isFirst={reorderableTaskIds[0] === task.id}
@@ -82,11 +91,14 @@ export function TaskList({
           onDeleteTask={onDeleteTask}
           onEditTask={onEditTask}
           onMoveTask={onMoveTask}
+          onOpenTask={onOpenTask}
           onRemoveTaskMember={onRemoveTaskMember}
           onSetTaskStatus={onSetTaskStatus}
           onUndoAction={onUndoAction}
           onUpdateTask={onUpdateTask}
           pendingAction={pendingAction}
+          scopedTaskIds={reorderableTaskIds}
+          statusHistory={statusHistoryByTask?.get(task.id)}
           task={task}
           taskMembers={taskMembersByTask?.get(task.id)}
         />

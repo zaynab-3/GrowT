@@ -1,4 +1,4 @@
-import type { Database } from '../../lib/database.types'
+import type { Database, MemberRelationshipStatus } from '../../lib/database.types'
 import type { GrowTClient } from '../../lib/growtData'
 import {
   acceptAcquaintanceRequest,
@@ -6,12 +6,14 @@ import {
   listAcquaintances,
   rejectAcquaintanceRequest,
   sendAcquaintanceRequest,
+  type AcquaintanceListItem,
 } from '../acquaintances/acquaintanceApi'
 
-export type MemberPickerProfile =
-  Database['public']['Functions']['search_profiles_with_relationship']['Returns'][number]
-export type MemberPickerAcquaintance =
-  Database['public']['Functions']['list_acquaintances']['Returns'][number]
+export type MemberPickerProfile = Omit<
+  Database['public']['Functions']['search_profiles_with_relationship']['Returns'][number],
+  'request_id' | 'relationship_status'
+> & { request_id: string | null; relationship_status: MemberRelationshipStatus }
+export type MemberPickerAcquaintance = AcquaintanceListItem
 
 export {
   acceptAcquaintanceRequest,
@@ -30,5 +32,5 @@ export async function searchProfilesWithRelationship(client: GrowTClient, query:
     throw error
   }
 
-  return data
+  return data as unknown as MemberPickerProfile[]
 }

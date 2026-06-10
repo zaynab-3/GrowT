@@ -1,0 +1,389 @@
+/* ============================================================
+   AUTH PAGES — login · register · forgot · reset
+   ============================================================ */
+
+/* Full-screen centred wrapper */
+.app-shell--centered {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: 24px 16px;
+  background:
+    radial-gradient(ellipse 70% 55% at 15% 0%,   rgba(108, 82, 224, 0.14), transparent),
+    radial-gradient(ellipse 55% 45% at 85% 100%,  rgba(236, 72, 153, 0.10), transparent),
+    radial-gradient(ellipse 45% 35% at 50% 50%,   rgba(59, 130, 246, 0.07), transparent),
+    var(--bg);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative orbs */
+.app-shell--centered::before,
+.app-shell--centered::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.app-shell--centered::before {
+  width: 520px;
+  height: 520px;
+  top: -160px;
+  right: -160px;
+  background: radial-gradient(circle, rgba(108, 82, 224, 0.13) 0%, transparent 70%);
+  animation: auth-orb-drift 12s ease-in-out infinite alternate;
+}
+
+.app-shell--centered::after {
+  width: 420px;
+  height: 420px;
+  bottom: -120px;
+  left: -120px;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.09) 0%, transparent 70%);
+  animation: auth-orb-drift 15s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes auth-orb-drift {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(30px, 20px) scale(1.06); }
+}
+
+/* The card */
+.auth-panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 440px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-2xl);
+  box-shadow:
+    0 0 0 1px var(--glass-border),
+    var(--shadow-xl);
+  padding: 32px 32px 28px;
+  animation: auth-panel-enter 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+@keyframes auth-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Brand mark inside the auth panel */
+.auth-panel > .brand-mark {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.20);
+  box-shadow: 0 8px 24px rgba(var(--primary-rgb, 108,82,224), 0.35);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+}
+
+.auth-panel > .brand-mark:hover {
+  transform: scale(1.1) rotate(-3deg);
+  box-shadow: 0 12px 36px rgba(var(--primary-rgb, 108,82,224), 0.50);
+}
+
+/* Heading inside auth panel */
+.auth-panel > h1 {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--ink);
+  margin: 0 0 6px;
+}
+
+/* Subtitle paragraph */
+.auth-panel > p,
+.auth-panel > .auth-form + p {
+  font-size: 14px;
+  color: var(--ink-3);
+  margin: 0 0 24px;
+  line-height: 1.55;
+}
+
+/* Thin coloured top stripe */
+.auth-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+  background: linear-gradient(90deg, var(--primary), #a78bfa, #ec4899);
+}
+
+/* The form itself */
+.auth-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+/* Label overrides for auth */
+.auth-form label:not(.checkbox-row) {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 6px;
+  transition: color 0.15s;
+}
+
+.auth-form label:not(.checkbox-row):has(+ input:focus) {
+  color: var(--primary);
+}
+
+/* Input wrappers (labels have margin, inputs follow) */
+.auth-form > label {
+  margin-bottom: 0;
+}
+
+/* Field group: label + input share the same grid cell */
+.auth-form label + input,
+.auth-form label + textarea {
+  margin-top: 0;
+}
+
+/* Inputs inside auth form */
+.auth-form input:not([type='checkbox']) {
+  height: 40px;
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--border);
+  background: var(--surface-soft);
+  color: var(--ink);
+  padding: 0 14px;
+  font-size: 14.5px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.auth-form input:not([type='checkbox']):focus {
+  border-color: var(--primary);
+  background: var(--surface);
+  box-shadow: 0 0 0 4px var(--primary-glow);
+  outline: none;
+}
+
+/* Submit button — full width inside auth-form */
+.auth-form > .button,
+.auth-form > .btn {
+  width: 100%;
+  height: 42px;
+  border-radius: var(--radius-lg);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  margin-top: 4px;
+}
+
+/* Primary button glow pulse on hover */
+.auth-form > .button--primary:hover {
+  box-shadow: 0 12px 36px rgba(var(--primary-rgb, 108,82,224), 0.45);
+  transform: translateY(-2px);
+}
+
+/* Checkbox row inside auth */
+.auth-form .checkbox-row {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+/* Links row below form (forgot / create account) */
+.auth-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+/* Text buttons (forgot password, back to login, etc.) */
+.text-button {
+  background: none;
+  border: none;
+  padding: 4px 10px;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background 0.14s ease, color 0.14s ease, transform 0.14s ease;
+  text-decoration: none;
+  line-height: 1.4;
+}
+
+.text-button:hover {
+  background: var(--primary-light);
+  transform: translateY(-1px);
+}
+
+.text-button:active {
+  transform: scale(0.96);
+}
+
+/* Divider between text buttons */
+.auth-links > .text-button + .text-button::before {
+  content: "·";
+  margin-right: 6px;
+  color: var(--border-strong);
+  pointer-events: none;
+}
+
+/* Notice / status message */
+.notice {
+  margin: 14px 0 0;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--primary-light);
+  border: 1px solid rgba(var(--primary-rgb, 108,82,224), 0.20);
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.5;
+  animation: notice-in 0.25s ease both;
+}
+
+@keyframes notice-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Dark-mode tweaks for auth */
+:root[data-theme='dark'] .auth-panel {
+  background: rgba(26, 22, 40, 0.92);
+  border-color: rgba(150, 130, 220, 0.14);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 32px 80px rgba(0, 0, 0, 0.65);
+}
+
+:root[data-theme='dark'] .auth-form input:not([type='checkbox']) {
+  background: rgba(14, 11, 26, 0.60);
+}
+
+:root[data-theme='dark'] .auth-form input:not([type='checkbox']):focus {
+  background: rgba(26, 22, 40, 0.80);
+}
+
+:root[data-theme='dark'] .notice {
+  background: var(--primary-light);
+  color: #ffffff;
+  border-color: rgba(108, 82, 224, 0.25);
+}
+
+/* Responsive auth card */
+@media (max-width: 480px) {
+  .auth-panel {
+    padding: 32px 24px 28px;
+    border-radius: var(--radius-xl);
+  }
+
+  .auth-panel > h1 { font-size: 24px; }
+}
+
+/* Auth divider (or continue with) */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  margin: 20px 0 16px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--ink-3);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1.5px solid var(--border);
+}
+
+.auth-divider::before {
+  margin-right: 12px;
+}
+
+.auth-divider::after {
+  margin-left: 12px;
+}
+
+/* Google Sign-In button */
+.button--google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 42px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--ink-2);
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 8px;
+}
+
+.button--google:hover:not(:disabled) {
+  background: var(--surface-soft);
+  border-color: var(--primary);
+  color: var(--ink);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.button--google:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.button--google:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.google-icon {
+  flex-shrink: 0;
+}
+
+/* Dark mode overrides */
+:root[data-theme='dark'] .button--google {
+  background: rgba(14, 11, 26, 0.40);
+  border-color: rgba(150, 130, 220, 0.14);
+  color: var(--ink-2);
+}
+
+:root[data-theme='dark'] .button--google:hover:not(:disabled) {
+  background: rgba(14, 11, 26, 0.80);
+  border-color: var(--primary);
+  color: var(--ink);
+}
+

@@ -1,0 +1,377 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>GrowT - Acquaintances</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "dark-card": "#17112B",
+                        "dark-bg": "#0F0A20",
+                        "surface-dim": "#dad9e2",
+                        "surface-container-high": "#e8e7f0",
+                        "secondary-container": "#795de4",
+                        "error": "#ba1a1a",
+                        "on-tertiary": "#ffffff",
+                        "on-surface": "#1a1b22",
+                        "on-tertiary-container": "#fffbff",
+                        "on-error-container": "#93000a",
+                        "on-secondary-container": "#fffbff",
+                        "surface-variant": "#e2e1ea",
+                        "background": "#faf8ff",
+                        "inverse-on-surface": "#f1f0f9",
+                        "secondary-fixed": "#e6deff",
+                        "primary-fixed": "#e6deff",
+                        "surface-container-low": "#f4f3fc",
+                        "primary-container": "#7858f5",
+                        "light-bg": "#F0EFF8",
+                        "on-primary-container": "#fffbff",
+                        "outline-variant": "#c9c4d7",
+                        "on-primary-fixed-variant": "#481bc6",
+                        "outline": "#797586",
+                        "surface-bright": "#faf8ff",
+                        "on-secondary-fixed": "#1d0061",
+                        "surface": "#faf8ff",
+                        "tertiary-fixed-dim": "#ffb77b",
+                        "light-card": "#FFFFFF",
+                        "primary-fixed-dim": "#cabeff",
+                        "secondary": "#6042ca",
+                        "on-background": "#1a1b22",
+                        "inverse-surface": "#2f3037",
+                        "tertiary": "#8c4c00",
+                        "on-surface-variant": "#484555",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed-variant": "#6d3a00",
+                        "on-error": "#ffffff",
+                        "tertiary-container": "#b06000",
+                        "surface-container": "#eeedf6",
+                        "surface-tint": "#613ede",
+                        "secondary-fixed-dim": "#cbbeff",
+                        "glass-overlay": "rgba(255, 255, 255, 0.4)",
+                        "on-secondary-fixed-variant": "#4a28b3",
+                        "on-tertiary-fixed": "#2e1500",
+                        "tertiary-fixed": "#ffdcc2",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed": "#1c0062",
+                        "error-container": "#ffdad6",
+                        "inverse-primary": "#cabeff",
+                        "surface-container-highest": "#e2e1ea",
+                        "on-primary": "#ffffff",
+                        "primary": "#5e3bdb",
+                        "dark-text": "#F0EEFF"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-padding": "32px",
+                        "stack-gap": "12px",
+                        "sidebar-width": "256px",
+                        "margin-sm": "16px",
+                        "gutter-md": "24px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "label-md": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "title-lg": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "title-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-light-bg text-on-background font-body-md text-body-md antialiased flex h-screen overflow-hidden">
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-0 h-full w-sidebar-width bg-white/40 dark:bg-dark-card/40 backdrop-blur-xl border-r border-white/20 dark:border-dark-card/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] flex flex-col py-container-padding z-50 transition-all duration-300 ease-in-out hover:bg-white/60 hidden md:flex">
+<div class="px-6 mb-8 flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-xl">G</div>
+<div>
+<h1 class="font-display-lg text-display-lg text-primary dark:text-primary-fixed leading-none text-[24px]">GrowT</h1>
+<p class="font-label-md text-label-md text-on-surface-variant">Project Tracker</p>
+</div>
+</div>
+<button class="mx-4 mb-8 bg-primary text-on-primary py-3 rounded-xl font-label-md text-label-md hover:translate-y-[-2px] hover:shadow-md transition-all duration-300">
+            New Project
+        </button>
+<div class="flex-1 overflow-y-auto">
+<ul class="space-y-1">
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant/70 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span>Dashboard</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant/70 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="account_tree">account_tree</span>
+<span>Projects</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant/70 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="task_alt">task_alt</span>
+<span>Tasks</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant/70 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span>Calendar</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant/70 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="monitoring">monitoring</span>
+<span>Insights</span>
+</a>
+</li>
+</ul>
+</div>
+<div class="mt-auto pt-4 border-t border-white/20">
+<ul class="space-y-1">
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant/70 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant/70 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+<span>Support</span>
+</a>
+</li>
+</ul>
+</div>
+</nav>
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 w-full md:w-[calc(100%-256px)] h-16 bg-white/40 dark:bg-dark-card/40 backdrop-blur-xl border-b border-white/20 dark:border-dark-card/20 shadow-sm flex items-center justify-between px-gutter-md z-40 transition-all duration-300">
+<!-- Mobile Menu Trigger & Logo (Hidden on md) -->
+<div class="md:hidden flex items-center gap-3">
+<span class="material-symbols-outlined text-primary cursor-pointer">menu</span>
+<span class="font-display-lg text-display-lg text-primary text-[20px]">GrowT</span>
+</div>
+<!-- Search Bar (TopNavBar native logic) -->
+<div class="hidden md:flex items-center bg-surface-container-low rounded-xl px-4 py-2 border border-outline-variant/30 focus-within:border-primary transition-colors w-64">
+<span class="material-symbols-outlined text-outline text-[20px] mr-2">search</span>
+<input class="bg-transparent border-none outline-none text-body-md w-full text-on-surface placeholder-outline" placeholder="Search..." type="text">
+</div>
+<!-- Navigation Links -->
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-on-surface-variant dark:text-on-surface-variant/70 hover:bg-surface-container-low dark:hover:bg-dark-card/60 transition-colors py-1 px-2 rounded" href="#">Workspace</a>
+<a class="text-primary dark:text-primary-fixed font-bold border-b-2 border-primary py-1 px-2" href="#">Team</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant/70 hover:bg-surface-container-low dark:hover:bg-dark-card/60 transition-colors py-1 px-2 rounded" href="#">Reports</a>
+</nav>
+<!-- Actions -->
+<div class="flex items-center gap-4">
+<div class="hidden sm:flex items-center gap-2">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors flex items-center justify-center scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors flex items-center justify-center scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+</button>
+</div>
+<button class="hidden sm:block text-primary font-label-md hover:bg-primary-container/10 px-4 py-2 rounded-xl transition-colors">
+                Invite
+            </button>
+<div class="w-8 h-8 rounded-full bg-primary-container overflow-hidden cursor-pointer shadow-sm border border-white/50">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="A softly lit, close-up portrait of a young professional woman with natural makeup and dark hair. She is wearing a soft lavender sweater, set against a bright, minimalist modern studio background. The lighting is high-key and flattering, emphasizing a calm, productive, and approachable persona." src="https://lh3.googleusercontent.com/aida-public/AB6AXuANoaVGyMKlJeZOD1_WB440kkFFLuW0tustXTMOWbYcOl54jtcHTJ2BdEKg1r7UKczLsnnCx4Ik2mBGVOJ8rx_RYUN85Ruyov6xFLyy9Xf0inKiZYJHdOLYpxFk-MEEZZKnxrwphJpqplrU1xo1cpCxSAXuKem9ZIFDH9YlBGgCmDuItXUO5DlSAQcp9-HA_982_fwe-NC9AwuQoxW1hvkbkkZwEe3e21iOh6tuH2Hu8JAkNBP-ZcjpaOOrNbuBM1jOQMIc96rH_OLO">
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 md:ml-sidebar-width w-full h-full overflow-y-auto pt-20 pb-container-padding px-margin-sm md:px-container-padding">
+<div class="max-w-6xl mx-auto w-full">
+<!-- Page Header -->
+<div class="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-background mb-1">Acquaintances</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Manage your network and collaboration requests.</p>
+</div>
+<!-- Specific Add Acquaintance Action -->
+<div class="flex items-center bg-light-card rounded-xl px-4 py-2 border border-surface-variant shadow-sm focus-within:ring-2 focus-within:ring-primary/20 transition-all w-full sm:w-auto min-w-[280px]">
+<span class="material-symbols-outlined text-outline mr-2">person_add</span>
+<input class="bg-transparent border-none outline-none font-body-md text-body-md w-full text-on-surface placeholder-outline" placeholder="Add by username..." type="text">
+<button class="ml-2 text-primary hover:text-secondary transition-colors">
+<span class="material-symbols-outlined" data-icon="send">send</span>
+</button>
+</div>
+</div>
+<!-- Two Column Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter-md">
+<!-- Column 1: Current Acquaintances -->
+<section class="lg:col-span-7 bg-light-card rounded-xl border border-surface-variant/50 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] overflow-hidden flex flex-col h-[calc(100vh-220px)] min-h-[500px]">
+<div class="p-6 border-b border-surface-variant/30 bg-surface-bright">
+<h3 class="font-title-lg text-title-lg text-on-background flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">diversity_3</span>
+                            Your Network
+                            <span class="bg-surface-container-high text-on-surface-variant text-label-md px-2 py-0.5 rounded-full ml-2">24</span>
+</h3>
+</div>
+<div class="p-6 overflow-y-auto flex-1 space-y-stack-gap">
+<!-- Acquaintance Card -->
+<div class="flex items-center justify-between p-4 bg-surface-bright hover:bg-surface-container-low rounded-xl transition-all border border-transparent hover:border-surface-variant/50 group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full overflow-hidden shadow-sm">
+<img alt="Avatar" class="w-full h-full object-cover" data-alt="A portrait of a smiling man with a slight beard, wearing a casual light grey t-shirt. The background is a soft, blurred bright outdoor scene. The aesthetic is friendly, modern, and warm, fitting for a professional social profile picture." src="https://lh3.googleusercontent.com/aida-public/AB6AXuADc-8GgHXrsJFHz5aMb6WizQ8zvoArHK6rV70tXWtpwzHoX2GX3XzAtR9PpehDJlI9_eiQDEgQq9elMRvoZU0kEds_m9_Nlk8x7mXCN6I4xCBM7IygWnP0NeCwFcuJAcVfuNayKRZwrDKPo7pKZOd2C56Z6E-_71LtGnXevsv4LfOW8m9a6NwvnJxwbpW4__1EU-jnLYpCu5OMZa-lKKkwks1L2WvEcoJ0uqIt4KaREDsWhUlYnRfUdaqREeaIlw8n9tJKz7Am1GFc">
+</div>
+<div>
+<h4 class="font-body-lg text-body-lg font-semibold text-on-surface leading-tight">Marcus Chen</h4>
+<p class="font-label-md text-label-md text-on-surface-variant">@mchen_design</p>
+</div>
+</div>
+<button class="text-outline hover:text-error p-2 rounded-lg hover:bg-error-container/30 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 flex items-center gap-1" title="Remove Acquaintance">
+<span class="material-symbols-outlined text-[20px]" data-icon="person_remove">person_remove</span>
+</button>
+</div>
+<!-- Acquaintance Card -->
+<div class="flex items-center justify-between p-4 bg-surface-bright hover:bg-surface-container-low rounded-xl transition-all border border-transparent hover:border-surface-variant/50 group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full overflow-hidden shadow-sm bg-tertiary-fixed-dim flex items-center justify-center text-on-tertiary-fixed-variant font-title-lg">
+                                    SJ
+                                </div>
+<div>
+<h4 class="font-body-lg text-body-lg font-semibold text-on-surface leading-tight">Sarah Jenkins</h4>
+<p class="font-label-md text-label-md text-on-surface-variant">@sarahj_dev</p>
+</div>
+</div>
+<button class="text-outline hover:text-error p-2 rounded-lg hover:bg-error-container/30 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 flex items-center gap-1" title="Remove Acquaintance">
+<span class="material-symbols-outlined text-[20px]" data-icon="person_remove">person_remove</span>
+</button>
+</div>
+<!-- Acquaintance Card -->
+<div class="flex items-center justify-between p-4 bg-surface-bright hover:bg-surface-container-low rounded-xl transition-all border border-transparent hover:border-surface-variant/50 group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full overflow-hidden shadow-sm">
+<img alt="Avatar" class="w-full h-full object-cover" data-alt="A portrait of a smiling woman with dark curly hair wearing a white top. The background is a clean, bright, and slightly blurred interior. The lighting is soft and natural, conveying a positive and collaborative professional attitude." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD09QbW210qZHGRAuuh22Bw9ItLNpLJC6QAyb2N_kBWle98GhpMkk5M_1W5CbRLYo89g25A4tc3_5Ra458Fl8ieOCrulxYLdmW3fW_ilXtqHzYQ9sMNsyFwfPM4Cz6p5iOWPGyqPKEX9JjRX2A_T-PTCJrzhFuglw5ct5sAnURGibLLrZP5g3yy2xOSmeK77lWjnH-ROguhUxCBzbOtxSgEtWpDY5OOF9ADW132aKfTfssDpF4FqHpWFZD8T9hv8Q_ZOJQ3jBiCPgU2">
+</div>
+<div>
+<h4 class="font-body-lg text-body-lg font-semibold text-on-surface leading-tight">Elena Rodriguez</h4>
+<p class="font-label-md text-label-md text-on-surface-variant">@elena_r</p>
+</div>
+</div>
+<button class="text-outline hover:text-error p-2 rounded-lg hover:bg-error-container/30 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 flex items-center gap-1" title="Remove Acquaintance">
+<span class="material-symbols-outlined text-[20px]" data-icon="person_remove">person_remove</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Column 2: Requests Panel -->
+<section class="lg:col-span-5 bg-light-card rounded-xl border border-surface-variant/50 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] overflow-hidden flex flex-col h-[calc(100vh-220px)] min-h-[500px]">
+<!-- Tabs Header -->
+<div class="flex items-center border-b border-surface-variant/30 bg-surface-bright px-6 pt-6">
+<button class="font-title-lg text-title-lg text-primary border-b-2 border-primary pb-4 px-2 mr-6 transition-colors">
+                            Received
+                            <span class="bg-primary text-on-primary text-[10px] font-bold px-1.5 py-0.5 rounded-full align-super ml-1">2</span>
+</button>
+<button class="font-title-lg text-title-lg text-on-surface-variant hover:text-on-surface pb-4 px-2 transition-colors">
+                            Sent
+                        </button>
+</div>
+<!-- Received Requests Content -->
+<div class="p-6 overflow-y-auto flex-1 space-y-4">
+<!-- Request Card -->
+<div class="bg-surface-bright p-5 rounded-xl border border-surface-variant shadow-sm hover:shadow-md transition-all duration-300">
+<div class="flex items-center gap-4 mb-4">
+<div class="w-10 h-10 rounded-full overflow-hidden shadow-sm bg-primary-fixed-dim flex items-center justify-center text-on-primary-fixed-variant font-title-lg">
+                                    DT
+                                </div>
+<div>
+<h4 class="font-body-md text-body-md font-semibold text-on-surface leading-tight">David Thompson</h4>
+<p class="font-label-md text-label-md text-on-surface-variant">@d_thompson</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex-1 bg-primary text-on-primary font-label-md py-2 rounded-lg hover:bg-secondary transition-colors flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[18px]" data-icon="check">check</span>
+                                    Accept
+                                </button>
+<button class="flex-1 bg-surface-container-high text-on-surface hover:bg-error-container hover:text-error font-label-md py-2 rounded-lg transition-colors flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[18px]" data-icon="close">close</span>
+                                    Reject
+                                </button>
+</div>
+</div>
+<!-- Request Card -->
+<div class="bg-surface-bright p-5 rounded-xl border border-surface-variant shadow-sm hover:shadow-md transition-all duration-300">
+<div class="flex items-center gap-4 mb-4">
+<div class="w-10 h-10 rounded-full overflow-hidden shadow-sm">
+<img alt="Avatar" class="w-full h-full object-cover" data-alt="A close-up portrait of a thoughtful person with short hair, softly illuminated against a bright, modern, minimalist background. They are wearing a simple, light-colored collared shirt. The mood is calm, professional, and gently focused." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBAtE4MSdM74ZO1sbCbtPJ-r-6qLGAGkQBCx4sweOkr8E6avwHUXOkW3cU1ECz30bTmFv83gZOdj0OpSXyGAnv3pX2m_LqMVKQgLXRQf13tg8u0TwfWXBQ3gELMOkKWBivbGUyUzS0g-nhtSj1CCUfIVxXXwCEhJ_8KU7Q92yK2pjiuWXIvnoqJUFsdFj2ZtISlONnNmy2Qs5JqkqcKDlb9T1FterZ-BRJjnHF5K2wMq4vAbrCOdsUdlYox83cEBPNrHeebV7FktvSS">
+</div>
+<div>
+<h4 class="font-body-md text-body-md font-semibold text-on-surface leading-tight">Alex Rivera</h4>
+<p class="font-label-md text-label-md text-on-surface-variant">@arivera_ux</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex-1 bg-primary text-on-primary font-label-md py-2 rounded-lg hover:bg-secondary transition-colors flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[18px]" data-icon="check">check</span>
+                                    Accept
+                                </button>
+<button class="flex-1 bg-surface-container-high text-on-surface hover:bg-error-container hover:text-error font-label-md py-2 rounded-lg transition-colors flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[18px]" data-icon="close">close</span>
+                                    Reject
+                                </button>
+</div>
+</div>
+<!-- Empty State Example (Hidden normally, shown to illustrate design system usage) -->
+<!-- 
+                        <div class="flex flex-col items-center justify-center h-full text-center p-6 opacity-60">
+                            <span class="material-symbols-outlined text-[48px] text-primary-fixed-dim mb-4" data-icon="mark_email_read">mark_email_read</span>
+                            <p class="font-body-lg text-body-lg text-on-surface-variant">No pending requests.</p>
+                            <p class="font-body-md text-body-md text-outline mt-1">You're all caught up!</p>
+                        </div>
+                        -->
+</div>
+</section>
+</div>
+</div>
+</main>
+</body></html>

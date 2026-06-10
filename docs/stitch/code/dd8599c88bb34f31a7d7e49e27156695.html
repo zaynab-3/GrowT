@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GrowT - Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "dark-card": "#17112B",
+                        "dark-bg": "#0F0A20",
+                        "surface-dim": "#dad9e2",
+                        "surface-container-high": "#e8e7f0",
+                        "secondary-container": "#795de4",
+                        "error": "#ba1a1a",
+                        "on-tertiary": "#ffffff",
+                        "on-surface": "#1a1b22",
+                        "on-tertiary-container": "#fffbff",
+                        "on-error-container": "#93000a",
+                        "on-secondary-container": "#fffbff",
+                        "surface-variant": "#e2e1ea",
+                        "background": "#faf8ff",
+                        "inverse-on-surface": "#f1f0f9",
+                        "secondary-fixed": "#e6deff",
+                        "primary-fixed": "#e6deff",
+                        "surface-container-low": "#f4f3fc",
+                        "primary-container": "#7858f5",
+                        "light-bg": "#F0EFF8",
+                        "on-primary-container": "#fffbff",
+                        "outline-variant": "#c9c4d7",
+                        "on-primary-fixed-variant": "#481bc6",
+                        "outline": "#797586",
+                        "surface-bright": "#faf8ff",
+                        "on-secondary-fixed": "#1d0061",
+                        "surface": "#faf8ff",
+                        "tertiary-fixed-dim": "#ffb77b",
+                        "light-card": "#FFFFFF",
+                        "primary-fixed-dim": "#cabeff",
+                        "secondary": "#6042ca",
+                        "on-background": "#1a1b22",
+                        "inverse-surface": "#2f3037",
+                        "tertiary": "#8c4c00",
+                        "on-surface-variant": "#484555",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed-variant": "#6d3a00",
+                        "on-error": "#ffffff",
+                        "tertiary-container": "#b06000",
+                        "surface-container": "#eeedf6",
+                        "surface-tint": "#613ede",
+                        "secondary-fixed-dim": "#cbbeff",
+                        "glass-overlay": "rgba(255, 255, 255, 0.4)",
+                        "on-secondary-fixed-variant": "#4a28b3",
+                        "on-tertiary-fixed": "#2e1500",
+                        "tertiary-fixed": "#ffdcc2",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed": "#1c0062",
+                        "error-container": "#ffdad6",
+                        "inverse-primary": "#cabeff",
+                        "surface-container-highest": "#e2e1ea",
+                        "on-primary": "#ffffff",
+                        "primary": "#5e3bdb",
+                        "dark-text": "#F0EEFF"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-padding": "32px",
+                        "stack-gap": "12px",
+                        "sidebar-width": "256px",
+                        "margin-sm": "16px",
+                        "gutter-md": "24px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "label-md": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "title-lg": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "title-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #F0EFF8;
+            color: #1a1b22;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden antialiased font-body-md text-body-md">
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-0 h-full w-sidebar-width bg-white/40 dark:bg-dark-card/40 backdrop-blur-xl border-r border-white/20 dark:border-dark-card/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] z-50 flex flex-col h-full py-container-padding hidden md:flex">
+<div class="px-6 mb-8">
+<h1 class="font-display-lg text-display-lg text-primary dark:text-primary-fixed">GrowT</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Project Tracker</p>
+</div>
+<div class="px-4 mb-6">
+<button class="w-full bg-primary text-white py-3 rounded-xl font-label-md text-label-md hover:translate-y-[-2px] hover:shadow-md transition-all duration-300 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">add</span>
+                New Project
+            </button>
+</div>
+<div class="flex-1 overflow-y-auto px-2 space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant/70 hover:text-primary transition-colors rounded-lg transition-all duration-300 ease-in-out hover:bg-white/60" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant/70 hover:text-primary transition-colors rounded-lg transition-all duration-300 ease-in-out hover:bg-white/60" href="#">
+<span class="material-symbols-outlined" data-icon="account_tree">account_tree</span>
+<span>Projects</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant/70 hover:text-primary transition-colors rounded-lg transition-all duration-300 ease-in-out hover:bg-white/60" href="#">
+<span class="material-symbols-outlined" data-icon="task_alt">task_alt</span>
+<span>Tasks</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant/70 hover:text-primary transition-colors rounded-lg transition-all duration-300 ease-in-out hover:bg-white/60" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span>Calendar</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant/70 hover:text-primary transition-colors rounded-lg transition-all duration-300 ease-in-out hover:bg-white/60" href="#">
+<span class="material-symbols-outlined" data-icon="monitoring">monitoring</span>
+<span>Insights</span>
+</a>
+</div>
+<div class="mt-auto px-2 space-y-2 pt-6 border-t border-white/20">
+<a class="flex items-center gap-3 px-4 py-3 text-primary dark:text-primary-fixed font-semibold border-l-4 border-primary dark:border-primary-fixed bg-primary/5 rounded-r-lg transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant/70 hover:text-primary transition-colors rounded-lg transition-all duration-300 ease-in-out hover:bg-white/60" href="#">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+<span>Support</span>
+</a>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="flex-1 ml-0 md:ml-sidebar-width p-4 md:p-container-padding overflow-y-auto w-full max-w-2xl mx-auto flex flex-col h-full">
+<div class="mb-8 mt-8">
+<h2 class="font-headline-lg text-headline-lg text-on-surface text-center">Settings &amp; Profile</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mt-2 text-center">Customize your workspace experience.</p>
+</div>
+<div class="flex flex-col gap-8 pb-12">
+<!-- Public Identity Card -->
+<div class="glass-panel rounded-2xl p-8 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-6">Public Identity</h3>
+<div class="space-y-6">
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-2">Display Name</label>
+<input class="w-full bg-surface border border-outline-variant rounded-xl px-4 py-3 font-body-lg text-body-lg text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" type="text" value="Jane Doe"/>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-2">Username</label>
+<input class="w-full bg-surface border border-outline-variant rounded-xl px-4 py-3 font-body-lg text-body-lg text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" type="text" value="@janedoe"/>
+</div>
+</div>
+</div>
+<!-- Theme Mode Card -->
+<div class="glass-panel rounded-2xl p-8 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-6">Theme Mode</h3>
+<div class="bg-surface-container-low p-1.5 rounded-xl flex relative border border-outline-variant/30">
+<div class="absolute left-1.5 top-1.5 bottom-1.5 w-[32.5%] bg-white rounded-lg shadow-sm transition-transform duration-300 z-0"></div>
+<button class="flex-1 py-3 font-label-md text-label-md text-primary z-10 flex flex-col items-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">light_mode</span>
+                Light
+            </button>
+<button class="flex-1 py-3 font-label-md text-label-md text-on-surface-variant z-10 flex flex-col items-center gap-1.5 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">dark_mode</span>
+                Dark
+            </button>
+<button class="flex-1 py-3 font-label-md text-label-md text-on-surface-variant z-10 flex flex-col items-center gap-1.5 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">desktop_windows</span>
+                System
+            </button>
+</div>
+</div>
+<!-- Web-app Color Card -->
+<div class="glass-panel rounded-2xl p-8 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-6">Web-app Color</h3>
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-6">
+<div class="flex flex-col items-center gap-2">
+<button class="w-14 h-14 rounded-full bg-[#7858f5] flex items-center justify-center ring-2 ring-offset-4 ring-[#7858f5] ring-offset-light-bg mx-auto transition-transform hover:scale-110 shadow-md">
+<span class="material-symbols-outlined text-white text-base" style="font-variation-settings: 'FILL' 1;">check</span>
+</button>
+<span class="font-label-md text-label-md text-on-surface-variant">Violet</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<button class="w-14 h-14 rounded-full bg-[#3b82f6] mx-auto hover:scale-110 transition-transform shadow-md"></button>
+<span class="font-label-md text-label-md text-on-surface-variant">Penguin Blue</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<button class="w-14 h-14 rounded-full bg-[#10b981] mx-auto hover:scale-110 transition-transform shadow-md"></button>
+<span class="font-label-md text-label-md text-on-surface-variant">Sprout Green</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<button class="w-14 h-14 rounded-full bg-[#f43f5e] mx-auto hover:scale-110 transition-transform shadow-md"></button>
+<span class="font-label-md text-label-md text-on-surface-variant">Rose Pink</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<button class="w-14 h-14 rounded-full bg-[#a855f7] mx-auto hover:scale-110 transition-transform shadow-md"></button>
+<span class="font-label-md text-label-md text-on-surface-variant">Lavender Purple</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<button class="w-14 h-14 rounded-full bg-[#eab308] mx-auto hover:scale-110 transition-transform shadow-md"></button>
+<span class="font-label-md text-label-md text-on-surface-variant">Duck Gold</span>
+</div>
+</div>
+</div>
+<!-- Profile Picture Card -->
+<div class="glass-panel rounded-2xl p-8 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-6">Profile Picture</h3>
+<div class="grid grid-cols-3 gap-6">
+<button class="aspect-square rounded-full overflow-hidden border-4 border-primary p-1 transition-all hover:scale-105 bg-white">
+<img alt="Avatar 1" class="w-full h-full rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuALiajlnIpKE1DdGGVWlslv7EVHcuUYzGzYkINb2xtaOkOg-NGgXYJngxkkpoRtdLP4PuR8sztaRjHjLD1KHClP8VQzUSHptE3JiTq1VLpOBYssE7qkHVcFowEp6boHqL_cicN24qihHMeBJxzRGiVvdLc9OeIyMxUnW8PNFxZEeoyxcK58wmlvxDm0MgPS7wxeB059aqCxNmEpkHUuVMHihYIZN_AZ0f48NPUgs3LGVk9pAYDN1NGxtTjX8rSdLsg-PKX8kofQef5q"/>
+</button>
+<button class="aspect-square rounded-full overflow-hidden border-4 border-transparent hover:border-outline-variant p-1 transition-all hover:scale-105 bg-white shadow-sm">
+<img alt="Avatar 2" class="w-full h-full rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9KztEnNZYbaulX86ku19HBcpozuwPIBHTkcVetjk6jUaO3jcSz5k12YAVLAe40Pgl-u62LGjOpZ8CvJzcWT3Gzin_q7zqoGyFlWNdrFteaBG54_j05gSgdNTdFmzuynBhge2RKS-2jiDuiWhoH48rtfGO17pl0LlF9VDV4XcVQGict9IBUBT40ktanidOywDDBzTQaIYkkD-u3DFKETFQWCnO3P9g92hhS-Qew9VLtcxM6LKE9shsKZXcVtVqlk2yiqIvJdG2X1Mo"/>
+</button>
+<button class="aspect-square rounded-full overflow-hidden border-4 border-transparent hover:border-outline-variant p-1 transition-all hover:scale-105 bg-white shadow-sm">
+<img alt="Avatar 3" class="w-full h-full rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbDirf9n2OsBv9oVrvx_VcuQpKq2eguJzxzEof1kh7ADOamIaK-XUHNBP7njpmDpVj8qMnwgbY_xUNk-NhgAbZvNYI-AK3YoGm9QMCf3WKDquRoLdXmTnBk3cWKwjNxXUTBvWWAqiLMtFAq_hK-NS-Fz8YDsnoMLTAnzIl_-1NuPplL-M_HjtcZzoEkWYVfQHyozcwzYirviiXztZyqTWNWV-NompQ4Po0qrFqzE-d6e2vMLCSX5Aacn0KXFHvKKgsaRaohOrY0jOP"/>
+</button>
+<button class="aspect-square rounded-full overflow-hidden border-4 border-transparent hover:border-outline-variant p-1 transition-all hover:scale-105 bg-white shadow-sm flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+<span class="material-symbols-outlined text-4xl text-primary/60">face_2</span>
+</button>
+<button class="aspect-square rounded-full overflow-hidden border-4 border-transparent hover:border-outline-variant p-1 transition-all hover:scale-105 bg-white shadow-sm flex items-center justify-center bg-gradient-to-br from-secondary/20 to-secondary/5">
+<span class="material-symbols-outlined text-4xl text-secondary/60">face_3</span>
+</button>
+<button class="aspect-square rounded-full overflow-hidden border-4 border-transparent hover:border-outline-variant p-1 transition-all hover:scale-105 bg-white shadow-sm flex items-center justify-center bg-gradient-to-br from-tertiary/20 to-tertiary/5">
+<span class="material-symbols-outlined text-4xl text-tertiary/60">face_4</span>
+</button>
+</div>
+</div>
+<!-- Save Button -->
+<div class="mt-4 mb-8 flex justify-center">
+<button class="w-full sm:w-auto bg-primary text-white px-12 py-4 rounded-xl font-headline-md text-title-lg hover:translate-y-[-2px] shadow-lg hover:shadow-xl transition-all duration-300">
+            Save profile
+        </button>
+</div>
+</div>
+</main>
+</body></html>

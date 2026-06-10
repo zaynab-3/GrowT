@@ -2,6 +2,13 @@ import type { FormEvent } from 'react'
 import type { FolderCategory } from '../../lib/database.types'
 import { categoryOptions } from '../../lib/growtDisplay'
 
+export type FolderCreateValues = {
+  category: FolderCategory
+  description: string | null
+  title: string
+  inviteUsernames?: string[]
+}
+
 type FolderCreateFormProps = {
   folderCategory: FolderCategory
   folderDescription: string
