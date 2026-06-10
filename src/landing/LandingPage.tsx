@@ -37,17 +37,17 @@ const productShots = [
   {
     alt: 'GrowT dashboard with overview cards and activity',
     label: 'Dashboard',
-    src: '/landing/dashboard.png',
+    src: '/landing/dashboard.jpg',
   },
   {
     alt: 'GrowT folders screen with project cards',
     label: 'Folders',
-    src: '/landing/folders.png',
+    src: '/landing/folders.jpg',
   },
   {
     alt: 'GrowT tasks screen with task status tracking',
     label: 'Tasks',
-    src: '/landing/tasks.png',
+    src: '/landing/tasks.jpg',
   },
 ]
 
@@ -95,7 +95,7 @@ export function LandingPage({ onLogin, onRegister }: LandingPageProps) {
           <img
             alt="GrowT dashboard preview"
             className="landing-window__image"
-            src="/landing/dashboard.png"
+            src="/landing/dashboard.jpg"
           />
           <div className="landing-float-card landing-float-card--left">
             <LayoutDashboard aria-hidden="true" size={17} />
