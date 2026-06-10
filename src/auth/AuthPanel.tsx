@@ -71,7 +71,7 @@ function AuthField({
 }: AuthFieldProps) {
   return (
     <div className="form-field auth-field">
-      <label htmlFor={id}>{label}</label>
+      {label ? <label htmlFor={id}>{label}</label> : null}
       <div className="auth-input-wrap">
         <span className="auth-input-icon" aria-hidden="true">
           {icon}
@@ -299,7 +299,7 @@ export function AuthPanel({
                 id="login-password"
                 label=""
                 onChange={onLoginPasswordChange}
-                placeholder="••••••••"
+                placeholder="********"
                 trailing={<EyeOff size={18} strokeWidth={2.1} />}
                 type="password"
                 value={loginPassword}

@@ -25,3 +25,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local Codex/browser QA artifacts
+.codex/qa/
+.codex/**/chrome-profile*/
+

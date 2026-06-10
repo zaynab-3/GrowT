@@ -20,7 +20,19 @@ function isInvalidRefreshTokenError(error: unknown) {
 export function useAuthSession() {
   const [session, setSession] = useState<Session | null>(null)
   const [authReady, setAuthReady] = useState(false)
-  const [authView, setAuthView] = useState<AuthView>('login')
+  const [authView, setAuthView] = useState<AuthView>(() => {
+    const pathname = window.location.pathname.replace(/\/+$/g, '') || '/'
+
+    if (pathname === '/register') {
+      return 'register'
+    }
+
+    if (pathname === '/forgot') {
+      return 'forgot'
+    }
+
+    return 'login'
+  })
 
   useEffect(() => {
     if (!supabase) {

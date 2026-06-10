@@ -1,7 +1,9 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { AuthPanel } from './auth/AuthPanel'
+import { AuthPanel, type AuthView } from './auth/AuthPanel'
 import { ConfirmDialog } from './components/ConfirmDialog'
 import { LoadingState } from './components/LoadingState'
+import { IntroLoader } from './landing/IntroLoader'
+import { LandingPage } from './landing/LandingPage'
 import type { FolderEditValues } from './features/folders/FolderEditForm'
 import {
   addFolderMemberByUsername,
@@ -82,8 +84,43 @@ type ConfirmRequest = {
   title: string
 }
 
+const SKIP_LANDING_STORAGE_KEY = 'growt:skipLanding'
+
+const authPathByView: Record<Exclude<AuthView, 'reset'>, string> = {
+  forgot: '/forgot',
+  login: '/login',
+  register: '/register',
+}
+
+function getStoredSkipLanding() {
+  try {
+    return window.localStorage.getItem(SKIP_LANDING_STORAGE_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
+function setStoredSkipLanding(value: boolean) {
+  try {
+    if (value) {
+      window.localStorage.setItem(SKIP_LANDING_STORAGE_KEY, 'true')
+      return
+    }
+
+    window.localStorage.removeItem(SKIP_LANDING_STORAGE_KEY)
+  } catch {
+    // Storage can be unavailable in private or embedded browsers.
+  }
+}
+
+function getCurrentPath() {
+  return window.location.pathname.replace(/\/+$/g, '') || '/'
+}
+
 function App() {
   const { authReady, authView, session, setAuthView, setSession } = useAuthSession()
+  const [introLoading, setIntroLoading] = useState(true)
+  const [shouldSkipLanding, setShouldSkipLanding] = useState(getStoredSkipLanding)
   const [loginIdentifier, setLoginIdentifier] = useState('')
   const [loginPassword, setLoginPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(true)
@@ -118,6 +155,7 @@ function App() {
   const [progress, setProgress] = useState<TaskProgress[]>([])
   const [actions, setActions] = useState<TaskStatusAction[]>([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [publicPath, setPublicPath] = useState(getCurrentPath)
   const [route, setRoute] = useState<AppRoute>(() => parseAppRoute(window.location.pathname))
   const [activeView, setActiveView] = useState<AppView>(() => getRouteView(parseAppRoute(window.location.pathname)))
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
@@ -139,6 +177,34 @@ function App() {
   const refreshFoldersRef = useRef<() => Promise<void>>(async () => undefined)
   const refreshLiveSessionRef = useRef<() => Promise<void>>(async () => undefined)
 
+  const navigateToAuthView = useCallback((view: AuthView, mode: 'push' | 'replace' = 'push') => {
+    setAuthView(view)
+    setMessage('')
+
+    if (view === 'reset') {
+      return
+    }
+
+    const method = mode === 'replace' ? 'replaceState' : 'pushState'
+    const nextPath = authPathByView[view]
+    window.history[method]({}, '', nextPath)
+    setPublicPath(nextPath)
+  }, [setAuthView])
+
+  const navigateToDashboard = useCallback(() => {
+    const dashboardRoute: AppRoute = { name: 'dashboard' }
+    setRoute(dashboardRoute)
+    setActiveView('dashboard')
+    const dashboardPath = routeToPath(dashboardRoute)
+    window.history.replaceState({}, '', dashboardPath)
+    setPublicPath(dashboardPath)
+  }, [])
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setIntroLoading(false), 1200)
+    return () => window.clearTimeout(timer)
+  }, [])
+
   useEffect(() => {
     const root = document.documentElement
     if (profileThemeMode === 'dark') {
@@ -159,6 +225,7 @@ function App() {
 
   useEffect(() => {
     const handlePopState = () => {
+      setPublicPath(getCurrentPath())
       const newRoute = parseAppRoute(window.location.pathname)
       setRoute(newRoute)
       setActiveView(getRouteView(newRoute))
@@ -166,6 +233,47 @@ function App() {
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
+
+  useEffect(() => {
+    if (!authReady || session || authView === 'reset') {
+      return
+    }
+
+    const syncAuthPath = () => {
+      const pathname = getCurrentPath()
+      const viewByPath: Partial<Record<string, AuthView>> = {
+        '/forgot': 'forgot',
+        '/login': 'login',
+        '/register': 'register',
+      }
+      const nextView = viewByPath[pathname]
+
+      if (nextView && nextView !== authView) {
+        setPublicPath(pathname)
+        setAuthView(nextView)
+        return
+      }
+
+      if (pathname === '/' && shouldSkipLanding) {
+        navigateToAuthView('login', 'replace')
+      }
+    }
+
+    syncAuthPath()
+    window.addEventListener('popstate', syncAuthPath)
+    return () => window.removeEventListener('popstate', syncAuthPath)
+  }, [authReady, authView, navigateToAuthView, session, setAuthView, shouldSkipLanding])
+
+  useEffect(() => {
+    if (!authReady || !session) {
+      return
+    }
+
+    const pathname = getCurrentPath()
+    if (pathname === '/' || pathname === '/login' || pathname === '/register' || pathname === '/forgot') {
+      navigateToDashboard()
+    }
+  }, [authReady, navigateToDashboard, session])
 
   useEffect(() => {
     const folderId = routeFolderId(route)
@@ -205,17 +313,9 @@ function App() {
     userId: user?.id ?? null,
   })
 
-  const personalFolders = useMemo(
-    () => filteredFolders.filter((folder) => !isSharedFolder(folder)),
-    [filteredFolders],
-  )
   const sharedFolders = useMemo(
     () => filteredFolders.filter((folder) => isSharedFolder(folder)),
     [filteredFolders],
-  )
-  const personalStandaloneTasks = useMemo(
-    () => filteredStandaloneTasks.filter((task) => task.category !== 'shared'),
-    [filteredStandaloneTasks],
   )
   const sharedStandaloneTasks = useMemo(
     () => filteredStandaloneTasks.filter((task) => task.category === 'shared'),
@@ -266,19 +366,19 @@ function App() {
     ],
     [
       deletedItemsCount,
-      personalFolders.length,
-      personalStandaloneTasks.length,
+      folders.length,
       realtimeStatus,
-      sharedFolders.length,
-      sharedStandaloneTasks.length,
+      standaloneTasks.length,
     ],
   )
 
 
   const navigateToRoute = useCallback((newRoute: AppRoute) => {
+    const nextPath = routeToPath(newRoute)
     setRoute(newRoute)
     setActiveView(getRouteView(newRoute))
-    window.history.pushState({}, '', routeToPath(newRoute))
+    window.history.pushState({}, '', nextPath)
+    setPublicPath(nextPath)
   }, [])
 
   const navigateToView = useCallback((view: AppView) => {
@@ -735,7 +835,7 @@ function App() {
       setRegisterUsername('')
       setRegisterPassword('')
       setRegisterConfirmPassword('')
-      setAuthView('login')
+      navigateToAuthView('login', 'replace')
       setMessage('Check your email to verify your account, then log in.')
     } catch (error) {
       console.error('Registration failed', error)
@@ -775,7 +875,10 @@ function App() {
         throw error
       }
 
+      setStoredSkipLanding(rememberMe)
+      setShouldSkipLanding(rememberMe)
       setLoginPassword('')
+      navigateToDashboard()
     } catch (error) {
       console.error('Login failed', error)
       setMessage('Invalid username/email or password')
@@ -791,16 +894,20 @@ function App() {
     setMessage('')
 
     try {
+      const shouldRememberGoogleLogin = authView === 'login' && rememberMe
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: `${window.location.origin}/dashboard`,
         },
       })
 
       if (error) {
         throw error
       }
+
+      setStoredSkipLanding(shouldRememberGoogleLogin)
+      setShouldSkipLanding(shouldRememberGoogleLogin)
     } catch (error) {
       console.error('Google login failed', error)
       setMessage('Unable to sign in with Google.')
@@ -828,7 +935,7 @@ function App() {
       }
 
       setForgotEmail('')
-      setAuthView('login')
+      navigateToAuthView('login', 'replace')
       setMessage('Check your email for the password reset link.')
     } catch (error) {
       console.error('Password reset email failed', error)
@@ -864,7 +971,7 @@ function App() {
       setResetConfirmPassword('')
       await supabase.auth.signOut()
       setSession(null)
-      setAuthView('login')
+      navigateToAuthView('login', 'replace')
       setMessage('Password updated. Log in with your new password.')
     } catch (error) {
       console.error('Password update failed', error)
@@ -1586,6 +1693,10 @@ function App() {
     }
   }
 
+  if (introLoading) {
+    return <IntroLoader />
+  }
+
   if (!isSupabaseConfigured) {
     return (
       <LoadingState
@@ -1599,40 +1710,55 @@ function App() {
     return <LoadingState message="Checking your session." title="Opening GrowT" />
   }
 
-  if (authView === 'reset' || !session) {
-    return (
-      <AuthPanel
-        authLoading={authLoading}
-        authView={authView}
-        forgotEmail={forgotEmail}
-        loginIdentifier={loginIdentifier}
-        loginPassword={loginPassword}
-        message={message}
-        onForgotEmailChange={setForgotEmail}
-        onLoginIdentifierChange={setLoginIdentifier}
-        onLoginPasswordChange={setLoginPassword}
-        onRegisterConfirmPasswordChange={setRegisterConfirmPassword}
-        onRegisterEmailChange={setRegisterEmail}
-        onRegisterPasswordChange={setRegisterPassword}
-        onRegisterUsernameChange={setRegisterUsername}
-        onRememberMeChange={setRememberMe}
-        onResetConfirmPasswordChange={setResetConfirmPassword}
-        onResetPasswordChange={setResetPassword}
-        onSubmitForgot={handleForgotPassword}
-        onSubmitLogin={handleLogin}
-        onSubmitRegister={handleRegister}
-        onSubmitReset={handleResetPassword}
-        onViewChange={setAuthView}
-        onContinueWithGoogle={handleGoogleLogin}
-        registerConfirmPassword={registerConfirmPassword}
-        registerEmail={registerEmail}
-        registerPassword={registerPassword}
-        registerUsername={registerUsername}
-        rememberMe={rememberMe}
-        resetConfirmPassword={resetConfirmPassword}
-        resetPassword={resetPassword}
-      />
-    )
+  const authPanel = (
+    <AuthPanel
+      authLoading={authLoading}
+      authView={authView}
+      forgotEmail={forgotEmail}
+      loginIdentifier={loginIdentifier}
+      loginPassword={loginPassword}
+      message={message}
+      onForgotEmailChange={setForgotEmail}
+      onLoginIdentifierChange={setLoginIdentifier}
+      onLoginPasswordChange={setLoginPassword}
+      onRegisterConfirmPasswordChange={setRegisterConfirmPassword}
+      onRegisterEmailChange={setRegisterEmail}
+      onRegisterPasswordChange={setRegisterPassword}
+      onRegisterUsernameChange={setRegisterUsername}
+      onRememberMeChange={setRememberMe}
+      onResetConfirmPasswordChange={setResetConfirmPassword}
+      onResetPasswordChange={setResetPassword}
+      onSubmitForgot={handleForgotPassword}
+      onSubmitLogin={handleLogin}
+      onSubmitRegister={handleRegister}
+      onSubmitReset={handleResetPassword}
+      onViewChange={navigateToAuthView}
+      onContinueWithGoogle={handleGoogleLogin}
+      registerConfirmPassword={registerConfirmPassword}
+      registerEmail={registerEmail}
+      registerPassword={registerPassword}
+      registerUsername={registerUsername}
+      rememberMe={rememberMe}
+      resetConfirmPassword={resetConfirmPassword}
+      resetPassword={resetPassword}
+    />
+  )
+
+  if (authView === 'reset') {
+    return authPanel
+  }
+
+  if (!session) {
+    if (publicPath === '/' && !shouldSkipLanding) {
+      return (
+        <LandingPage
+          onLogin={() => navigateToAuthView('login')}
+          onRegister={() => navigateToAuthView('register')}
+        />
+      )
+    }
+
+    return authPanel
   }
 
   const userId = session.user.id
