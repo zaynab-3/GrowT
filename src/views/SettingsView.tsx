@@ -132,13 +132,13 @@ export function SettingsView({
               <Palette size={18} className="text-primary" />
               Theme Mode
             </h4>
-            <div className="grid grid-cols-3 gap-3 p-1 bg-surface-container-low dark:bg-surface-soft rounded-2xl border border-outline-variant/30 dark:border-border">
+            <div className="grid grid-cols-3 gap-3 p-1 bg-surface-container-low dark:bg-[#211a37] rounded-2xl border border-outline-variant/30 dark:border-white/10">
               {themeModeOptions.map((option) => (
                 <button 
                   key={option.id}
                   type="button"
                   onClick={() => onProfileThemeModeChange(option.id)}
-                  className={`motion-choice flex flex-col items-center gap-2 py-4 rounded-xl transition-all ${profileThemeMode === option.id ? 'motion-choice--active bg-primary shadow-md text-white' : 'bg-surface-variant/20 text-on-surface-variant hover:bg-surface-variant/50 hover:text-on-surface dark:bg-white/5 dark:text-[#C7C5D3] dark:hover:bg-white/10 dark:hover:text-white'}`}
+                  className={`motion-choice flex flex-col items-center gap-2 py-4 rounded-xl transition-all ${profileThemeMode === option.id ? 'motion-choice--active bg-primary shadow-md text-white' : 'bg-surface-variant/20 text-on-surface-variant hover:bg-surface-variant/50 hover:text-on-surface dark:bg-[#17112B] dark:text-[#BDB4DD] dark:hover:bg-[#2d264a] dark:hover:text-[#F2EEFF]'}`}
                 >
                   <ThemeModeIcon themeMode={option.id} />
                   <span className="text-label-md">{option.label}</span>
