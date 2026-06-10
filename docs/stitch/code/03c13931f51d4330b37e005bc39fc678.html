@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GrowT - Mindful Productivity</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "light-card": "#FFFFFF",
+                        "on-tertiary-fixed-variant": "#6d3a00",
+                        "dark-text": "#F0EEFF",
+                        "dark-card": "#17112B",
+                        "surface-variant": "#e2e1ea",
+                        "inverse-on-surface": "#f1f0f9",
+                        "light-bg": "#F0EFF8",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#faf8ff",
+                        "on-secondary-fixed": "#1d0061",
+                        "on-primary-fixed-variant": "#481bc6",
+                        "glass-overlay": "rgba(255, 255, 255, 0.4)",
+                        "outline-variant": "#c9c4d7",
+                        "primary-fixed": "#e6deff",
+                        "tertiary-container": "#b06000",
+                        "on-error-container": "#93000a",
+                        "on-surface-variant": "#484555",
+                        "dark-bg": "#0F0A20",
+                        "surface-container-highest": "#e2e1ea",
+                        "on-background": "#1a1b22",
+                        "on-secondary-container": "#fffbff",
+                        "outline": "#797586",
+                        "on-tertiary": "#ffffff",
+                        "secondary": "#6042ca",
+                        "on-surface": "#1a1b22",
+                        "error": "#ba1a1a",
+                        "background": "#faf8ff",
+                        "tertiary-fixed": "#ffdcc2",
+                        "secondary-fixed": "#e6deff",
+                        "surface-tint": "#613ede",
+                        "primary-fixed-dim": "#cabeff",
+                        "inverse-surface": "#2f3037",
+                        "surface": "#faf8ff",
+                        "primary": "#5e3bdb",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb77b",
+                        "surface-container-high": "#e8e7f0",
+                        "surface-container-low": "#f4f3fc",
+                        "secondary-container": "#795de4",
+                        "error-container": "#ffdad6",
+                        "on-primary-container": "#fffbff",
+                        "surface-dim": "#dad9e2",
+                        "on-error": "#ffffff",
+                        "surface-container": "#eeedf6",
+                        "on-tertiary-container": "#fffbff",
+                        "on-tertiary-fixed": "#2e1500",
+                        "primary-container": "#7858f5",
+                        "on-secondary-fixed-variant": "#4a28b3",
+                        "secondary-fixed-dim": "#cbbeff",
+                        "inverse-primary": "#cabeff",
+                        "on-primary-fixed": "#1c0062",
+                        "on-primary": "#ffffff",
+                        "tertiary": "#8c4c00"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-gap": "12px",
+                        "margin-sm": "16px",
+                        "container-padding": "32px",
+                        "sidebar-width": "256px",
+                        "gutter-md": "24px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "title-lg": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "title-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hover-lift {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+        
+        /* Subtle background animation */
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+        .bg-blob {
+            animation: float 15s ease-in-out infinite;
+        }
+        .bg-blob-delay {
+            animation: float 18s ease-in-out infinite reverse;
+        }
+    </style>
+</head>
+<body class="bg-light-bg min-h-screen text-on-background font-body-md overflow-x-hidden relative selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Atmospheric Background Glows -->
+<div class="fixed top-[-10%] left-[-5%] w-[40vw] h-[40vw] rounded-full bg-primary-fixed-dim/40 blur-[120px] mix-blend-multiply opacity-70 pointer-events-none bg-blob"></div>
+<div class="fixed bottom-[-10%] right-[-5%] w-[50vw] h-[50vw] rounded-full bg-surface-tint/10 blur-[150px] mix-blend-multiply opacity-60 pointer-events-none bg-blob-delay"></div>
+<!-- Minimal Landing Navigation -->
+<header class="fixed top-0 left-0 w-full z-50 px-container-padding py-6 flex justify-between items-center bg-light-bg/60 backdrop-blur-md border-b border-white/20 transition-all duration-300" id="main-header">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[28px]" data-icon="energy_savings_leaf" data-weight="fill" style="font-variation-settings: 'FILL' 1;">energy_savings_leaf</span>
+<span class="font-display-lg text-title-lg text-primary tracking-tight">GrowT</span>
+</div>
+<nav>
+<button class="bg-primary hover:bg-surface-tint text-on-primary font-label-md rounded-xl px-6 py-3 hover-lift flex items-center gap-2 transition-colors">
+<span>Login</span>
+<span class="material-symbols-outlined text-[18px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</nav>
+</header>
+<!-- Main Hero Canvas -->
+<main class="pt-32 pb-24 px-container-padding flex flex-col items-center justify-center min-h-[921px] relative z-10">
+<!-- Typography Group -->
+<div class="text-center max-w-3xl mx-auto mb-16 space-y-6">
+<h1 class="font-display-lg text-[48px] md:text-[64px] leading-[1.1] text-on-background tracking-tight">
+                Organize your mind, <br/>
+<span class="text-primary relative inline-block">
+                    one task at a time.
+                    <svg class="absolute w-full h-3 -bottom-1 left-0 text-primary-fixed-dim/60 -z-10" fill="none" viewbox="0 0 200 9" xmlns="http://www.w3.org/2000/svg">
+<path d="M2 7.5C45.5 -1.5 155 -1.5 198 7.5" stroke="currentColor" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+</span>
+</h1>
+<p class="font-body-lg text-on-surface-variant text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+                A mindful approach to productivity. Strip away the noise, focus on what matters, and find calm in your daily workflow.
+            </p>
+</div>
+<!-- High Fidelity UI Mockup Container -->
+<div class="w-full max-w-5xl mx-auto relative group">
+<!-- Glassmorphic framing -->
+<div class="absolute -inset-1 bg-gradient-to-b from-white/60 to-white/10 rounded-2xl blur-sm transition-all duration-500 group-hover:blur-md opacity-70"></div>
+<div class="relative bg-light-card/80 backdrop-blur-2xl rounded-[18px] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] overflow-hidden transition-transform duration-700 ease-out hover:scale-[1.01]">
+<!-- Mac-style window controls (optional detail for desktop feel) -->
+<div class="h-10 bg-white/50 border-b border-surface-variant/30 flex items-center px-4 gap-2 backdrop-blur-md">
+<div class="w-3 h-3 rounded-full bg-outline-variant/50"></div>
+<div class="w-3 h-3 rounded-full bg-outline-variant/50"></div>
+<div class="w-3 h-3 rounded-full bg-outline-variant/50"></div>
+</div>
+<!-- The actual mockup image -->
+<img alt="GrowT Dashboard Mockup" class="w-full h-auto object-cover opacity-95 group-hover:opacity-100 transition-opacity duration-500 block" data-alt="A highly detailed, pristine UI mockup of a desktop productivity dashboard named GrowT. The interface is bathed in soft, light-mode natural lighting, featuring a warm lavender-grey background (#F0EFF8) with crisp, pure white glassmorphic content cards. A minimalist left sidebar shows subtle violet active indicators next to clean, thin-line icons. The main content canvas displays a spacious, uncluttered task layout, a gentle calendar widget, and soft data visualizations with gracefully rounded 12px corners. The overarching aesthetic is serene, exceptionally organized, and deeply calming, perfectly embodying the concept of comfortable modernism." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmdcd2qErZFtEGdLL3r3VuXZSTP1eqqE10n8c53l7UwF7nqEf6cRi0M1i8KBL4otcIAaBqs4HkOEO7wpSChb28cfkuVAHRlTOE5vxGKMizyuU-SqWdsYKWZid7gCtvTlhAPOIRpTyppKzUNIPQF7OsCJm2-d1WV5vwbS-1ur4JW_nZD6Sxk_KJ-HxjzUxmCRhIcGcoEKsGxvoP-BaMwL1x3uZzD6ZWvt47sU2DcGv6rlCietNMiJsiJnE4PqZyK14U-PNXZEaGxBs3"/>
+<!-- Subtle overlay gloss -->
+<div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/20 pointer-events-none mix-blend-overlay"></div>
+</div>
+<!-- Floating element decoration (to emphasize glassmorphism) -->
+<div class="absolute -right-12 -bottom-8 w-48 h-48 bg-white/40 backdrop-blur-xl border border-white/50 rounded-full shadow-[0_8px_32px_0_rgba(31,38,135,0.1)] -z-10 animate-[float_10s_ease-in-out_infinite_reverse]"></div>
+</div>
+</main>
+<script>
+        // Simple scroll effect for header
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('main-header');
+            if (window.scrollY > 20) {
+                header.classList.add('shadow-sm', 'bg-light-bg/80');
+                header.classList.remove('bg-light-bg/60');
+            } else {
+                header.classList.remove('shadow-sm', 'bg-light-bg/80');
+                header.classList.add('bg-light-bg/60');
+            }
+        });
+    </script>
+</body></html>

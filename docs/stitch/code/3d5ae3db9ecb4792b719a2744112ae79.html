@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GrowT - Mobile Landing Page</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "light-card": "#FFFFFF",
+                    "on-tertiary-fixed-variant": "#6d3a00",
+                    "dark-text": "#F0EEFF",
+                    "dark-card": "#17112B",
+                    "surface-variant": "#e2e1ea",
+                    "inverse-on-surface": "#f1f0f9",
+                    "light-bg": "#F0EFF8",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-bright": "#faf8ff",
+                    "on-secondary-fixed": "#1d0061",
+                    "on-primary-fixed-variant": "#481bc6",
+                    "glass-overlay": "rgba(255, 255, 255, 0.4)",
+                    "outline-variant": "#c9c4d7",
+                    "primary-fixed": "#e6deff",
+                    "tertiary-container": "#b06000",
+                    "on-error-container": "#93000a",
+                    "on-surface-variant": "#484555",
+                    "dark-bg": "#0F0A20",
+                    "surface-container-highest": "#e2e1ea",
+                    "on-background": "#1a1b22",
+                    "on-secondary-container": "#fffbff",
+                    "outline": "#797586",
+                    "on-tertiary": "#ffffff",
+                    "secondary": "#6042ca",
+                    "on-surface": "#1a1b22",
+                    "error": "#ba1a1a",
+                    "background": "#faf8ff",
+                    "tertiary-fixed": "#ffdcc2",
+                    "secondary-fixed": "#e6deff",
+                    "surface-tint": "#613ede",
+                    "primary-fixed-dim": "#cabeff",
+                    "inverse-surface": "#2f3037",
+                    "surface": "#faf8ff",
+                    "primary": "#5e3bdb",
+                    "on-secondary": "#ffffff",
+                    "tertiary-fixed-dim": "#ffb77b",
+                    "surface-container-high": "#e8e7f0",
+                    "surface-container-low": "#f4f3fc",
+                    "secondary-container": "#795de4",
+                    "error-container": "#ffdad6",
+                    "on-primary-container": "#fffbff",
+                    "surface-dim": "#dad9e2",
+                    "on-error": "#ffffff",
+                    "surface-container": "#eeedf6",
+                    "on-tertiary-container": "#fffbff",
+                    "on-tertiary-fixed": "#2e1500",
+                    "primary-container": "#7858f5",
+                    "on-secondary-fixed-variant": "#4a28b3",
+                    "secondary-fixed-dim": "#cbbeff",
+                    "inverse-primary": "#cabeff",
+                    "on-primary-fixed": "#1c0062",
+                    "on-primary": "#ffffff",
+                    "tertiary": "#8c4c00"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-gap": "12px",
+                    "margin-sm": "16px",
+                    "container-padding": "32px",
+                    "sidebar-width": "256px",
+                    "gutter-md": "24px"
+            },
+            "fontFamily": {
+                    "label-md": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "body-lg": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "body-md": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "headline-md": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "display-lg": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "title-lg": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "headline-lg": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "headline-lg-mobile": [
+                            "Plus Jakarta Sans"
+                    ]
+            },
+            "fontSize": {
+                    "label-md": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-lg": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "body-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "headline-md": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "display-lg": [
+                            "40px",
+                            {
+                                    "lineHeight": "48px",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "title-lg": [
+                            "20px",
+                            {
+                                    "lineHeight": "28px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "headline-lg": [
+                            "32px",
+                            {
+                                    "lineHeight": "40px",
+                                    "letterSpacing": "-0.01em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "headline-lg-mobile": [
+                            "28px",
+                            {
+                                    "lineHeight": "36px",
+                                    "fontWeight": "700"
+                            }
+                    ]
+            }
+        },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #F0EFF8;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        .glass-mockup {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+        }
+
+        .gradient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at top right, rgba(94, 59, 219, 0.08) 0%, transparent 40%),
+                        radial-gradient(circle at bottom left, rgba(121, 93, 228, 0.05) 0%, transparent 40%);
+            pointer-events: none;
+        }
+
+        .float-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-background flex flex-col min-h-screen font-body-lg overflow-x-hidden">
+<div class="gradient-bg"></div>
+<main class="flex-grow flex flex-col items-center justify-center px-margin-sm py-12 md:py-24 relative z-10 w-full max-w-md mx-auto">
+<header class="w-full text-center mb-8 animate-fade-in-up" style="animation-delay: 0.1s;">
+<div class="flex items-center justify-center gap-2 mb-4">
+<div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-on-primary text-xl" style="font-variation-settings: 'FILL' 1;">eco</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-primary tracking-tight">GrowT</h1>
+</div>
+<p class="font-title-lg text-title-lg text-on-surface-variant max-w-[280px] mx-auto leading-relaxed">
+                Your quiet space for focused productivity.
+            </p>
+</header>
+<div class="w-full relative mb-12 flex justify-center float-animation" style="animation-delay: 0.3s;">
+<div class="relative w-[280px] h-[580px] glass-mockup rounded-[40px] p-2 z-10">
+<div class="w-full h-full bg-surface-bright rounded-[32px] overflow-hidden shadow-inner relative flex flex-col border border-outline-variant/30">
+<div class="absolute top-0 w-full h-6 flex justify-center items-start pt-2 z-20">
+<div class="w-1/3 h-4 bg-black/10 rounded-full blur-[1px]"></div>
+</div>
+<div class="flex-1 overflow-hidden relative rounded-t-[32px]">
+<img alt="Abstract fluid shapes in soft lavender and white tones, creating a calming, minimalist modern art background" class="w-full h-full object-cover opacity-80" data-alt="A macro shot of soft, flowing abstract liquid shapes in pale lavender, white, and subtle violet hues. The lighting is diffused and serene, creating a highly modern, minimalist, and calming aesthetic suitable for a zen productivity app. The texture is smooth and creamy, evoking a sense of gentle focus and quiet organization." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBW1zLPezBk-nwrBXVG8iUJR7bv58z4vwIEhlFSz4HYMtjQrbwyN9GnpidL6uklCBHtyo58GKz54z8tmg01IF51Vx3gAsHzrmOhC9CWscta3lBx2h5-BEh22bs3OMcAwa0P2nnd25ss9ypEdmxYWy_Sofovx8hfVSshM4ribFji9U8ziIFniZSsWLpPHIWiEaGjTboz8DeAxmJTtQ-7opWTt0LL8sokC79zo0HxYhC9wkp1R-WkEDYk7duEQ9qygA1F8ls1DHd_yyX-"/>
+<div class="absolute inset-0 bg-gradient-to-b from-transparent to-surface-bright/90 flex flex-col justify-end p-6">
+<div class="bg-light-card/80 backdrop-blur-md p-4 rounded-xl shadow-sm mb-3 border border-white/40">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-container/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-sm">task_alt</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Daily Review</p>
+<p class="font-body-md text-[10px] text-on-surface-variant">3 tasks remaining</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline text-sm">chevron_right</span>
+</div>
+</div>
+<div class="bg-light-card/80 backdrop-blur-md p-4 rounded-xl shadow-sm border border-white/40">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-secondary-container/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary text-sm">monitoring</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Focus Flow</p>
+<p class="font-body-md text-[10px] text-on-surface-variant">2h 15m today</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline text-sm">chevron_right</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="absolute -right-4 top-1/4 w-32 h-32 bg-primary-fixed blur-3xl rounded-full opacity-30 -z-10"></div>
+<div class="absolute -left-4 bottom-1/4 w-32 h-32 bg-secondary-fixed blur-3xl rounded-full opacity-30 -z-10"></div>
+</div>
+</div>
+<div class="w-full flex flex-col gap-4 animate-fade-in-up" style="animation-delay: 0.5s;">
+<button class="w-full bg-primary hover:bg-surface-tint text-on-primary font-title-lg text-title-lg py-4 rounded-xl shadow-[0_4px_14px_0_rgba(94,59,219,0.39)] hover:shadow-[0_6px_20px_rgba(94,59,219,0.23)] hover:-translate-y-0.5 transition-all duration-300 ease-out flex items-center justify-center gap-2">
+<span>Start Growing</span>
+<span class="material-symbols-outlined text-xl">arrow_forward</span>
+</button>
+<button class="w-full bg-transparent hover:bg-black/5 text-on-surface-variant font-label-md text-label-md py-4 rounded-xl transition-colors duration-200">
+                Log In
+            </button>
+</div>
+</main>
+<style>
+        .animate-fade-in-up {
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</body></html>

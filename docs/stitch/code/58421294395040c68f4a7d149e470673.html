@@ -1,0 +1,196 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>GrowT - Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "light-card": "#FFFFFF",
+                        "on-tertiary-fixed-variant": "#6d3a00",
+                        "dark-text": "#F0EEFF",
+                        "dark-card": "#17112B",
+                        "surface-variant": "#e2e1ea",
+                        "inverse-on-surface": "#f1f0f9",
+                        "light-bg": "#F0EFF8",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#faf8ff",
+                        "on-secondary-fixed": "#1d0061",
+                        "on-primary-fixed-variant": "#481bc6",
+                        "glass-overlay": "rgba(255, 255, 255, 0.4)",
+                        "outline-variant": "#c9c4d7",
+                        "primary-fixed": "#e6deff",
+                        "tertiary-container": "#b06000",
+                        "on-error-container": "#93000a",
+                        "on-surface-variant": "#484555",
+                        "dark-bg": "#0F0A20",
+                        "surface-container-highest": "#e2e1ea",
+                        "on-background": "#1a1b22",
+                        "on-secondary-container": "#fffbff",
+                        "outline": "#797586",
+                        "on-tertiary": "#ffffff",
+                        "secondary": "#6042ca",
+                        "on-surface": "#1a1b22",
+                        "error": "#ba1a1a",
+                        "background": "#faf8ff",
+                        "tertiary-fixed": "#ffdcc2",
+                        "secondary-fixed": "#e6deff",
+                        "surface-tint": "#613ede",
+                        "primary-fixed-dim": "#cabeff",
+                        "inverse-surface": "#2f3037",
+                        "surface": "#faf8ff",
+                        "primary": "#5e3bdb",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb77b",
+                        "surface-container-high": "#e8e7f0",
+                        "surface-container-low": "#f4f3fc",
+                        "secondary-container": "#795de4",
+                        "error-container": "#ffdad6",
+                        "on-primary-container": "#fffbff",
+                        "surface-dim": "#dad9e2",
+                        "on-error": "#ffffff",
+                        "surface-container": "#eeedf6",
+                        "on-tertiary-container": "#fffbff",
+                        "on-tertiary-fixed": "#2e1500",
+                        "primary-container": "#7858f5",
+                        "on-secondary-fixed-variant": "#4a28b3",
+                        "secondary-fixed-dim": "#cbbeff",
+                        "inverse-primary": "#cabeff",
+                        "on-primary-fixed": "#1c0062",
+                        "on-primary": "#ffffff",
+                        "tertiary": "#8c4c00"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px",
+                        "2xl": "1.125rem",
+                        "3xl": "1.5rem"
+                    },
+                    "spacing": {
+                        "stack-gap": "12px",
+                        "margin-sm": "16px",
+                        "container-padding": "32px",
+                        "sidebar-width": "256px",
+                        "gutter-md": "24px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "title-lg": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "title-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+        
+        .input-glass {
+            background: rgba(240, 239, 248, 0.5);
+            border: 1px solid rgba(201, 196, 215, 0.5);
+            transition: all 0.3s ease;
+        }
+        
+        .input-glass:focus {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: #5e3bdb;
+            box-shadow: 0 0 0 2px rgba(94, 59, 219, 0.2);
+            outline: none;
+        }
+
+        .btn-primary {
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px -6px rgba(94, 59, 219, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-light-bg min-h-screen flex items-center justify-center p-4 font-body-md text-on-surface bg-gradient-to-br from-white via-light-bg to-[#e6deff]/30 min-h-screen">
+<main class="w-full max-w-md">
+<div class="text-center mb-8">
+<div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] mb-4 text-primary">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">monitoring</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-primary">GrowT</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mt-2">Welcome back to your workspace</p>
+</div>
+<div class="glass-card rounded-[1.5rem] p-8 md:p-10 relative overflow-hidden">
+<!-- Decorative blur blob -->
+<div class="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl pointer-events-none"></div>
+<div class="absolute -bottom-10 -left-10 w-32 h-32 bg-secondary-container/10 rounded-full blur-2xl pointer-events-none"></div>
+<form action="#" class="space-y-6 relative z-10" method="POST">
+<div class="space-y-2">
+<label class="block font-label-md text-label-md text-on-surface-variant uppercase tracking-wider" for="email">Email Address</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline">mail</span>
+</div>
+<input class="input-glass w-full rounded-xl py-3 pl-10 pr-4 font-body-lg text-body-lg text-on-surface placeholder-outline-variant focus:ring-0" id="email" name="email" placeholder="you@company.com" required="" type="email">
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex items-center justify-between">
+<label class="block font-label-md text-label-md text-on-surface-variant uppercase tracking-wider" for="password">Password</label>
+<a class="font-label-md text-label-md text-primary hover:text-secondary transition-colors" href="#">Forgot?</a>
+</div>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline">lock</span>
+</div>
+<input class="input-glass w-full rounded-xl py-3 pl-10 pr-10 font-body-lg text-body-lg text-on-surface placeholder-outline-variant focus:ring-0" id="password" name="password" placeholder="••••••••" required="" type="password">
+<button class="absolute inset-y-0 right-0 pr-3 flex items-center text-outline hover:text-on-surface-variant transition-colors" type="button">
+<span class="material-symbols-outlined">visibility_off</span>
+</button>
+</div>
+</div>
+<div class="pt-2">
+<button class="btn-primary w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm font-title-lg text-title-lg text-on-primary bg-primary hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary" type="submit">
+                        Login
+                    </button>
+</div>
+<div class="text-center pt-4 border-t border-outline-variant/30">
+<p class="font-body-md text-body-md text-on-surface-variant">
+                        Don't have an account? 
+                        <a class="font-title-lg text-[14px] leading-[20px] font-semibold text-primary hover:text-secondary transition-colors ml-1" href="#">Register</a>
+</p>
+</div>
+</form>
+</div>
+</main>
+
+
+</body></html>

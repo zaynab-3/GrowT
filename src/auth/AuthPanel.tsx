@@ -1,5 +1,13 @@
-import type { FormEvent } from 'react'
-import { ArrowLeft } from 'lucide-react'
+import type { FormEvent, ReactNode } from 'react'
+import {
+  ArrowLeft,
+  ArrowRight,
+  AtSign,
+  EyeOff,
+  LockKeyhole,
+  Mail,
+  UserRound,
+} from 'lucide-react'
 import './AuthPanel.css'
 
 export type AuthView = 'login' | 'register' | 'forgot' | 'reset'
@@ -36,6 +44,54 @@ type AuthPanelProps = {
   resetPassword: string
 }
 
+type AuthFieldProps = {
+  autoComplete?: string
+  hint?: string
+  icon: ReactNode
+  id: string
+  label: string
+  onChange: (value: string) => void
+  placeholder: string
+  type?: string
+  value: string
+  trailing?: ReactNode
+}
+
+function AuthField({
+  autoComplete,
+  hint,
+  icon,
+  id,
+  label,
+  onChange,
+  placeholder,
+  trailing,
+  type = 'text',
+  value,
+}: AuthFieldProps) {
+  return (
+    <div className="form-field auth-field">
+      <label htmlFor={id}>{label}</label>
+      <div className="auth-input-wrap">
+        <span className="auth-input-icon" aria-hidden="true">
+          {icon}
+        </span>
+        <input
+          id={id}
+          autoComplete={autoComplete}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={placeholder}
+          required
+          type={type}
+          value={value}
+        />
+        {trailing ? <span className="auth-input-trailing">{trailing}</span> : null}
+      </div>
+      {hint ? <p className="auth-field-hint">{hint}</p> : null}
+    </div>
+  )
+}
+
 export function AuthPanel({
   authLoading,
   authView,
@@ -69,36 +125,33 @@ export function AuthPanel({
 }: AuthPanelProps) {
   if (authView === 'reset') {
     return (
-      <main className="app-shell app-shell--centered">
-        <section className="auth-panel">
-          <span className="brand-mark">GT</span>
-          <h1>GrowT</h1>
-          <p>Set a new password for your account.</p>
+      <main className="auth-page">
+        <section className="auth-panel auth-panel--compact">
+          <div className="auth-heading">
+            <h1>GrowT</h1>
+            <p>Set a new password for your account.</p>
+          </div>
           <form className="auth-form" onSubmit={onSubmitReset}>
-            <div className="form-field">
-              <label htmlFor="reset-password">New password</label>
-              <input
-                id="reset-password"
-                autoComplete="new-password"
-                onChange={(event) => onResetPasswordChange(event.target.value)}
-                placeholder="New password"
-                required
-                type="password"
-                value={resetPassword}
-              />
-            </div>
-            <div className="form-field">
-              <label htmlFor="reset-confirm-password">Confirm password</label>
-              <input
-                id="reset-confirm-password"
-                autoComplete="new-password"
-                onChange={(event) => onResetConfirmPasswordChange(event.target.value)}
-                placeholder="Confirm new password"
-                required
-                type="password"
-                value={resetConfirmPassword}
-              />
-            </div>
+            <AuthField
+              autoComplete="new-password"
+              icon={<LockKeyhole size={18} strokeWidth={2.2} />}
+              id="reset-password"
+              label="New password"
+              onChange={onResetPasswordChange}
+              placeholder="New password"
+              type="password"
+              value={resetPassword}
+            />
+            <AuthField
+              autoComplete="new-password"
+              icon={<LockKeyhole size={18} strokeWidth={2.2} />}
+              id="reset-confirm-password"
+              label="Confirm password"
+              onChange={onResetConfirmPasswordChange}
+              placeholder="Confirm new password"
+              type="password"
+              value={resetConfirmPassword}
+            />
             <button className="button button--primary" disabled={authLoading} type="submit">
               {authLoading ? 'Updating…' : 'Update password'}
             </button>
@@ -110,63 +163,65 @@ export function AuthPanel({
   }
 
   return (
-    <main className="app-shell app-shell--centered">
+    <main className="auth-page">
       <section className="auth-panel">
-        <span className="brand-mark">GT</span>
-        <h1>GrowT</h1>
+        <div className="auth-heading">
+          <h1>GrowT</h1>
+          <p>
+            {authView === 'register'
+              ? 'Start your journey to organized serenity.'
+              : authView === 'forgot'
+                ? 'We will help you get back into your workspace.'
+                : 'Welcome back to your workspace'}
+          </p>
+        </div>
         {authView === 'register' ? (
           <>
-            <p>Create an account with email and password.</p>
+            <h2 className="auth-panel-title">Create Account</h2>
             <form className="auth-form" onSubmit={onSubmitRegister}>
-              <div className="form-field">
-                <label htmlFor="register-email">Email</label>
-                <input
-                  id="register-email"
-                  autoComplete="email"
-                  onChange={(event) => onRegisterEmailChange(event.target.value)}
-                  placeholder="you@example.com"
-                  required
-                  type="email"
-                  value={registerEmail}
-                />
-              </div>
-              <div className="form-field">
-                <label htmlFor="register-username">Username</label>
-                <input
-                  id="register-username"
-                  autoComplete="username"
-                  onChange={(event) => onRegisterUsernameChange(event.target.value)}
-                  placeholder="zaynab"
-                  required
-                  value={registerUsername}
-                />
-              </div>
-              <div className="form-field">
-                <label htmlFor="register-password">Password</label>
-                <input
-                  id="register-password"
-                  autoComplete="new-password"
-                  onChange={(event) => onRegisterPasswordChange(event.target.value)}
-                  placeholder="Choose a strong password"
-                  required
-                  type="password"
-                  value={registerPassword}
-                />
-              </div>
-              <div className="form-field">
-                <label htmlFor="register-confirm-password">Confirm password</label>
-                <input
-                  id="register-confirm-password"
-                  autoComplete="new-password"
-                  onChange={(event) => onRegisterConfirmPasswordChange(event.target.value)}
-                  placeholder="Repeat your password"
-                  required
-                  type="password"
-                  value={registerConfirmPassword}
-                />
-              </div>
+              <AuthField
+                autoComplete="username"
+                icon={<AtSign size={18} strokeWidth={2.2} />}
+                id="register-username"
+                label="Username"
+                onChange={onRegisterUsernameChange}
+                placeholder="unique_handle"
+                value={registerUsername}
+              />
+              <AuthField
+                autoComplete="email"
+                icon={<Mail size={18} strokeWidth={2.2} />}
+                id="register-email"
+                label="Email address"
+                onChange={onRegisterEmailChange}
+                placeholder="you@example.com"
+                type="email"
+                value={registerEmail}
+              />
+              <AuthField
+                autoComplete="new-password"
+                hint="Must be at least 8 characters."
+                icon={<LockKeyhole size={18} strokeWidth={2.2} />}
+                id="register-password"
+                label="Password"
+                onChange={onRegisterPasswordChange}
+                placeholder="Create a strong password"
+                type="password"
+                value={registerPassword}
+              />
+              <AuthField
+                autoComplete="new-password"
+                icon={<LockKeyhole size={18} strokeWidth={2.2} />}
+                id="register-confirm-password"
+                label="Confirm password"
+                onChange={onRegisterConfirmPasswordChange}
+                placeholder="Repeat your password"
+                type="password"
+                value={registerConfirmPassword}
+              />
               <button className="button button--primary" disabled={authLoading} type="submit">
-                {authLoading ? 'Creating account…' : 'Create account'}
+                <span>{authLoading ? 'Creating account…' : 'Create Account'}</span>
+                <ArrowRight aria-hidden="true" size={17} strokeWidth={2.4} />
               </button>
             </form>
             <div className="auth-divider">
@@ -188,7 +243,7 @@ export function AuthPanel({
             </button>
             <div className="auth-links">
               <button className="text-button" onClick={() => onViewChange('login')} type="button">
-                Already have an account? Log in
+                Already have an account? Login
               </button>
             </div>
           </>
@@ -196,20 +251,18 @@ export function AuthPanel({
 
         {authView === 'forgot' ? (
           <>
-            <p>Enter your email and GrowT will send a password reset link.</p>
+            <h2 className="auth-panel-title">Reset password</h2>
             <form className="auth-form" onSubmit={onSubmitForgot}>
-              <div className="form-field">
-                <label htmlFor="forgot-email">Email</label>
-                <input
-                  id="forgot-email"
-                  autoComplete="email"
-                  onChange={(event) => onForgotEmailChange(event.target.value)}
-                  placeholder="you@example.com"
-                  required
-                  type="email"
-                  value={forgotEmail}
-                />
-              </div>
+              <AuthField
+                autoComplete="email"
+                icon={<Mail size={18} strokeWidth={2.2} />}
+                id="forgot-email"
+                label="Email address"
+                onChange={onForgotEmailChange}
+                placeholder="you@example.com"
+                type="email"
+                value={forgotEmail}
+              />
               <button className="button button--primary" disabled={authLoading} type="submit">
                 {authLoading ? 'Sending…' : 'Send reset link'}
               </button>
@@ -224,31 +277,33 @@ export function AuthPanel({
 
         {authView === 'login' ? (
           <>
-            <p>Log in with your username or email and password.</p>
             <form className="auth-form" onSubmit={onSubmitLogin}>
-              <div className="form-field">
-                <label htmlFor="login-identifier">Username or email</label>
-                <input
-                  id="login-identifier"
-                  autoComplete="username"
-                  onChange={(event) => onLoginIdentifierChange(event.target.value)}
-                  placeholder="username or you@example.com"
-                  required
-                  value={loginIdentifier}
-                />
+              <AuthField
+                autoComplete="username"
+                icon={<UserRound size={18} strokeWidth={2.2} />}
+                id="login-identifier"
+                label="Username or email"
+                onChange={onLoginIdentifierChange}
+                placeholder="you@company.com"
+                value={loginIdentifier}
+              />
+              <div className="auth-password-label">
+                <span>Password</span>
+                <button className="text-button text-button--inline" onClick={() => onViewChange('forgot')} type="button">
+                  Forgot?
+                </button>
               </div>
-              <div className="form-field">
-                <label htmlFor="login-password">Password</label>
-                <input
-                  id="login-password"
-                  autoComplete="current-password"
-                  onChange={(event) => onLoginPasswordChange(event.target.value)}
-                  placeholder="Your password"
-                  required
-                  type="password"
-                  value={loginPassword}
-                />
-              </div>
+              <AuthField
+                autoComplete="current-password"
+                icon={<LockKeyhole size={18} strokeWidth={2.2} />}
+                id="login-password"
+                label=""
+                onChange={onLoginPasswordChange}
+                placeholder="••••••••"
+                trailing={<EyeOff size={18} strokeWidth={2.1} />}
+                type="password"
+                value={loginPassword}
+              />
               <label className="checkbox-row" htmlFor="remember-me">
                 <input
                   id="remember-me"
@@ -280,11 +335,8 @@ export function AuthPanel({
               Continue with Google
             </button>
             <div className="auth-links">
-              <button className="text-button" onClick={() => onViewChange('forgot')} type="button">
-                Forgot password?
-              </button>
               <button className="text-button" onClick={() => onViewChange('register')} type="button">
-                Create account
+                Don&apos;t have an account? Register
               </button>
             </div>
           </>

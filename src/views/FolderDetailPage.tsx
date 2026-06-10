@@ -92,147 +92,250 @@ export function FolderDetailPage({
     const totals = memberCounts.get(userId) ?? { completed: 0, half_done: 0, ongoing: 0 }
     return { userId, totals }
   })
-
+const progressPercent = tasks.length > 0
+  ? Math.round((folderStatusTotals.completed / tasks.length) * 100)
+  : 0
   return (
     <div className="stitch-page">
-      <div className="workspace-header-compact" style={{ marginBottom: 24 }}>
-        <div className="page-header__copy">
-          <button className="btn btn--ghost" onClick={onBack} type="button" style={{ padding: '0', marginBottom: '12px', display: 'flex', gap: '6px', fontSize: '13px', fontWeight: '600', color: 'var(--primary)' }}>
-            <ArrowLeft size={14} /> Back to Workspaces
-          </button>
-          
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
-            <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 800 }}>{folder.title}</h1>
-            <div style={{ display: 'flex', gap: '6px' }}>
-              <span className={`stitch-badge ${shared ? 'stitch-badge--shared' : ''}`}>{getCategoryLabel(folder.category)}</span>
-              {!folder.is_active && <span className="stitch-badge stitch-badge--inactive">Inactive</span>}
-            </div>
-          </div>
-          {folder.description && <div className="page-header__desc" style={{ margin: '4px 0 0', color: 'var(--ink-2)' }}><LinkifiedText text={folder.description} /></div>}
-          
-          <div style={{ marginTop: '16px', maxWidth: '400px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '13px', color: 'var(--ink-3)', fontWeight: 600 }}>
-              <span className="flex items-center gap-2">
-                Progress
-                <button 
-                  onClick={() => setShowBreakdown(true)}
-                  className="text-primary hover:text-primary-container flex items-center justify-center rounded-full hover:bg-primary/10 transition-colors"
-                  title="View user breakdown"
-                >
-                  <Info size={16} />
-                </button>
-              </span>
-              <span>
-                {tasks.length > 0 ? Math.round((folderStatusTotals.completed / tasks.length) * 100) : 0}% Completed
-              </span>
-            </div>
-            <div style={{ width: '100%', height: '8px', background: 'var(--surface-variant)', borderRadius: '99px', overflow: 'hidden', marginBottom: '8px', display: 'flex' }}>
-              <div style={{ width: `${tasks.length > 0 ? (folderStatusTotals.ongoing / tasks.length) * 100 : 0}%`, height: '100%', background: 'var(--ongoing-color)', transition: 'width 0.3s ease' }} />
-              <div style={{ width: `${tasks.length > 0 ? (folderStatusTotals.half_done / tasks.length) * 100 : 0}%`, height: '100%', background: 'var(--halfdone-color)', transition: 'width 0.3s ease' }} />
-              <div style={{ width: `${tasks.length > 0 ? (folderStatusTotals.completed / tasks.length) * 100 : 0}%`, height: '100%', background: 'var(--done-color)', transition: 'width 0.3s ease' }} />
-            </div>
-            <div style={{ display: 'flex', gap: '12px', fontSize: '12px', fontWeight: 600, color: 'var(--ink-3)', flexWrap: 'wrap' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--ongoing-color)' }} />
-                {folderStatusTotals.ongoing} Ongoing
-              </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--halfdone-color)' }} />
-                {folderStatusTotals.half_done} Half Done
-              </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--done-color)' }} />
-                {folderStatusTotals.completed} Completed
-              </span>
-              {folderStatusTotals.not_started > 0 && (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--border)' }} />
-                  {folderStatusTotals.not_started} Not Started
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
+      <div className="mb-6 overflow-hidden rounded-[28px] border border-surface-variant/70 bg-surface shadow-sm">
+  <div className="h-1.5 bg-gradient-to-r from-primary via-fuchsia-400 to-emerald-400" />
 
-        {showBreakdown && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowBreakdown(false)}>
-            <div className="bg-surface rounded-2xl p-6 w-full max-w-md shadow-xl border border-surface-variant relative" onClick={e => e.stopPropagation()}>
-              <button 
-                onClick={() => setShowBreakdown(false)}
-                className="absolute top-4 right-4 w-8 h-8 rounded-full hover:bg-surface-variant flex items-center justify-center text-on-surface-variant transition-colors"
-              >
-                <X size={20} />
-              </button>
-              
-              <h3 className="font-headline-md text-headline-md text-on-surface mb-6 flex items-center gap-2">
-                <BarChart2 size={20} className="text-primary" />
-                Member Progress
-              </h3>
+  <div className="p-5 md:p-6">
+    <button
+      className="mb-5 inline-flex items-center gap-2 rounded-full px-0 text-sm font-bold text-primary transition-colors hover:text-primary-container"
+      onClick={onBack}
+      type="button"
+    >
+      <ArrowLeft size={15} />
+      Back to Workspaces
+    </button>
 
-              <div className="flex flex-col gap-4 max-h-[60vh] overflow-y-auto pr-2">
-                {userProgress.map(({ userId, totals }) => {
-                  const total = totals.completed + totals.half_done + totals.ongoing
-                  return (
-                    <div key={userId} className="glass-card p-4 rounded-xl border border-surface-variant/50">
-                      <div className="flex items-center gap-3 mb-3">
-                        <UserAvatar label={getProfileLabel(userId)} avatarUrl={getProfileAvatar(userId)} className="w-8 h-8 text-xs" />
-                        <span className="font-title-md text-on-surface flex-1">{getProfileLabel(userId)}</span>
-                        <span className="font-label-md text-on-surface-variant">
-                          {total > 0 ? `${Math.round((totals.completed / total) * 100)}%` : '0%'}
-                        </span>
-                      </div>
-                      <div className="flex gap-2">
-                        <div className="flex-1 bg-surface-container rounded-lg p-2 text-center border-b-2 border-[#0ea5e9]">
-                          <div className="text-xl font-bold text-on-surface">{totals.ongoing}</div>
-                          <div className="text-[10px] font-semibold text-on-surface-variant uppercase mt-1">Ongoing</div>
-                        </div>
-                        <div className="flex-1 bg-surface-container rounded-lg p-2 text-center border-b-2 border-[#f59e0b]">
-                          <div className="text-xl font-bold text-on-surface">{totals.half_done}</div>
-                          <div className="text-[10px] font-semibold text-on-surface-variant uppercase mt-1">Half</div>
-                        </div>
-                        <div className="flex-1 bg-surface-container rounded-lg p-2 text-center border-b-2 border-[#10b981]">
-                          <div className="text-xl font-bold text-on-surface">{totals.completed}</div>
-                          <div className="text-[10px] font-semibold text-on-surface-variant uppercase mt-1">Done</div>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-                {userProgress.length === 0 && (
-                  <p className="text-center text-on-surface-variant py-4 font-body-md">No active members.</p>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+    <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="m-0 break-words text-[30px] font-black leading-tight text-on-surface md:text-[34px]">
+            {folder.title}
+          </h1>
 
-        <div className="page-header__actions">
-          {isOwner && (
-            <>
-              <button 
-                className="btn btn--secondary" 
-                onClick={() => onCopyShareLink('folder', folder.id)} 
-                type="button" 
-                disabled={isSaving}
-              >
-                <Link size={14} /> Share Link
-              </button>
-              <button className="btn btn--secondary" onClick={onEditFolder} type="button" id="edit-folder-btn">
-                <Edit2 size={14} /> Edit
-              </button>
-              <button
-                className="btn btn--danger"
-                disabled={isSaving}
-                onClick={() => onDeleteFolder(folder)}
-                type="button"
-                id="delete-folder-btn"
-              >
-                <Trash2 size={14} /> Delete
-              </button>
-            </>
+          <span className={`stitch-badge ${shared ? 'stitch-badge--shared' : ''}`}>
+            {getCategoryLabel(folder.category)}
+          </span>
+
+          {!folder.is_active && (
+            <span className="stitch-badge stitch-badge--inactive">
+              Inactive
+            </span>
           )}
         </div>
+
+        <div className="mt-3 max-w-3xl text-sm leading-6 text-on-surface-variant">
+          {folder.description ? (
+            <LinkifiedText text={folder.description} />
+          ) : (
+            <span className="italic opacity-70">No description yet.</span>
+          )}
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          <span className="rounded-full bg-surface-container px-3 py-1 text-xs font-bold text-on-surface-variant">
+            {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
+          </span>
+
+          <span className="rounded-full bg-surface-container px-3 py-1 text-xs font-bold text-on-surface-variant">
+            {shared ? 'Shared workspace' : 'Private workspace'}
+          </span>
+
+          <span className="rounded-full bg-surface-container px-3 py-1 text-xs font-bold text-on-surface-variant">
+            {folder.is_active ? 'Active' : 'Inactive'}
+          </span>
+        </div>
       </div>
+
+      {isOwner && (
+        <div className="flex flex-wrap gap-2 lg:justify-end">
+          <button
+            className="btn btn--secondary"
+            onClick={() => onCopyShareLink('folder', folder.id)}
+            type="button"
+            disabled={isSaving}
+          >
+            <Link size={14} />
+            Share Link
+          </button>
+
+          <button
+            className="btn btn--secondary"
+            onClick={onEditFolder}
+            type="button"
+            id="edit-folder-btn"
+          >
+            <Edit2 size={14} />
+            Edit
+          </button>
+
+          <button
+            className="btn btn--danger"
+            disabled={isSaving}
+            onClick={() => onDeleteFolder(folder)}
+            type="button"
+            id="delete-folder-btn"
+          >
+            <Trash2 size={14} />
+            Delete
+          </button>
+        </div>
+      )}
+    </div>
+
+    <div className="mt-6 rounded-2xl border border-surface-variant/70 bg-surface-container-low p-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-black text-on-surface">
+              Workspace Progress
+            </span>
+
+            <button
+              onClick={() => setShowBreakdown(true)}
+              className="flex h-7 w-7 items-center justify-center rounded-full text-primary transition-colors hover:bg-primary/10 hover:text-primary-container"
+              title="View user breakdown"
+              type="button"
+            >
+              <Info size={15} />
+            </button>
+          </div>
+
+          <p className="mt-0.5 text-xs font-medium text-on-surface-variant">
+            Completion is based on completed tasks only.
+          </p>
+        </div>
+
+        <span className="rounded-full bg-primary px-3 py-1 text-xs font-black text-on-primary">
+          {progressPercent}% Completed
+        </span>
+      </div>
+
+      <div className="h-3 w-full overflow-hidden rounded-full bg-surface-variant">
+        <div
+          className="h-full rounded-full bg-primary transition-all duration-300"
+          style={{ width: `${progressPercent}%` }}
+        />
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="rounded-xl border border-blue-200/70 bg-blue-50 px-4 py-3">
+          <span className="text-[11px] font-black uppercase tracking-wide text-blue-700">
+            Ongoing
+          </span>
+          <div className="mt-1 text-2xl font-black text-blue-700">
+            {folderStatusTotals.ongoing}
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-amber-200/70 bg-amber-50 px-4 py-3">
+          <span className="text-[11px] font-black uppercase tracking-wide text-amber-700">
+            Half Done
+          </span>
+          <div className="mt-1 text-2xl font-black text-amber-700">
+            {folderStatusTotals.half_done}
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-emerald-200/70 bg-emerald-50 px-4 py-3">
+          <span className="text-[11px] font-black uppercase tracking-wide text-emerald-700">
+            Completed
+          </span>
+          <div className="mt-1 text-2xl font-black text-emerald-700">
+            {folderStatusTotals.completed}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{showBreakdown && (
+  <div
+    className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+    onClick={() => setShowBreakdown(false)}
+  >
+    <div
+      className="relative w-full max-w-md rounded-2xl border border-surface-variant bg-surface p-6 shadow-xl"
+      onClick={e => e.stopPropagation()}
+    >
+      <button
+        onClick={() => setShowBreakdown(false)}
+        className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-variant"
+        type="button"
+      >
+        <X size={20} />
+      </button>
+
+      <h3 className="mb-6 flex items-center gap-2 text-lg font-black text-on-surface">
+        <BarChart2 size={20} className="text-primary" />
+        Member Progress
+      </h3>
+
+      <div className="flex max-h-[60vh] flex-col gap-4 overflow-y-auto pr-2">
+        {userProgress.map(({ userId, totals }) => {
+          const total = totals.completed + totals.half_done + totals.ongoing
+
+          return (
+            <div
+              key={userId}
+              className="rounded-xl border border-surface-variant/50 bg-surface-container-low p-4"
+            >
+              <div className="mb-3 flex items-center gap-3">
+                <UserAvatar
+                  label={getProfileLabel(userId)}
+                  avatarUrl={getProfileAvatar(userId)}
+                  className="h-8 w-8 text-xs"
+                />
+
+                <span className="flex-1 font-bold text-on-surface">
+                  {getProfileLabel(userId)}
+                </span>
+
+                <span className="text-sm font-bold text-on-surface-variant">
+                  {total > 0 ? `${Math.round((totals.completed / total) * 100)}%` : '0%'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div className="rounded-lg border-b-2 border-[#0ea5e9] bg-surface-container p-2 text-center">
+                  <div className="text-xl font-black text-on-surface">{totals.ongoing}</div>
+                  <div className="mt-1 text-[10px] font-bold uppercase text-on-surface-variant">
+                    Ongoing
+                  </div>
+                </div>
+
+                <div className="rounded-lg border-b-2 border-[#f59e0b] bg-surface-container p-2 text-center">
+                  <div className="text-xl font-black text-on-surface">{totals.half_done}</div>
+                  <div className="mt-1 text-[10px] font-bold uppercase text-on-surface-variant">
+                    Half
+                  </div>
+                </div>
+
+                <div className="rounded-lg border-b-2 border-[#10b981] bg-surface-container p-2 text-center">
+                  <div className="text-xl font-black text-on-surface">{totals.completed}</div>
+                  <div className="mt-1 text-[10px] font-bold uppercase text-on-surface-variant">
+                    Done
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+
+        {userProgress.length === 0 && (
+          <p className="py-4 text-center text-sm font-medium text-on-surface-variant">
+            No active members.
+          </p>
+        )}
+      </div>
+    </div>
+  </div>
+)}
 
       <div className="stitch-board">
         <div className="stitch-board__main">
