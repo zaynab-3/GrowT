@@ -115,7 +115,7 @@ export function SettingsView({
                   key={option.id}
                   type="button"
                   onClick={() => onProfileAvatarChoiceChange(option.id)}
-                  className={`aspect-square rounded-2xl overflow-hidden border-2 p-1 transition-all ${profileAvatarChoice === option.id ? 'border-primary bg-primary text-white shadow-lg ring-4 ring-primary/10' : 'border-transparent hover:border-outline-variant bg-white/50 dark:bg-black/20'}`}
+                  className={`motion-choice aspect-square rounded-2xl overflow-hidden border-2 p-1 transition-all ${profileAvatarChoice === option.id ? 'motion-choice--active border-primary bg-primary text-white shadow-lg ring-4 ring-primary/10' : 'border-transparent hover:border-outline-variant bg-white/50 dark:bg-black/20'}`}
                 >
                   <img className="w-full h-full rounded-xl object-cover" src={option.src} alt={option.label} />
                 </button>
@@ -138,7 +138,7 @@ export function SettingsView({
                   key={option.id}
                   type="button"
                   onClick={() => onProfileThemeModeChange(option.id)}
-                  className={`flex flex-col items-center gap-2 py-4 rounded-xl transition-all ${profileThemeMode === option.id ? 'bg-primary shadow-md text-white' : 'bg-surface-variant/20 text-on-surface-variant hover:bg-surface-variant/50 hover:text-on-surface dark:bg-white/5 dark:text-[#C7C5D3] dark:hover:bg-white/10 dark:hover:text-white'}`}
+                  className={`motion-choice flex flex-col items-center gap-2 py-4 rounded-xl transition-all ${profileThemeMode === option.id ? 'motion-choice--active bg-primary shadow-md text-white' : 'bg-surface-variant/20 text-on-surface-variant hover:bg-surface-variant/50 hover:text-on-surface dark:bg-white/5 dark:text-[#C7C5D3] dark:hover:bg-white/10 dark:hover:text-white'}`}
                 >
                   <ThemeModeIcon themeMode={option.id} />
                   <span className="text-label-md">{option.label}</span>
@@ -159,7 +159,7 @@ export function SettingsView({
                   key={option.id}
                   type="button"
                   onClick={() => onProfileColorPaletteChange(option.id)}
-                  className="group flex flex-col items-center gap-2"
+                  className={`motion-choice group flex flex-col items-center gap-2 ${profileColorPalette === option.id ? 'motion-choice--active' : ''}`}
                 >
                   <div 
                     className={`w-12 h-12 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 ${profileColorPalette === option.id ? 'ring-4 ring-offset-2 ring-primary shadow-lg bg-primary' : 'shadow-md'}`}

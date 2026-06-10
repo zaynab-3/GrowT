@@ -1,0 +1,317 @@
+/* =================== MOTION SYSTEM ======================= */
+
+:root {
+  --motion-fast: 140ms;
+  --motion-soft: 220ms;
+  --motion-page: 420ms;
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+::view-transition-old(root) {
+  animation: growt-view-out 160ms ease both;
+}
+
+::view-transition-new(root) {
+  animation: growt-view-in 260ms var(--motion-ease) both;
+}
+
+.app-canvas > *,
+.auth-panel,
+.landing-nav,
+.landing-hero__copy,
+.form-page,
+.settings-page {
+  animation: growt-page-in var(--motion-page) var(--motion-ease) both;
+}
+
+.landing-hero__actions,
+.landing-proof,
+.landing-gallery,
+.workspace-main-col > *,
+.workspace-side-col > *,
+.workflow-shelf > *,
+.stitch-grid > *,
+.task-list > *,
+.notification-list > *,
+.form-card,
+.panel-card,
+.content-panel,
+.glass-card,
+.stitch-panel,
+.stitch-empty-state,
+.empty-state {
+  animation: growt-rise-in var(--motion-page) var(--motion-ease) both;
+}
+
+.workspace-main-col > *:nth-child(2),
+.workspace-side-col > *:nth-child(2),
+.stitch-grid > *:nth-child(2),
+.task-list > *:nth-child(2),
+.notification-list > *:nth-child(2) {
+  animation-delay: 45ms;
+}
+
+.workspace-main-col > *:nth-child(3),
+.workspace-side-col > *:nth-child(3),
+.stitch-grid > *:nth-child(3),
+.task-list > *:nth-child(3),
+.notification-list > *:nth-child(3) {
+  animation-delay: 90ms;
+}
+
+.workspace-main-col > *:nth-child(n + 4),
+.workspace-side-col > *:nth-child(n + 4),
+.stitch-grid > *:nth-child(n + 4),
+.task-list > *:nth-child(n + 4),
+.notification-list > *:nth-child(n + 4) {
+  animation-delay: 120ms;
+}
+
+.nav-item,
+.mobile-nav__item,
+.stitch-chip,
+.workflow-filter,
+.category-pill,
+.stitch-tab,
+.notification-bell__button {
+  transition:
+    background var(--motion-fast) ease,
+    border-color var(--motion-fast) ease,
+    color var(--motion-fast) ease,
+    box-shadow var(--motion-fast) ease,
+    transform var(--motion-fast) ease;
+}
+
+.nav-item:hover,
+.mobile-nav__item:hover,
+.stitch-chip:hover,
+.workflow-filter:hover,
+.category-pill:hover,
+.stitch-tab:hover,
+.notification-bell__button:hover {
+  transform: translateY(-1px);
+}
+
+.nav-item:active,
+.mobile-nav__item:active,
+.stitch-chip:active,
+.workflow-filter:active,
+.category-pill:active,
+.stitch-tab:active,
+.notification-bell__button:active {
+  transform: scale(0.98);
+}
+
+.mobile-nav {
+  animation: growt-bottom-nav-in 420ms var(--motion-ease) both;
+}
+
+.mobile-drawer {
+  animation: growt-fade-in var(--motion-soft) ease both;
+}
+
+.mobile-drawer__panel {
+  animation: growt-drawer-in 260ms var(--motion-ease) both;
+}
+
+.mobile-drawer--closing {
+  animation: growt-fade-out 180ms ease both;
+}
+
+.mobile-drawer--closing .mobile-drawer__panel {
+  animation: growt-drawer-out 180ms ease both;
+}
+
+.confirm-overlay {
+  animation: growt-fade-in var(--motion-soft) ease both;
+}
+
+.confirm-dialog,
+.notification-bell > .stitch-panel,
+.notification-bell .absolute,
+.fixed.stitch-panel {
+  animation: growt-pop-in 220ms var(--motion-pop) both;
+}
+
+.motion-choice,
+.btn,
+.button,
+.status-button,
+.reorder-button,
+.folder-card,
+.task-card,
+.stitch-card,
+.glass-card,
+.palette-option,
+.avatar-choice {
+  will-change: transform;
+}
+
+.motion-choice:hover,
+.palette-option:hover,
+.avatar-choice:hover {
+  transform: translateY(-2px) scale(1.015);
+}
+
+.motion-choice:active,
+.palette-option:active,
+.avatar-choice:active {
+  transform: scale(0.97);
+}
+
+.motion-choice--active {
+  animation: growt-choice-pop 320ms var(--motion-pop) both;
+}
+
+input:not([type='checkbox']):not([type='radio']):not([type='range']):focus,
+textarea:focus,
+select:focus {
+  animation: growt-focus-pulse 360ms ease both;
+}
+
+@supports (animation-timeline: view()) {
+  .landing-feature,
+  .landing-shot,
+  .stitch-card,
+  .task-card,
+  .glass-card,
+  .panel-card,
+  .content-panel,
+  .form-card {
+    animation: growt-scroll-reveal both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 28%;
+  }
+}
+
+@keyframes growt-view-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.992);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes growt-view-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.996);
+  }
+}
+
+@keyframes growt-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes growt-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes growt-scroll-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes growt-bottom-nav-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes growt-drawer-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes growt-drawer-out {
+  to {
+    opacity: 0;
+    transform: translateY(20px) scale(0.99);
+  }
+}
+
+@keyframes growt-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes growt-fade-out {
+  to { opacity: 0; }
+}
+
+@keyframes growt-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes growt-choice-pop {
+  0% { transform: scale(0.96); }
+  58% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes growt-focus-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0); }
+  50% { box-shadow: 0 0 0 5px rgba(var(--primary-rgb), 0.14); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
+}

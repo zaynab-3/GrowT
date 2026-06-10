@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { LayoutDashboard, FolderOpen, CheckSquare, Users, Bell, RotateCcw, Settings, Menu, X, Link } from 'lucide-react'
 import { SproutIcon } from '../components/SproutIcon'
 import { useNotifications } from '../features/notifications/useNotifications'
@@ -30,7 +30,9 @@ export function Sidebar({
   viewItems,
 }: SidebarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isMobileMenuClosing, setIsMobileMenuClosing] = useState(false)
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0)
+  const mobileMenuCloseTimerRef = useRef<number | null>(null)
   
   const { unreadCount } = useNotifications()
 
@@ -60,15 +62,44 @@ export function Sidebar({
     }
   }, [])
 
+  useEffect(() => {
+    return () => {
+      if (mobileMenuCloseTimerRef.current) {
+        window.clearTimeout(mobileMenuCloseTimerRef.current)
+      }
+    }
+  }, [])
+
   const mobileTabs = ['dashboard', 'folders', 'tasks']
   const primaryMobileItems = viewItems.filter((item) => mobileTabs.includes(item.id))
 
   const workspaceItems = viewItems.filter((item) => ['dashboard', 'folders', 'tasks', 'notifications'].includes(item.id))
   const manageItems = viewItems.filter((item) => ['acquaintances', 'restore', 'settings'].includes(item.id))
 
+  function openMobileMenu() {
+    if (mobileMenuCloseTimerRef.current) {
+      window.clearTimeout(mobileMenuCloseTimerRef.current)
+    }
+    setIsMobileMenuClosing(false)
+    setIsMobileMenuOpen(true)
+  }
+
+  function closeMobileMenu() {
+    if (!isMobileMenuOpen || isMobileMenuClosing) {
+      return
+    }
+
+    setIsMobileMenuClosing(true)
+    mobileMenuCloseTimerRef.current = window.setTimeout(() => {
+      setIsMobileMenuOpen(false)
+      setIsMobileMenuClosing(false)
+      mobileMenuCloseTimerRef.current = null
+    }, 180)
+  }
+
   function handleViewChange(view: AppView) {
     onViewChange(view)
-    setIsMobileMenuOpen(false)
+    closeMobileMenu()
   }
 
   const renderNavGroup = (items: AppViewNavItem[], label?: string) => (
@@ -143,7 +174,7 @@ export function Sidebar({
         })}
         <button
           className={`mobile-nav__item${isMobileMenuOpen ? ' mobile-nav__item--active' : ''}`}
-          onClick={() => setIsMobileMenuOpen(true)}
+          onClick={openMobileMenu}
           type="button"
         >
           <Menu size={20} />
@@ -152,8 +183,14 @@ export function Sidebar({
       </nav>
 
       {isMobileMenuOpen ? (
-        <div className="mobile-drawer" role="dialog" aria-modal="true" aria-label="GrowT menu">
-          <div className="mobile-drawer__panel">
+        <div
+          className={`mobile-drawer${isMobileMenuClosing ? ' mobile-drawer--closing' : ''}`}
+          onClick={closeMobileMenu}
+          role="dialog"
+          aria-modal="true"
+          aria-label="GrowT menu"
+        >
+          <div className="mobile-drawer__panel" onClick={(event) => event.stopPropagation()}>
             <div className="mobile-drawer__header">
               <a className="sidebar-brand sidebar-brand--inline" href="#main-content" aria-label="GrowT dashboard">
                 <span className="brand-mark brand-mark--sm">
@@ -161,7 +198,7 @@ export function Sidebar({
                 </span>
                 <strong className="sidebar-brand__name">GrowT</strong>
               </a>
-              <button className="btn btn--ghost btn--icon" onClick={() => setIsMobileMenuOpen(false)} type="button" aria-label="Close menu">
+              <button className="btn btn--ghost btn--icon" onClick={closeMobileMenu} type="button" aria-label="Close menu">
                 <X size={18} />
               </button>
             </div>

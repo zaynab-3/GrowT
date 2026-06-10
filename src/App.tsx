@@ -1,4 +1,5 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { AuthPanel, type AuthView } from './auth/AuthPanel'
 import { ConfirmDialog } from './components/ConfirmDialog'
 import { LoadingState } from './components/LoadingState'
@@ -131,6 +132,24 @@ function setStoredThemeMode(themeMode: ThemeMode) {
   }
 }
 
+function runViewTransition(update: () => void) {
+  const transitionDocument = document as Document & {
+    startViewTransition?: (callback: () => void) => void
+  }
+
+  if (
+    typeof transitionDocument.startViewTransition !== 'function' ||
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  ) {
+    update()
+    return
+  }
+
+  transitionDocument.startViewTransition(() => {
+    flushSync(update)
+  })
+}
+
 function getCurrentPath() {
   return window.location.pathname.replace(/\/+$/g, '') || '/'
 }
@@ -196,26 +215,30 @@ function App() {
   const refreshLiveSessionRef = useRef<() => Promise<void>>(async () => undefined)
 
   const navigateToAuthView = useCallback((view: AuthView, mode: 'push' | 'replace' = 'push') => {
-    setAuthView(view)
-    setMessage('')
+    runViewTransition(() => {
+      setAuthView(view)
+      setMessage('')
 
-    if (view === 'reset') {
-      return
-    }
+      if (view === 'reset') {
+        return
+      }
 
-    const method = mode === 'replace' ? 'replaceState' : 'pushState'
-    const nextPath = authPathByView[view]
-    window.history[method]({}, '', nextPath)
-    setPublicPath(nextPath)
+      const method = mode === 'replace' ? 'replaceState' : 'pushState'
+      const nextPath = authPathByView[view]
+      window.history[method]({}, '', nextPath)
+      setPublicPath(nextPath)
+    })
   }, [setAuthView])
 
   const navigateToDashboard = useCallback(() => {
-    const dashboardRoute: AppRoute = { name: 'dashboard' }
-    setRoute(dashboardRoute)
-    setActiveView('dashboard')
-    const dashboardPath = routeToPath(dashboardRoute)
-    window.history.replaceState({}, '', dashboardPath)
-    setPublicPath(dashboardPath)
+    runViewTransition(() => {
+      const dashboardRoute: AppRoute = { name: 'dashboard' }
+      setRoute(dashboardRoute)
+      setActiveView('dashboard')
+      const dashboardPath = routeToPath(dashboardRoute)
+      window.history.replaceState({}, '', dashboardPath)
+      setPublicPath(dashboardPath)
+    })
   }, [])
 
   useEffect(() => {
@@ -411,11 +434,13 @@ function App() {
 
 
   const navigateToRoute = useCallback((newRoute: AppRoute) => {
-    const nextPath = routeToPath(newRoute)
-    setRoute(newRoute)
-    setActiveView(getRouteView(newRoute))
-    window.history.pushState({}, '', nextPath)
-    setPublicPath(nextPath)
+    runViewTransition(() => {
+      const nextPath = routeToPath(newRoute)
+      setRoute(newRoute)
+      setActiveView(getRouteView(newRoute))
+      window.history.pushState({}, '', nextPath)
+      setPublicPath(nextPath)
+    })
   }, [])
 
   const navigateToView = useCallback((view: AppView) => {
