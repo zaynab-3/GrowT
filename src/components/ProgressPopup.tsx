@@ -49,6 +49,11 @@ export function ProgressPopup({ isOpen, onClose, title, subtitle, users, anchorR
       const minTop = isMobile ? 104 : margin
       const bottomReserve = isMobile ? 88 : margin
 
+      if (isMobile) {
+        setCoords({ top: minTop, left: margin })
+        return
+      }
+
       let top = anchorRect.bottom + 8
       let left = anchorRect.left + anchorRect.width / 2 - popupWidth / 2
 

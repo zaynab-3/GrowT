@@ -154,6 +154,10 @@ function getCurrentPath() {
   return window.location.pathname.replace(/\/+$/g, '') || '/'
 }
 
+function logBackgroundError(label: string, error: unknown) {
+  console.error(label, error)
+}
+
 function App() {
   const { authReady, authView, session, setAuthView, setSession } = useAuthSession()
   const [introLoading, setIntroLoading] = useState(true)
@@ -1126,23 +1130,27 @@ function App() {
       setFolderDescription('')
       setFolderCategory('personal')
 
-      if (inviteUsernames && inviteUsernames.length > 0) {
-        for (const username of inviteUsernames) {
-          try {
-            await addFolderMemberByUsername(
-              supabase,
-              folder.id,
-              normalizeUsername(username) ?? username.trim()
-            )
-          } catch (e) {
-            console.error(`Failed to invite user ${username}`, e)
-          }
-        }
-      }
-
-      await refreshFoldersRef.current()
       if (route.name === 'folder-new') {
         navigateToRoute({ name: 'folder-detail', folderId: folder.id })
+      }
+
+      if (inviteUsernames && inviteUsernames.length > 0) {
+        void (async () => {
+          for (const username of inviteUsernames) {
+            try {
+              await addFolderMemberByUsername(
+                supabase,
+                folder.id,
+                normalizeUsername(username) ?? username.trim()
+              )
+            } catch (error) {
+              logBackgroundError(`Failed to invite user ${username}`, error)
+            }
+          }
+          await refreshFoldersRef.current()
+        })().catch((error) => logBackgroundError('Folder invite refresh failed', error))
+      } else {
+        void refreshFoldersRef.current().catch((error) => logBackgroundError('Folder refresh failed', error))
       }
     } catch (error) {
       console.error('Folder creation failed', error)
@@ -1483,24 +1491,28 @@ function App() {
         category: values.category,
       })
 
-      if (values.inviteUsernames && values.inviteUsernames.length > 0) {
-        for (const username of values.inviteUsernames) {
-          try {
-            await addTaskMemberByUsername(
-              supabase,
-              task.id,
-              normalizeUsername(username) ?? username.trim()
-            )
-          } catch (e) {
-            console.error(`Failed to invite user ${username} to task`, e)
-          }
-        }
-      }
-
       setTasks((current) => sortByPositionAndCreatedAt(upsertById(current, task)))
-      await refreshLiveSessionRef.current()
       if (route.name === 'task-new') {
         navigateToRoute({ name: 'folder-detail', folderId: activeFolder.id })
+      }
+
+      if (values.inviteUsernames && values.inviteUsernames.length > 0) {
+        void (async () => {
+          for (const username of values.inviteUsernames ?? []) {
+            try {
+              await addTaskMemberByUsername(
+                supabase,
+                task.id,
+                normalizeUsername(username) ?? username.trim()
+              )
+            } catch (error) {
+              logBackgroundError(`Failed to invite user ${username} to task`, error)
+            }
+          }
+          await refreshLiveSessionRef.current()
+        })().catch((error) => logBackgroundError('Task invite refresh failed', error))
+      } else {
+        void refreshLiveSessionRef.current().catch((error) => logBackgroundError('Task refresh failed', error))
       }
     } catch (error) {
       console.error('Task creation failed', error)
@@ -1527,24 +1539,28 @@ function App() {
         dueDate: null,
       })
 
-      if (values.inviteUsernames && values.inviteUsernames.length > 0) {
-        for (const username of values.inviteUsernames) {
-          try {
-            await addTaskMemberByUsername(
-              supabase,
-              task.id,
-              normalizeUsername(username) ?? username.trim()
-            )
-          } catch (e) {
-            console.error(`Failed to invite user ${username} to standalone task`, e)
-          }
-        }
-      }
-
       setStandaloneTasks((current) => sortByPositionAndCreatedAt(upsertById(current, task)))
-      await refreshStandaloneTasks()
       if (route.name === 'task-new') {
         navigateToRoute({ name: 'tasks' })
+      }
+
+      if (values.inviteUsernames && values.inviteUsernames.length > 0) {
+        void (async () => {
+          for (const username of values.inviteUsernames ?? []) {
+            try {
+              await addTaskMemberByUsername(
+                supabase,
+                task.id,
+                normalizeUsername(username) ?? username.trim()
+              )
+            } catch (error) {
+              logBackgroundError(`Failed to invite user ${username} to standalone task`, error)
+            }
+          }
+          await refreshStandaloneTasks()
+        })().catch((error) => logBackgroundError('Standalone task invite refresh failed', error))
+      } else {
+        void refreshStandaloneTasks().catch((error) => logBackgroundError('Standalone task refresh failed', error))
       }
     } catch (error) {
       console.error('Standalone task creation failed', error)
