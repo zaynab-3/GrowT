@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from 'react'
 import { LayoutDashboard, FolderOpen, CheckSquare, Users, Bell, RotateCcw, Settings, Menu, X, Link } from 'lucide-react'
 import { SproutIcon } from '../components/SproutIcon'
 import { useNotifications } from '../features/notifications/useNotifications'
-import { supabase } from '../lib/supabase'
 import { listAcquaintanceRequests } from '../features/acquaintances/acquaintanceApi'
+import { isSupabaseConfigured } from '../services/clientService'
+import { removeChannel, subscribeToChannel } from '../services/realtimeService'
 import './Layout.css'
 import type { AppView, AppViewNavItem } from '../views/viewTypes'
 
@@ -38,9 +39,9 @@ export function Sidebar({
 
   useEffect(() => {
     async function loadRequests() {
-      if (!supabase) return
+      if (!isSupabaseConfigured) return
       try {
-        const requests = await listAcquaintanceRequests(supabase)
+        const requests = await listAcquaintanceRequests()
         const pending = requests.filter((r) => r.direction === 'incoming').length
         setPendingRequestsCount(pending)
       } catch (err) {
@@ -50,15 +51,15 @@ export function Sidebar({
     
     void loadRequests()
 
-    if (!supabase) return
-    const channel = supabase.channel('sidebar-requests')
+    if (!isSupabaseConfigured) return
+    const channel = subscribeToChannel('sidebar-requests', (nextChannel) => nextChannel
       .on('postgres_changes', { event: '*', schema: 'public', table: 'acquaintance_requests' }, () => {
         void loadRequests()
       })
-      .subscribe()
+    )
       
     return () => {
-      if (supabase) void supabase.removeChannel(channel)
+      void removeChannel(channel)
     }
   }, [])
 

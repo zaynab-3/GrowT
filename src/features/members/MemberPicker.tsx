@@ -1,6 +1,7 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { normalizeUsername } from '../../lib/growtDisplay'
-import { supabase } from '../../lib/supabase'
+import { isSupabaseConfigured } from '../../services/clientService'
+import { removeChannel, subscribeToChannel } from '../../services/realtimeService'
 import {
   acceptAcquaintanceRequest,
   cancelAcquaintanceRequest,
@@ -78,12 +79,12 @@ export function MemberPicker({
 
   const loadAcquaintances = useCallback(
     async (quiet = false) => {
-      if (!supabase || !currentUserId) {
+      if (!isSupabaseConfigured || !currentUserId) {
         return
       }
 
       try {
-        const nextAcquaintances = await listAcquaintances(supabase)
+        const nextAcquaintances = await listAcquaintances()
         setAcquaintances(nextAcquaintances)
       } catch (error) {
         console.error('Member picker acquaintances load failed', error)
@@ -96,7 +97,7 @@ export function MemberPicker({
   )
 
   const searchUsers = useCallback(async (queryValue: string, quiet = false) => {
-    if (!supabase) {
+    if (!isSupabaseConfigured) {
       return
     }
 
@@ -115,7 +116,7 @@ export function MemberPicker({
     }
 
     try {
-      const results = await searchProfilesWithRelationship(supabase, normalizedQuery)
+      const results = await searchProfilesWithRelationship(normalizedQuery)
       setSearchResults(results)
       if (!quiet && !results.length) {
         setMessage('No users found.')
@@ -157,17 +158,15 @@ export function MemberPicker({
   }, [loadAcquaintances])
 
   useEffect(() => {
-    if (!supabase || !currentUserId) {
+    if (!isSupabaseConfigured || !currentUserId) {
       return
     }
 
-    const client = supabase
     const refreshPickerData = () => {
       void loadAcquaintances(true)
       refreshActiveSearch()
     }
-    const channel = client
-      .channel(`member-picker:${currentUserId}:${targetKey}`)
+    const channel = subscribeToChannel(`member-picker:${currentUserId}:${targetKey}`, (nextChannel) => nextChannel
       .on(
         'postgres_changes',
         {
@@ -198,10 +197,10 @@ export function MemberPicker({
         },
         refreshPickerData,
       )
-      .subscribe()
+    )
 
     return () => {
-      void client.removeChannel(channel)
+      void removeChannel(channel)
     }
   }, [currentUserId, loadAcquaintances, refreshActiveSearch, targetKey])
 
@@ -227,7 +226,7 @@ export function MemberPicker({
   }
 
   async function handleSendRequest(profile: MemberPickerProfile) {
-    if (!supabase) {
+    if (!isSupabaseConfigured) {
       return
     }
 
@@ -235,7 +234,7 @@ export function MemberPicker({
     setMessage('')
 
     try {
-      const request = await sendAcquaintanceRequest(supabase, profile.username)
+      const request = await sendAcquaintanceRequest(profile.username)
       setSearchResults((current) =>
         current.map((result) =>
           result.user_id === profile.user_id
@@ -255,7 +254,7 @@ export function MemberPicker({
   }
 
   async function handleCancelRequest(profile: MemberPickerProfile) {
-    if (!supabase || !profile.request_id) {
+    if (!isSupabaseConfigured || !profile.request_id) {
       return
     }
 
@@ -263,7 +262,7 @@ export function MemberPicker({
     setMessage('')
 
     try {
-      await cancelAcquaintanceRequest(supabase, profile.request_id)
+      await cancelAcquaintanceRequest(profile.request_id)
       setSearchResults((current) =>
         current.map((result) =>
           result.user_id === profile.user_id
@@ -283,7 +282,7 @@ export function MemberPicker({
   }
 
   async function handleAcceptRequest(profile: MemberPickerProfile) {
-    if (!supabase || !profile.request_id) {
+    if (!isSupabaseConfigured || !profile.request_id) {
       return
     }
 
@@ -291,7 +290,7 @@ export function MemberPicker({
     setMessage('')
 
     try {
-      await acceptAcquaintanceRequest(supabase, profile.request_id)
+      await acceptAcquaintanceRequest(profile.request_id)
       setSearchResults((current) =>
         current.map((result) =>
           result.user_id === profile.user_id
@@ -311,7 +310,7 @@ export function MemberPicker({
   }
 
   async function handleRejectRequest(profile: MemberPickerProfile) {
-    if (!supabase || !profile.request_id) {
+    if (!isSupabaseConfigured || !profile.request_id) {
       return
     }
 
@@ -319,7 +318,7 @@ export function MemberPicker({
     setMessage('')
 
     try {
-      await rejectAcquaintanceRequest(supabase, profile.request_id)
+      await rejectAcquaintanceRequest(profile.request_id)
       setSearchResults((current) =>
         current.map((result) =>
           result.user_id === profile.user_id

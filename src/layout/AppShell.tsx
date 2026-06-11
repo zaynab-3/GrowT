@@ -3,6 +3,7 @@ import './Layout.css'
 import { NotificationProvider } from '../features/notifications/useNotifications'
 import { Topbar } from './Topbar'
 import type { AppView } from '../views/viewTypes'
+import type { Folder, Task } from '../lib/growtData'
 
 type AppShellProps = {
   accountAvatarUrl?: string | null
@@ -11,8 +12,8 @@ type AppShellProps = {
   confirmDialog?: ReactNode
   contextLabel?: string
   message: string
-  folders: any[]
-  tasks: any[]
+  folders: Folder[]
+  tasks: Task[]
   onOpenFolder: (folderId: string) => void
   onSearchChange: (query: string) => void
   onNavigate: (view: AppView) => void

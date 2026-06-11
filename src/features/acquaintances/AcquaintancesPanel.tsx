@@ -1,7 +1,9 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { Search, Users } from 'lucide-react'
 import { normalizeUsername } from '../../lib/growtDisplay'
-import { supabase } from '../../lib/supabase'
+import * as authService from '../../services/authService'
+import { isSupabaseConfigured } from '../../services/clientService'
+import { removeChannel, subscribeToChannel } from '../../services/realtimeService'
 import {
   acceptAcquaintanceRequest,
   cancelAcquaintanceRequest,
@@ -42,7 +44,7 @@ export function AcquaintancesPanel() {
   )
 
   const loadAcquaintanceData = useCallback(async () => {
-    if (!supabase || !currentUserId) {
+    if (!isSupabaseConfigured || !currentUserId) {
       return
     }
 
@@ -50,8 +52,8 @@ export function AcquaintancesPanel() {
 
     try {
       const [nextAcquaintances, nextRequests] = await Promise.all([
-        listAcquaintances(supabase),
-        listAcquaintanceRequests(supabase),
+        listAcquaintances(),
+        listAcquaintanceRequests(),
       ])
 
       setAcquaintances(nextAcquaintances)
@@ -65,7 +67,7 @@ export function AcquaintancesPanel() {
   }, [currentUserId])
 
   const loadSearchResults = useCallback(async (queryValue: string, quiet = false) => {
-    if (!supabase) {
+    if (!isSupabaseConfigured) {
       return
     }
 
@@ -84,7 +86,7 @@ export function AcquaintancesPanel() {
     }
 
     try {
-      const results = await searchProfilesWithRelationship(supabase, query)
+      const results = await searchProfilesWithRelationship(query)
       setSearchResults(results)
       if (!quiet && !results.length) {
         setMessage('No users found.')
@@ -108,13 +110,13 @@ export function AcquaintancesPanel() {
   }, [loadSearchResults, searchQuery])
 
   useEffect(() => {
-    if (!supabase) {
+    if (!isSupabaseConfigured) {
       return
     }
 
     let isActive = true
 
-    void supabase.auth.getUser().then(({ data }) => {
+    void authService.getUser().then(({ data }) => {
       if (isActive) {
         setCurrentUserId(data.user?.id ?? null)
       }
@@ -142,17 +144,15 @@ export function AcquaintancesPanel() {
   }, [searchQuery, loadSearchResults])
 
   useEffect(() => {
-    if (!supabase || !currentUserId) {
+    if (!isSupabaseConfigured || !currentUserId) {
       return
     }
 
-    const client = supabase
     const refreshPanelData = () => {
       void loadAcquaintanceData()
       void refreshActiveSearch()
     }
-    const channel = client
-      .channel(`acquaintances:${currentUserId}`)
+    const channel = subscribeToChannel(`acquaintances:${currentUserId}`, (nextChannel) => nextChannel
       .on(
         'postgres_changes',
         {
@@ -183,10 +183,10 @@ export function AcquaintancesPanel() {
         },
         refreshPanelData,
       )
-      .subscribe()
+    )
 
     return () => {
-      void client.removeChannel(channel)
+      void removeChannel(channel)
     }
   }, [currentUserId, loadAcquaintanceData, refreshActiveSearch])
 
@@ -196,7 +196,7 @@ export function AcquaintancesPanel() {
   }
 
   async function handleSendRequest(username: string) {
-    if (!supabase) {
+    if (!isSupabaseConfigured) {
       return
     }
 
@@ -204,7 +204,7 @@ export function AcquaintancesPanel() {
     setMessage('')
 
     try {
-      const request = await sendAcquaintanceRequest(supabase, username)
+      const request = await sendAcquaintanceRequest(username)
       setSearchResults((current) =>
         current.map((profile) =>
           profile.username === username
@@ -224,7 +224,7 @@ export function AcquaintancesPanel() {
   }
 
   async function handleCancelRequest(requestId: string) {
-    if (!supabase) {
+    if (!isSupabaseConfigured) {
       return
     }
 
@@ -232,7 +232,7 @@ export function AcquaintancesPanel() {
     setMessage('')
 
     try {
-      await cancelAcquaintanceRequest(supabase, requestId)
+      await cancelAcquaintanceRequest(requestId)
       setRequests((current) => current.filter((request) => request.request_id !== requestId))
       setSearchResults((current) =>
         current.map((profile) =>
@@ -253,7 +253,7 @@ export function AcquaintancesPanel() {
   }
 
   async function handleAcceptRequest(requestId: string) {
-    if (!supabase) {
+    if (!isSupabaseConfigured) {
       return
     }
 
@@ -261,7 +261,7 @@ export function AcquaintancesPanel() {
     setMessage('')
 
     try {
-      await acceptAcquaintanceRequest(supabase, requestId)
+      await acceptAcquaintanceRequest(requestId)
       setRequests((current) => current.filter((request) => request.request_id !== requestId))
       setMessage('Request accepted.')
       await loadAcquaintanceData()
@@ -275,7 +275,7 @@ export function AcquaintancesPanel() {
   }
 
   async function handleRejectRequest(requestId: string) {
-    if (!supabase) {
+    if (!isSupabaseConfigured) {
       return
     }
 
@@ -283,7 +283,7 @@ export function AcquaintancesPanel() {
     setMessage('')
 
     try {
-      await rejectAcquaintanceRequest(supabase, requestId)
+      await rejectAcquaintanceRequest(requestId)
       setRequests((current) => current.filter((request) => request.request_id !== requestId))
       setMessage('Request rejected.')
       await loadAcquaintanceData()
@@ -297,7 +297,7 @@ export function AcquaintancesPanel() {
   }
 
   async function handleRemoveAcquaintance(userId: string) {
-    if (!supabase) {
+    if (!isSupabaseConfigured) {
       return
     }
 
@@ -305,7 +305,7 @@ export function AcquaintancesPanel() {
     setMessage('')
 
     try {
-      await removeAcquaintance(supabase, userId)
+      await removeAcquaintance(userId)
       setAcquaintances((current) => current.filter((acquaintance) => acquaintance.user_id !== userId))
       setMessage('Acquaintance removed.')
       await loadAcquaintanceData()

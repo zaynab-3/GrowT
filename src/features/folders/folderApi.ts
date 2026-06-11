@@ -1,6 +1,7 @@
 export {
   addFolderMemberByUsername,
   createFolder,
+  hardDeleteFolder,
   listDeletedFolders,
   listFolderMembers,
   listFolders,
@@ -8,4 +9,4 @@ export {
   restoreFolder,
   softDeleteFolder,
   updateFolder,
-} from '../../lib/growtData'
+} from '../../services/folderService'

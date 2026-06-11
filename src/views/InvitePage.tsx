@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { CheckCircle, RefreshCw, XCircle } from 'lucide-react'
-import { supabase } from '../lib/supabase'
-import { acceptInvite } from '../lib/growtData'
+import { isSupabaseConfigured } from '../services/clientService'
+import { acceptInvite } from '../services/inviteService'
 
 type InvitePageProps = {
   inviteId: string
@@ -16,14 +16,14 @@ export function InvitePage({ inviteId, onNavigateToFolder, onNavigateToTask, onN
 
   useEffect(() => {
     async function processInvite() {
-      if (!supabase) {
+      if (!isSupabaseConfigured) {
         setStatus('error')
         setErrorMessage('Database connection not available.')
         return
       }
 
       try {
-        const result = await acceptInvite(supabase, inviteId) as { resource_type: string; resource_id: string } | null
+        const result = await acceptInvite(inviteId) as { resource_type: string; resource_id: string } | null
         setStatus('success')
         
         // Wait a brief moment to show success state before redirecting

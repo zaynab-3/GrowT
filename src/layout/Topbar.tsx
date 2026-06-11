@@ -5,13 +5,14 @@ import { GlobalSearchDropdown } from '../components/GlobalSearchDropdown'
 import { UserAvatar } from '../components/UserAvatar'
 import './Layout.css'
 import type { AppView } from '../views/viewTypes'
+import type { Folder, Task } from '../lib/growtData'
 
 type TopbarProps = {
   accountAvatarUrl?: string | null
   accountLabel: string
   contextLabel?: string
-  folders: any[]
-  tasks: any[]
+  folders: Folder[]
+  tasks: Task[]
   onOpenFolder: (folderId: string) => void
   onSearchChange: (query: string) => void
   onNavigate: (view: AppView) => void

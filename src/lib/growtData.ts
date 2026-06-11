@@ -23,6 +23,9 @@ export type Invite = Database['public']['Tables']['invites']['Row']
 
 export const PROFILE_SUMMARY_SELECT = 'id, username, display_name, avatar_url, avatar_choice'
 
+type FunctionName = keyof Database['public']['Functions']
+type FunctionArgs<Name extends FunctionName> = Database['public']['Functions'][Name]['Args']
+
 type PositionedRow = {
   created_at: string
   id: string
@@ -339,7 +342,7 @@ export async function createFolder(
     title,
     description,
     category,
-  } as any)
+  } as unknown as FunctionArgs<'create_folder'>)
 
   if (error) {
     throw error
@@ -366,7 +369,7 @@ export async function updateFolder(
     category: folder.category,
     due_date: folder.dueDate,
     is_active: folder.isActive,
-  } as any)
+  } as unknown as FunctionArgs<'update_folder'>)
 
   if (error) {
     throw error
@@ -588,7 +591,7 @@ export async function createTask(
     category: task.category,
     assigned_user_id: null,
     due_date: null,
-  } as any)
+  } as unknown as FunctionArgs<'create_task'>)
 
   if (error) {
     throw error
@@ -613,7 +616,7 @@ export async function createStandaloneTask(
     category: task.category,
     assigned_user_id: task.assignedUserId,
     due_date: task.dueDate,
-  } as any)
+  } as unknown as FunctionArgs<'create_standalone_task'>)
 
   if (error) {
     throw error
@@ -642,7 +645,7 @@ export async function updateTask(
     due_date: task.dueDate,
     is_active: task.isActive,
     assigned_user_id: task.assignedUserId,
-  } as any)
+  } as unknown as FunctionArgs<'update_task'>)
 
   if (error) {
     throw error
@@ -822,13 +825,13 @@ export async function setTaskProgress(
     task_id: taskId,
     task_level_id: taskLevelId,
     new_status: status,
-  } as any)
+  } as unknown as FunctionArgs<'set_task_progress'>)
 
   if (error) {
     throw error
   }
 
-  return data as any
+  return data as unknown as TaskStatusAction
 }
 
 export async function undoLatestTaskProgress(
@@ -839,13 +842,13 @@ export async function undoLatestTaskProgress(
   const { data, error } = await client.rpc('undo_latest_task_progress', {
     task_id: taskId,
     task_level_id: taskLevelId,
-  } as any)
+  } as unknown as FunctionArgs<'undo_latest_task_progress'>)
 
   if (error) {
     throw error
   }
 
-  return data as any
+  return data as unknown as TaskStatusAction
 }
 
 export async function undoTaskStatusAction(client: GrowTClient, actionId: string) {

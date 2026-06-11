@@ -57,7 +57,7 @@ type AppViewRouterProps = {
   onAddTaskMember: (task: Task, username: string) => void
   onCloseTaskEdit: () => void
   onCopyShareLink: (type: 'folder' | 'task', id: string) => void
-  onCreateFolder: (event: React.FormEvent, inviteUsernames?: string[]) => void
+  onCreateFolder: (event: FormEvent<HTMLFormElement>, inviteUsernames?: string[]) => void
   onCreateFolderTask: (values: TaskCreateValues) => void
   onCreateStandaloneTask: (values: TaskCreateValues) => void
   onDeleteFolder: (folder: Folder) => void
@@ -254,7 +254,7 @@ export function AppViewRouter({
           isSaving={isSaving}
           mode="create"
           onBack={() => onNavigate('folders')}
-          onCreateFolder={(e, usernames) => onCreateFolder(e as any, usernames)}
+          onCreateFolder={onCreateFolder}
           onFolderCategoryChange={onFolderCategoryChange}
           onFolderDescriptionChange={onFolderDescriptionChange}
           onFolderTitleChange={onFolderTitleChange}

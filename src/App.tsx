@@ -9,6 +9,7 @@ import type { FolderEditValues } from './features/folders/FolderEditForm'
 import {
   addFolderMemberByUsername,
   createFolder,
+  hardDeleteFolder,
   listDeletedFolders,
   listFolderMembers,
   listFolders,
@@ -23,6 +24,7 @@ import {
   addTaskMemberByUsername,
   createStandaloneTask,
   createTask,
+  hardDeleteTask,
   listDeletedTasks,
   listStandaloneTasks,
   listTaskActionsForTasks,
@@ -37,7 +39,6 @@ import {
   undoLatestTaskProgress,
   updateTask,
 } from './features/tasks/taskApi'
-import { hardDeleteFolder, hardDeleteTask } from './lib/growtData'
 import { AppShell } from './layout/AppShell'
 import { Sidebar } from './layout/Sidebar'
 import { AppViewRouter } from './views/AppViewRouter'
@@ -59,21 +60,25 @@ import {
   sortTaskMembers,
   upsertById,
 } from './lib/growtState'
-import { isSupabaseConfigured, supabase } from './lib/supabase'
+import { listTasksInActiveFolders } from './services/activeTaskService'
+import * as authService from './services/authService'
+import { isSupabaseConfigured } from './services/clientService'
+import { createInviteWithUser } from './services/inviteService'
 import {
   ensureProfile,
   listProfiles,
   resolveLoginEmail,
   updateProfile,
-  createInviteWithUser,
-  type Folder,
-  type FolderMember,
-  type Profile,
-  type ProfileSummary,
-  type Task,
-  type TaskMember,
-  type TaskProgress,
-  type TaskStatusAction,
+} from './services/profileService'
+import type {
+  Folder,
+  FolderMember,
+  Profile,
+  ProfileSummary,
+  Task,
+  TaskMember,
+  TaskProgress,
+  TaskStatusAction,
 } from './lib/growtData'
 import type { FolderCategory, ReorderDirection, TaskProgressStatus, AvatarChoice, ColorPalette, ThemeMode } from './lib/database.types'
 
@@ -521,7 +526,7 @@ function App() {
   }, [actions])
 
   const loadProfilesForIds = useCallback(async (userIds: string[]) => {
-    if (!supabase || !sessionKey) {
+    if (!isSupabaseConfigured || !sessionKey) {
       return
     }
 
@@ -535,7 +540,7 @@ function App() {
     }
 
     try {
-      const nextProfiles = await listProfiles(supabase, missingIds)
+      const nextProfiles = await listProfiles(missingIds)
 
       if (!isCurrentSession(requestSessionKey)) {
         return
@@ -558,14 +563,14 @@ function App() {
   }, [isCurrentSession, sessionKey])
 
   const refreshFolders = useCallback(async () => {
-    if (!authReady || !supabase || !user || !sessionKey) {
+    if (!authReady || !isSupabaseConfigured || !user || !sessionKey) {
       return
     }
 
     const requestSessionKey = sessionKey
 
     try {
-      const nextFolders = await listFolders(supabase)
+      const nextFolders = await listFolders()
 
       if (!isCurrentSession(requestSessionKey)) {
         return
@@ -591,23 +596,22 @@ function App() {
   }, [refreshFolders])
 
   const refreshStandaloneTasks = useCallback(async () => {
-    if (!authReady || !supabase || !user || !sessionKey) {
+    if (!authReady || !isSupabaseConfigured || !user || !sessionKey) {
       return
     }
 
-    const client = supabase
     const requestSessionKey = sessionKey
 
     try {
-      const nextTasks = await listStandaloneTasks(client)
+      const nextTasks = await listStandaloneTasks()
       const taskIds = nextTasks.map((task) => task.id)
       const sharedTaskIds = nextTasks
         .filter((task) => task.category === 'shared')
         .map((task) => task.id)
       const [nextProgress, nextActions, nextMembersByTask] = await Promise.all([
-        listTaskProgressForTasks(client, taskIds),
-        listTaskActionsForTasks(client, taskIds),
-        Promise.all(sharedTaskIds.map((taskId) => listTaskMembers(client, taskId))),
+        listTaskProgressForTasks(taskIds),
+        listTaskActionsForTasks(taskIds),
+        Promise.all(sharedTaskIds.map((taskId) => listTaskMembers(taskId))),
       ])
       const nextTaskMembers = nextMembersByTask.flat()
 
@@ -636,7 +640,7 @@ function App() {
   }, [authReady, isCurrentSession, loadProfilesForIds, sessionKey, user])
 
   const refreshArchive = useCallback(async () => {
-    if (!authReady || !supabase || !user || !sessionKey) {
+    if (!authReady || !isSupabaseConfigured || !user || !sessionKey) {
       return
     }
 
@@ -644,8 +648,8 @@ function App() {
 
     try {
       const [nextDeletedFolders, nextDeletedTasks] = await Promise.all([
-        listDeletedFolders(supabase),
-        listDeletedTasks(supabase),
+        listDeletedFolders(),
+        listDeletedTasks(),
       ])
 
       if (!isCurrentSession(requestSessionKey)) {
@@ -667,7 +671,7 @@ function App() {
       return
     }
 
-    if (!supabase || !user || !sessionKey) {
+    if (!isSupabaseConfigured || !user || !sessionKey) {
       setCurrentProfile(null)
       setFolders([])
       setStandaloneTasks([])
@@ -687,7 +691,7 @@ function App() {
       const meta = user.user_metadata || {}
       const fallbackDisplayName = meta.display_name || meta.full_name || meta.name || user.email?.split('@')[0] || 'User'
       const fallbackUsername = meta.username || user.email?.split('@')[0] || 'user'
-      const nextProfile = await ensureProfile(supabase, user.id, fallbackDisplayName, fallbackUsername)
+      const nextProfile = await ensureProfile(user.id, fallbackDisplayName, fallbackUsername)
 
       if (!isCurrentSession(requestSessionKey)) {
         return
@@ -756,7 +760,7 @@ function App() {
       return
     }
 
-    if (!supabase || !sessionKey) {
+    if (!isSupabaseConfigured || !sessionKey) {
       setMembers([])
       setTasks([])
       setRealtimeStatus('Idle')
@@ -774,23 +778,16 @@ function App() {
       
       if (activeFolder) {
         [nextTasks, nextMembers] = await Promise.all([
-          listTasks(supabase, activeFolder.id),
-          listFolderMembers(supabase, activeFolder.id),
+          listTasks(activeFolder.id),
+          listFolderMembers(activeFolder.id),
         ])
       } else {
-        const { data: folderData } = await supabase
-          .from('folders')
-          .select('id')
-          .eq('is_active', true)
-          .is('deleted_at', null);
-        const activeFolderIds = new Set((folderData || []).map((f) => f.id));
-        const { data } = await supabase.from('tasks').select('*').not('folder_id', 'is', null);
-        nextTasks = (data || []).filter((task) => task.folder_id && activeFolderIds.has(task.folder_id));
+        nextTasks = await listTasksInActiveFolders()
       }
       const taskIds = nextTasks.map((task) => task.id)
       const [nextProgress, nextActions] = await Promise.all([
-        listTaskProgressForTasks(supabase, taskIds),
-        listTaskActionsForTasks(supabase, taskIds),
+        listTaskProgressForTasks(taskIds),
+        listTaskActionsForTasks(taskIds),
       ])
 
       if (!isCurrentSession(requestSessionKey)) {
@@ -861,7 +858,7 @@ function App() {
     const username = normalizeUsername(registerUsername)
     const passwordError = getPasswordError(registerPassword, registerConfirmPassword)
 
-    if (!supabase || !registerEmail.trim() || !username) {
+    if (!isSupabaseConfigured || !registerEmail.trim() || !username) {
       setMessage('Enter an email, username, and password.')
       return
     }
@@ -875,25 +872,20 @@ function App() {
     setMessage('')
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email: registerEmail.trim(),
-        password: registerPassword,
-        options: {
-          emailRedirectTo: window.location.origin,
-          data: {
-            username,
-            display_name: username,
-          },
-        },
-      })
+      const { data, error } = await authService.signUpWithEmail(
+        registerEmail.trim(),
+        registerPassword,
+        username,
+        window.location.origin,
+      )
 
       if (error) {
         throw error
       }
 
       if (data.session && data.user) {
-        await ensureProfile(supabase, data.user.id, username, username)
-        await supabase.auth.signOut()
+        await ensureProfile(data.user.id, username, username)
+        await authService.signOut()
         setSession(null)
       }
 
@@ -916,7 +908,7 @@ function App() {
 
     const identifier = loginIdentifier.trim()
 
-    if (!supabase || !identifier || !loginPassword) {
+    if (!isSupabaseConfigured || !identifier || !loginPassword) {
       return
     }
 
@@ -926,16 +918,13 @@ function App() {
     try {
       const email = identifier.includes('@')
         ? identifier
-        : await resolveLoginEmail(supabase, identifier)
+        : await resolveLoginEmail(identifier)
 
       if (!email) {
         throw new Error('Login identifier not found.')
       }
 
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password: loginPassword,
-      })
+      const { error } = await authService.signInWithPassword(email, loginPassword)
 
       if (error) {
         throw error
@@ -954,19 +943,14 @@ function App() {
   }
 
   async function handleGoogleLogin() {
-    if (!supabase) return
+    if (!isSupabaseConfigured) return
 
     setAuthLoading(true)
     setMessage('')
 
     try {
       const shouldRememberGoogleLogin = authView === 'login' && rememberMe
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        },
-      })
+      const { error } = await authService.signInWithGoogle(`${window.location.origin}/dashboard`)
 
       if (error) {
         throw error
@@ -984,7 +968,7 @@ function App() {
   async function handleForgotPassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    if (!supabase || !forgotEmail.trim()) {
+    if (!isSupabaseConfigured || !forgotEmail.trim()) {
       return
     }
 
@@ -992,9 +976,7 @@ function App() {
     setMessage('')
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), {
-        redirectTo: window.location.origin,
-      })
+      const { error } = await authService.sendPasswordResetEmail(forgotEmail.trim(), window.location.origin)
 
       if (error) {
         throw error
@@ -1016,7 +998,7 @@ function App() {
 
     const passwordError = getPasswordError(resetPassword, resetConfirmPassword)
 
-    if (!supabase || passwordError) {
+    if (!isSupabaseConfigured || passwordError) {
       setMessage(passwordError ?? 'Unable to update password.')
       return
     }
@@ -1025,9 +1007,7 @@ function App() {
     setMessage('')
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: resetPassword,
-      })
+      const { error } = await authService.updatePassword(resetPassword)
 
       if (error) {
         throw error
@@ -1035,7 +1015,7 @@ function App() {
 
       setResetPassword('')
       setResetConfirmPassword('')
-      await supabase.auth.signOut()
+      await authService.signOut()
       setSession(null)
       navigateToAuthView('login', 'replace')
       setMessage('Password updated. Log in with your new password.')
@@ -1048,12 +1028,12 @@ function App() {
   }
 
   async function handleSignOut() {
-    if (!supabase) {
+    if (!isSupabaseConfigured) {
       return
     }
 
     activeSessionKeyRef.current = null
-    await supabase.auth.signOut()
+    await authService.signOut()
     setSession(null)
     setMessage('')
     setCurrentProfile(null)
@@ -1076,7 +1056,7 @@ function App() {
   async function handleUpdateProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    if (!supabase || !user) {
+    if (!isSupabaseConfigured || !user) {
       return
     }
 
@@ -1084,7 +1064,7 @@ function App() {
     setMessage('')
 
     try {
-      const nextProfile = await updateProfile(supabase, user.id, {
+      const nextProfile = await updateProfile(user.id, {
         avatarChoice: profileAvatarChoice,
         colorPalette: profileColorPalette,
         displayName: profileDisplayName.trim() || null,
@@ -1110,7 +1090,7 @@ function App() {
   async function handleCreateFolder(event: React.FormEvent, inviteUsernames?: string[]) {
     event.preventDefault()
 
-    if (!supabase || !user || !folderTitle.trim()) {
+    if (!isSupabaseConfigured || !user || !folderTitle.trim()) {
       return
     }
 
@@ -1119,7 +1099,6 @@ function App() {
 
     try {
       const folder = await createFolder(
-        supabase,
         folderTitle.trim(),
         folderDescription.trim() || null,
         folderCategory,
@@ -1139,7 +1118,6 @@ function App() {
           for (const username of inviteUsernames) {
             try {
               await addFolderMemberByUsername(
-                supabase,
                 folder.id,
                 normalizeUsername(username) ?? username.trim()
               )
@@ -1161,7 +1139,7 @@ function App() {
   }
 
   async function handleUpdateFolder(values: FolderEditValues) {
-    if (!supabase || !activeFolder) {
+    if (!isSupabaseConfigured || !activeFolder) {
       return
     }
 
@@ -1169,7 +1147,7 @@ function App() {
     setMessage('')
 
     try {
-      const folder = await updateFolder(supabase, {
+      const folder = await updateFolder({
         id: activeFolder.id,
         title: values.title,
         description: values.description,
@@ -1193,11 +1171,11 @@ function App() {
   }
 
   async function handleCopyShareLink(resourceType: 'folder' | 'task', resourceId: string) {
-    if (!supabase || !user) return
+    if (!isSupabaseConfigured || !user) return
 
     try {
       setSaving(true)
-      const invite = await createInviteWithUser(supabase, resourceType, resourceId, user.id)
+      const invite = await createInviteWithUser(resourceType, resourceId, user.id)
       const inviteUrl = `${window.location.origin}/invite/${invite.id}`
       await navigator.clipboard.writeText(inviteUrl)
       setMessage('Share link copied to clipboard!')
@@ -1214,12 +1192,12 @@ function App() {
       confirmLabel: 'Delete folder',
       message: `Delete "${folder.title}"? The folder will be hidden from normal views but kept in the database for recovery work later.`,
       onConfirm: async () => {
-        if (!supabase) {
+        if (!isSupabaseConfigured) {
           return
         }
 
         try {
-          await softDeleteFolder(supabase, folder.id)
+          await softDeleteFolder(folder.id)
           setFolders((current) => current.filter((currentFolder) => currentFolder.id !== folder.id))
           setDeletedFolders((current) =>
             sortFolders(upsertById(current, { ...folder, deleted_at: new Date().toISOString(), is_active: false })),
@@ -1243,7 +1221,7 @@ function App() {
   }
 
   async function handleRestoreFolder(folder: Folder) {
-    if (!supabase) {
+    if (!isSupabaseConfigured) {
       return
     }
 
@@ -1251,7 +1229,7 @@ function App() {
     setMessage('')
 
     try {
-      const restoredFolder = await restoreFolder(supabase, folder.id)
+      const restoredFolder = await restoreFolder(folder.id)
       setDeletedFolders((current) => current.filter((currentFolder) => currentFolder.id !== folder.id))
       setFolders((current) => sortFolders(upsertById(current, restoredFolder)))
       setMessage('Folder restored.')
@@ -1265,7 +1243,7 @@ function App() {
   }
 
   async function handleMoveFolder(folder: Folder, direction: ReorderDirection, scopedFolderIds?: string[]) {
-    if (!supabase) {
+    if (!isSupabaseConfigured) {
       return
     }
 
@@ -1273,7 +1251,7 @@ function App() {
     setMessage('')
 
     try {
-      const nextFolders = await reorderFolder(supabase, folder.id, direction, scopedFolderIds)
+      const nextFolders = await reorderFolder(folder.id, direction, scopedFolderIds)
       setFolders(sortFolders(nextFolders))
       setMessage(`Folder moved ${direction}.`)
       await refreshFoldersRef.current()
@@ -1286,8 +1264,7 @@ function App() {
   }
 
   async function handleHardDeleteFolder(folder: Folder) {
-    const client = supabase
-    if (!client) {
+    if (!isSupabaseConfigured) {
       return
     }
     
@@ -1297,7 +1274,7 @@ function App() {
       message: `Are you sure you want to permanently delete "${folder.title}"? This cannot be undone.`,
       onConfirm: async () => {
         try {
-          await hardDeleteFolder(client, folder.id)
+          await hardDeleteFolder(folder.id)
           setDeletedFolders((current) => current.filter((f) => f.id !== folder.id))
           await refreshFolders()
           await refreshArchive()
@@ -1321,8 +1298,7 @@ function App() {
   }
 
   async function handleHardDeleteTask(task: Task) {
-    const client = supabase
-    if (!client) {
+    if (!isSupabaseConfigured) {
       return
     }
     
@@ -1332,7 +1308,7 @@ function App() {
       message: `Are you sure you want to permanently delete "${task.title}"? This cannot be undone.`,
       onConfirm: async () => {
         try {
-          await hardDeleteTask(client, task.id)
+          await hardDeleteTask(task.id)
           setDeletedTasks((current) => current.filter((t) => t.id !== task.id))
           await refreshStandaloneTasks()
           if (activeFolder) {
@@ -1356,7 +1332,7 @@ function App() {
   }
 
   async function handleRestoreTask(task: Task) {
-    if (!supabase) {
+    if (!isSupabaseConfigured) {
       return
     }
 
@@ -1364,7 +1340,7 @@ function App() {
     setMessage('')
 
     try {
-      const restoredTask = await restoreTask(supabase, task.id)
+      const restoredTask = await restoreTask(task.id)
       setDeletedTasks((current) => current.filter((currentTask) => currentTask.id !== task.id))
 
       if (restoredTask.folder_id) {
@@ -1396,7 +1372,7 @@ function App() {
   }
 
   async function handleMoveTask(task: Task, direction: ReorderDirection, scopedTaskIds?: string[]) {
-    if (!supabase) {
+    if (!isSupabaseConfigured) {
       return
     }
 
@@ -1404,7 +1380,7 @@ function App() {
     setMessage('')
 
     try {
-      const nextTasks = await reorderTask(supabase, task.id, direction, scopedTaskIds)
+      const nextTasks = await reorderTask(task.id, direction, scopedTaskIds)
 
       if (task.folder_id) {
         setTasks(sortByPositionAndCreatedAt(nextTasks))
@@ -1426,7 +1402,7 @@ function App() {
   async function handleInviteMember(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    if (!supabase || !activeFolder || !memberUsername.trim()) {
+    if (!isSupabaseConfigured || !activeFolder || !memberUsername.trim()) {
       return
     }
 
@@ -1451,7 +1427,6 @@ function App() {
 
     try {
       const { member, profile } = await addFolderMemberByUsername(
-        supabase,
         activeFolder.id,
         nextUsername,
       )
@@ -1476,7 +1451,7 @@ function App() {
   }
 
   async function handleCreateFolderTask(values: TaskCreateValues) {
-    if (!supabase || !user || !activeFolder) {
+    if (!isSupabaseConfigured || !user || !activeFolder) {
       return
     }
 
@@ -1484,7 +1459,7 @@ function App() {
     setMessage('')
 
     try {
-      const task = await createTask(supabase, {
+      const task = await createTask({
         folderId: activeFolder.id,
         title: values.title,
         description: values.description,
@@ -1501,7 +1476,6 @@ function App() {
           for (const username of values.inviteUsernames ?? []) {
             try {
               await addTaskMemberByUsername(
-                supabase,
                 task.id,
                 normalizeUsername(username) ?? username.trim()
               )
@@ -1523,7 +1497,7 @@ function App() {
   }
 
   async function handleCreateStandaloneTask(values: TaskCreateValues) {
-    if (!supabase || !user) {
+    if (!isSupabaseConfigured || !user) {
       return
     }
 
@@ -1531,7 +1505,7 @@ function App() {
     setMessage('')
 
     try {
-      const task = await createStandaloneTask(supabase, {
+      const task = await createStandaloneTask({
         title: values.title,
         description: values.description,
         category: values.category,
@@ -1549,7 +1523,6 @@ function App() {
           for (const username of values.inviteUsernames ?? []) {
             try {
               await addTaskMemberByUsername(
-                supabase,
                 task.id,
                 normalizeUsername(username) ?? username.trim()
               )
@@ -1571,7 +1544,7 @@ function App() {
   }
 
   async function handleAddTaskMember(task: Task, username: string) {
-    if (!supabase) {
+    if (!isSupabaseConfigured) {
       throw new Error('Supabase is not configured.')
     }
 
@@ -1605,7 +1578,7 @@ function App() {
     setMessage('')
 
     try {
-      const { member, profile } = await addTaskMemberByUsername(supabase, task.id, nextUsername)
+      const { member, profile } = await addTaskMemberByUsername(task.id, nextUsername)
       const profileLabel = profile.display_name ?? (profile.username ? `@${profile.username}` : 'Member')
 
       setTaskMembers((current) => sortTaskMembers(upsertById(current, member)))
@@ -1622,7 +1595,7 @@ function App() {
   }
 
   async function handleRemoveTaskMember(task: Task, userId: string) {
-    if (!supabase) {
+    if (!isSupabaseConfigured) {
       return
     }
 
@@ -1630,7 +1603,7 @@ function App() {
     setMessage('')
 
     try {
-      const removedMember = await removeTaskMember(supabase, task.id, userId)
+      const removedMember = await removeTaskMember(task.id, userId)
 
       setTaskMembers((current) => current.filter((member) => member.id !== removedMember.id))
       setMessage(`${getProfileLabel(userId)} was removed from this task.`)
@@ -1644,7 +1617,7 @@ function App() {
   }
 
   async function handleUpdateTask(taskId: string, values: TaskEditValues) {
-    if (!supabase) {
+    if (!isSupabaseConfigured) {
       return
     }
 
@@ -1652,7 +1625,7 @@ function App() {
     setMessage('')
 
     try {
-      const task = await updateTask(supabase, {
+      const task = await updateTask({
         id: taskId,
         title: values.title,
         description: values.description,
@@ -1686,12 +1659,12 @@ function App() {
       confirmLabel: 'Delete task',
       message: `Delete "${task.title}"? The task will be hidden from normal views but kept in the database for recovery work later.`,
       onConfirm: async () => {
-        if (!supabase) {
+        if (!isSupabaseConfigured) {
           return
         }
 
         try {
-          await softDeleteTask(supabase, task.id)
+          await softDeleteTask(task.id)
           if (task.folder_id) {
             setTasks((current) => current.filter((currentTask) => currentTask.id !== task.id))
           } else {
@@ -1714,7 +1687,7 @@ function App() {
   }
 
   async function handleSetTaskStatus(taskId: string, status: TaskProgressStatus) {
-    if (!supabase) {
+    if (!isSupabaseConfigured) {
       return
     }
 
@@ -1723,7 +1696,7 @@ function App() {
     setMessage('')
 
     try {
-      const action = await setTaskProgress(supabase, taskId, null, status)
+      const action = await setTaskProgress(taskId, null, status)
       setActions((current) => sortActions(upsertById(current, action)))
       await Promise.all([refreshLiveSessionRef.current(), refreshStandaloneTasks()])
     } catch (error) {
@@ -1752,7 +1725,7 @@ function App() {
   }
 
   async function handleUndoTaskStatus(action: TaskStatusAction) {
-    if (!supabase) {
+    if (!isSupabaseConfigured) {
       return
     }
 
@@ -1760,7 +1733,7 @@ function App() {
     setMessage('')
 
     try {
-      const undoneAction = await undoLatestTaskProgress(supabase, action.task_id, action.task_level_id)
+      const undoneAction = await undoLatestTaskProgress(action.task_id, action.task_level_id)
       setActions((current) => sortActions(upsertById(current, undoneAction)))
       await Promise.all([refreshLiveSessionRef.current(), refreshStandaloneTasks()])
     } catch (error) {

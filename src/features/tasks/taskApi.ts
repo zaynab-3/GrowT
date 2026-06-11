@@ -2,6 +2,7 @@ export {
   addTaskMemberByUsername,
   createStandaloneTask,
   createTask,
+  hardDeleteTask,
   listDeletedTasks,
   listStandaloneTasks,
   listTaskActionsForTasks,
@@ -15,4 +16,4 @@ export {
   softDeleteTask,
   undoLatestTaskProgress,
   updateTask,
-} from '../../lib/growtData'
+} from '../../services/taskService'

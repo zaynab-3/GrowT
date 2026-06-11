@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { UserAvatar } from './UserAvatar'
-import { supabase } from '../lib/supabase'
+import { isSupabaseConfigured } from '../services/clientService'
 import { searchProfilesWithRelationship, type MemberPickerProfile } from '../features/members/memberPickerApi'
 import { normalizeUsername } from '../lib/growtDisplay'
 
@@ -43,8 +43,8 @@ export function UserSearchDropdown({ value, onChange, onSelect, placeholder, cla
       setIsSearching(true)
       setIsOpen(true)
       try {
-        if (!supabase) return
-        const searchResults = await searchProfilesWithRelationship(supabase, normalizeUsername(value) || '')
+        if (!isSupabaseConfigured) return
+        const searchResults = await searchProfilesWithRelationship(normalizeUsername(value) || '')
         setResults(searchResults)
         setIsOpen(true)
       } catch (err) {

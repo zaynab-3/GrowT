@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Search, X } from 'lucide-react'
 import { UserAvatar } from './UserAvatar'
-import { supabase } from '../lib/supabase'
+import { isSupabaseConfigured } from '../services/clientService'
 import { searchProfilesWithRelationship, sendAcquaintanceRequest, type MemberPickerProfile } from '../features/members/memberPickerApi'
 import { normalizeUsername } from '../lib/growtDisplay'
 import type { Folder, Task } from '../lib/growtData'
@@ -54,8 +54,8 @@ export function GlobalSearchDropdown({ folders, tasks, onOpenFolder, onNavigate,
     const timeoutId = setTimeout(async () => {
       setIsSearchingUsers(true)
       try {
-        if (!supabase) return
-        const users = await searchProfilesWithRelationship(supabase, normalizeUsername(value) || '')
+        if (!isSupabaseConfigured) return
+        const users = await searchProfilesWithRelationship(normalizeUsername(value) || '')
         setUserResults(users)
       } catch (err) {
         console.error('User search failed', err)
@@ -165,9 +165,9 @@ export function GlobalSearchDropdown({ folders, tasks, onOpenFolder, onNavigate,
                               className="px-2.5 py-1 rounded-full bg-primary text-on-primary text-[10px] font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity hover:opacity-90"
                               onClick={async (e) => {
                                 e.stopPropagation()
-                                if (supabase) {
+                                if (isSupabaseConfigured) {
                                   try {
-                                    const request = await sendAcquaintanceRequest(supabase, u.username)
+                                    const request = await sendAcquaintanceRequest(u.username)
                                     setUserResults(prev => prev.map(p => p.user_id === u.user_id ? { ...p, relationship_status: 'pending_outgoing', request_id: request.id } : p))
                                   } catch (err) {
                                     console.error(err)

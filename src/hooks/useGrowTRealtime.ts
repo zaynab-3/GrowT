@@ -1,5 +1,5 @@
 import { type Dispatch, type RefObject, type SetStateAction, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
+import { isRealtimeConfigured, removeChannel, subscribeToChannel } from '../services/realtimeService'
 import type {
   Folder,
   FolderMember,
@@ -74,11 +74,9 @@ export function useGrowTRealtime({
   userId,
 }: UseGrowTRealtimeParams) {
   useEffect(() => {
-    if (!authReady || !supabase || !userId) {
+    if (!authReady || !isRealtimeConfigured() || !userId) {
       return
     }
-
-    const realtimeClient = supabase
 
     const refreshUserFolders = () => {
       void refreshFoldersRef.current()
@@ -111,8 +109,7 @@ export function useGrowTRealtime({
       }
     }
 
-    const channel = realtimeClient
-      .channel(`live-user:${userId}`)
+    const channel = subscribeToChannel(`live-user:${userId}`, (nextChannel) => nextChannel
       .on(
         'postgres_changes',
         {
@@ -173,10 +170,10 @@ export function useGrowTRealtime({
         { event: 'UPDATE', schema: 'public', table: 'profiles' },
         (payload) => applyProfileChange(payload as RealtimePayload<Profile>),
       )
-      .subscribe()
+    )
 
     return () => {
-      void realtimeClient.removeChannel(channel)
+      void removeChannel(channel)
     }
   }, [
     authReady,
@@ -189,11 +186,9 @@ export function useGrowTRealtime({
   ])
 
   useEffect(() => {
-    if (!authReady || !supabase || !userId) {
+    if (!authReady || !isRealtimeConfigured() || !userId) {
       return
     }
-
-    const realtimeClient = supabase
 
     const removeStandaloneTask = (taskId: string) => {
       setStandaloneTasks((current) => current.filter((task) => task.id !== taskId))
@@ -311,8 +306,7 @@ export function useGrowTRealtime({
       }
     }
 
-    const channel = realtimeClient
-      .channel(`live-standalone:${userId}`)
+    const channel = subscribeToChannel(`live-standalone:${userId}`, (nextChannel) => nextChannel
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'tasks' },
@@ -338,10 +332,10 @@ export function useGrowTRealtime({
         { event: '*', schema: 'public', table: 'task_status_actions' },
         (payload) => applyStandaloneActionChange(payload as RealtimePayload<TaskStatusAction>),
       )
-      .subscribe()
+    )
 
     return () => {
-      void realtimeClient.removeChannel(channel)
+      void removeChannel(channel)
     }
   }, [
     actionsRef,
@@ -359,11 +353,10 @@ export function useGrowTRealtime({
   ])
 
   useEffect(() => {
-    if (!authReady || !supabase || !userId || !activeFolder) {
+    if (!authReady || !isRealtimeConfigured() || !userId || !activeFolder) {
       return
     }
 
-    const realtimeClient = supabase
     const folderId = activeFolder.id
     setRealtimeStatus('Connecting')
 
@@ -479,8 +472,7 @@ export function useGrowTRealtime({
       }
     }
 
-    const channel = realtimeClient
-      .channel(`live-folder:${folderId}`)
+    const channel = subscribeToChannel(`live-folder:${folderId}`, (nextChannel) => nextChannel
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'folders', filter: `id=eq.${folderId}` },
@@ -546,7 +538,7 @@ export function useGrowTRealtime({
         { event: '*', schema: 'public', table: 'task_status_actions' },
         (payload) => applyActionChange(payload as RealtimePayload<TaskStatusAction>),
       )
-      .subscribe((status) => {
+    , (status) => {
         if (status === 'SUBSCRIBED') {
           setRealtimeStatus('Live')
           return
@@ -561,7 +553,7 @@ export function useGrowTRealtime({
       })
 
     return () => {
-      void realtimeClient.removeChannel(channel)
+      void removeChannel(channel)
       setRealtimeStatus('Idle')
     }
   }, [

@@ -54,6 +54,7 @@ export function TaskCard({
   onDeleteTask,
   onEditTask,
   onMoveTask,
+  onRemoveTaskMember,
   onSetTaskStatus,
   onUndoAction,
   onOpenTask,
@@ -63,8 +64,6 @@ export function TaskCard({
   statusHistory,
   task,
 }: TaskCardProps) {
-  const { onRemoveTaskMember } = arguments[0] // Extracting manually since it's optional and not in the destructuring list
-
   const canManageTask = task.owner_id === currentUserId || folderOwnerId === currentUserId
   const canReorderTask = task.folder_id ? folderOwnerId === currentUserId : task.owner_id === currentUserId
   const isEditing = editingTaskId === task.id

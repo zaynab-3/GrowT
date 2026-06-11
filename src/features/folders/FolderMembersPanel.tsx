@@ -1,7 +1,6 @@
 import type { FormEvent } from 'react'
 import type { TaskProgressStatus } from '../../lib/database.types'
 import type { Folder } from '../../lib/growtData'
-import { supabase } from '../../lib/supabase'
 import { MemberPicker } from '../members/MemberPicker'
 import { addFolderMemberByUsername } from './folderApi'
 import { UserAvatar } from '../../components/UserAvatar'
@@ -35,11 +34,7 @@ export function FolderMembersPanel({
   memberUserIds,
 }: FolderMembersPanelProps) {
   async function handleAddMember(username: string) {
-    if (!supabase) {
-      throw new Error('Supabase is not configured.')
-    }
-
-    await addFolderMemberByUsername(supabase, folder.id, username)
+    await addFolderMemberByUsername(folder.id, username)
   }
 
   return (

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import type { Session } from '@supabase/supabase-js'
 import type { AuthView } from '../auth/AuthPanel'
-import { supabase } from '../lib/supabase'
+import * as authService from '../services/authService'
+import type { Session } from '../services/authService'
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) {
@@ -35,12 +35,11 @@ export function useAuthSession() {
   })
 
   useEffect(() => {
-    if (!supabase) {
+    if (!authService.isAuthConfigured()) {
       setAuthReady(true)
       return
     }
 
-    const client = supabase
     let isMounted = true
 
     const clearInvalidSession = (error: unknown) => {
@@ -48,14 +47,14 @@ export function useAuthSession() {
       setSession(null)
       setAuthView('login')
       setAuthReady(true)
-      void client.auth.signOut({ scope: 'local' }).catch((signOutError: unknown) => {
+      void authService.signOut({ scope: 'local' }).catch((signOutError: unknown) => {
         if (!isInvalidRefreshTokenError(signOutError)) {
           console.warn('Local auth cleanup failed.', signOutError)
         }
       })
     }
 
-    void client.auth
+    void authService
       .getSession()
       .then(({ data, error }) => {
         if (!isMounted) {
@@ -95,9 +94,7 @@ export function useAuthSession() {
         setAuthReady(true)
       })
 
-    const {
-      data: { subscription },
-    } = client.auth.onAuthStateChange((event, nextSession) => {
+    const subscription = authService.onAuthStateChange((event, nextSession) => {
       if (!isMounted) {
         return
       }
@@ -119,11 +116,11 @@ export function useAuthSession() {
   }, [])
 
   useEffect(() => {
-    if (!supabase || !session?.access_token) {
+    if (!authService.isAuthConfigured() || !session?.access_token) {
       return
     }
 
-    supabase.realtime.setAuth(session.access_token)
+    authService.setRealtimeAuth(session.access_token)
   }, [session])
 
   return {

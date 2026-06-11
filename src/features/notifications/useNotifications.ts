@@ -1,6 +1,7 @@
 import { createContext, createElement, useCallback, useContext, useEffect, useId, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
-import { supabase } from '../../lib/supabase'
+import { isSupabaseConfigured } from '../../services/clientService'
+import { removeChannel, subscribeToChannel } from '../../services/realtimeService'
 import {
   listNotifications,
   markAllNotificationsRead,
@@ -31,12 +32,12 @@ function useNotificationStore(userId: string | null): NotificationContextValue {
   )
 
   const loadNotificationData = useCallback(async () => {
-    if (!supabase || !userId) {
+    if (!isSupabaseConfigured || !userId) {
       return
     }
 
     try {
-      const nextNotifications = await listNotifications(supabase)
+      const nextNotifications = await listNotifications()
       setNotifications(nextNotifications)
     } catch (error) {
       console.error('Notifications load failed', error)
@@ -55,13 +56,11 @@ function useNotificationStore(userId: string | null): NotificationContextValue {
   }, [loadNotificationData, userId])
 
   useEffect(() => {
-    if (!supabase || !userId) {
+    if (!isSupabaseConfigured || !userId) {
       return
     }
 
-    const client = supabase
-    const channel = client
-      .channel(`notifications:${channelId}:${userId}`)
+    const channel = subscribeToChannel(`notifications:${channelId}:${userId}`, (nextChannel) => nextChannel
       .on(
         'postgres_changes',
         {
@@ -72,16 +71,16 @@ function useNotificationStore(userId: string | null): NotificationContextValue {
         },
         () => void loadNotificationData(),
       )
-      .subscribe()
+    )
 
     return () => {
-      void client.removeChannel(channel)
+      void removeChannel(channel)
     }
   }, [channelId, loadNotificationData, userId])
 
   const markRead = useCallback(
     async (notificationId: string) => {
-      if (!supabase) {
+      if (!isSupabaseConfigured) {
         return
       }
 
@@ -89,7 +88,7 @@ function useNotificationStore(userId: string | null): NotificationContextValue {
       setMessage('')
 
       try {
-        const notification = await markNotificationRead(supabase, notificationId)
+        const notification = await markNotificationRead(notificationId)
 
         setNotifications((current) =>
           current.map((item) => (item.id === notificationId && notification ? notification : item)),
@@ -106,7 +105,7 @@ function useNotificationStore(userId: string | null): NotificationContextValue {
   )
 
   const markAllRead = useCallback(async () => {
-    if (!supabase) {
+    if (!isSupabaseConfigured) {
       return
     }
 
@@ -114,7 +113,7 @@ function useNotificationStore(userId: string | null): NotificationContextValue {
     setMessage('')
 
     try {
-      const updatedNotifications = await markAllNotificationsRead(supabase)
+      const updatedNotifications = await markAllNotificationsRead()
       const updatedById = new Map(updatedNotifications.map((notification) => [notification.id, notification]))
 
       setNotifications((current) =>

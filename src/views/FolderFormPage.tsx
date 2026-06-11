@@ -19,7 +19,7 @@ type FolderFormPageProps = {
   isSaving: boolean
   mode: 'create' | 'edit'
   onBack: () => void
-  onCreateFolder?: (event: React.FormEvent, inviteUsernames?: string[]) => void
+  onCreateFolder?: (event: FormEvent<HTMLFormElement>, inviteUsernames?: string[]) => void
   onFolderCategoryChange?: (category: FolderCategory) => void
   onFolderDescriptionChange?: (description: string) => void
   onFolderTitleChange?: (title: string) => void
