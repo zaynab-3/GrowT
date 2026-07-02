@@ -30,3 +30,4 @@ dist-ssr
 .codex/qa/
 .codex/**/chrome-profile*/
 
+.vercel
