@@ -1,10 +1,14 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import type { FolderCategory } from '../../lib/database.types'
 import { categoryOptions } from '../../lib/growtDisplay'
+import { TaskDescriptionFields } from './TaskDescriptionFields'
+import { getInitialChecklistItems, normalizeChecklistItems, type TaskDescriptionMode } from './taskDescriptionUtils'
 
 export type TaskCreateValues = {
   category: FolderCategory
+  checklistItems: string[]
   description: string | null
+  descriptionMode: TaskDescriptionMode
   title: string
   inviteUsernames?: string[]
 }
@@ -26,6 +30,8 @@ export function TaskForm({
 }: TaskFormProps) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [descriptionMode, setDescriptionMode] = useState<TaskDescriptionMode>('description')
+  const [checklistItems, setChecklistItems] = useState<string[]>([''])
   const [category, setCategory] = useState<FolderCategory>(defaultCategory)
 
   useEffect(() => {
@@ -41,43 +47,56 @@ export function TaskForm({
 
     onCreate({
       category,
-      description: description.trim() || null,
+      checklistItems: descriptionMode === 'checklist' ? normalizeChecklistItems(checklistItems) : [],
+      description: descriptionMode === 'description' ? description.trim() || null : null,
+      descriptionMode,
       title: title.trim(),
     })
     setTitle('')
     setDescription('')
+    setDescriptionMode('description')
+    setChecklistItems(getInitialChecklistItems([]))
     setCategory(defaultCategory)
   }
 
   return (
     <form className={`task-form ${showCategory ? 'task-form--with-category' : ''}`} onSubmit={handleSubmit}>
-      <input
-        onChange={(event) => setTitle(event.target.value)}
-        placeholder="Task title"
-        required
-        value={title}
+      <div className="task-form__primary-row">
+        <input
+          onChange={(event) => setTitle(event.target.value)}
+          placeholder="Task title"
+          required
+          value={title}
+        />
+        {showCategory ? (
+          <select
+            aria-label="Task category"
+            onChange={(event) => setCategory(event.target.value as FolderCategory)}
+            value={category}
+          >
+            {categoryOptions.map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        ) : null}
+        <button className="button button--primary" disabled={isSaving} type="submit">
+          {submitLabel}
+        </button>
+      </div>
+
+      <TaskDescriptionFields
+        checklistItems={checklistItems}
+        compact
+        description={description}
+        descriptionPlaceholder="Optional details..."
+        idPrefix="quick-task"
+        mode={descriptionMode}
+        onChecklistItemsChange={setChecklistItems}
+        onDescriptionChange={setDescription}
+        onModeChange={setDescriptionMode}
       />
-      <input
-        onChange={(event) => setDescription(event.target.value)}
-        placeholder="Description"
-        value={description}
-      />
-      {showCategory ? (
-        <select
-          aria-label="Task category"
-          onChange={(event) => setCategory(event.target.value as FolderCategory)}
-          value={category}
-        >
-          {categoryOptions.map((option) => (
-            <option key={option.id} value={option.id}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      ) : null}
-      <button className="button button--primary" disabled={isSaving} type="submit">
-        {submitLabel}
-      </button>
     </form>
   )
 }

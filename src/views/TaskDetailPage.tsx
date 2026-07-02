@@ -1,12 +1,13 @@
 import { ArrowLeft, Edit2, Trash2, CheckCircle, Undo2, Link } from 'lucide-react'
 import { formatDateTime } from '../lib/growtDisplay'
 import type { TaskProgressStatus } from '../lib/database.types'
-import type { Task, TaskMember, TaskStatusAction } from '../lib/growtData'
+import type { Task, TaskLevel, TaskMember, TaskStatusAction } from '../lib/growtData'
 import { TaskStatusGrid } from '../features/tasks/TaskStatusGrid'
 import type { TaskStatusContributions } from '../features/tasks/TaskStatusParticipants'
 import { TaskMembersPanel } from '../features/tasks/TaskMembersPanel'
 import { UserAvatar } from '../components/UserAvatar'
 import { LinkifiedText } from '../components/LinkifiedText'
+import { TaskChecklist } from '../features/tasks/TaskChecklist'
 
 type StatusContribution = { action: TaskStatusAction; userId: string }
 import { getCategoryLabel, statusColumns } from '../lib/growtDisplay'
@@ -26,9 +27,12 @@ type TaskDetailPageProps = {
   onEditTask: (taskId: string) => void
   onRemoveMember?: (task: Task, userId: string) => void
   onSetTaskStatus: (taskId: string, status: TaskProgressStatus) => void
+  onToggleTaskLevel: (taskId: string, taskLevelId: string, checked: boolean) => void
   onUndoAction: (action: TaskStatusAction) => void
   pendingAction: string | null
   task: Task
+  taskLevelCompletedIds: Set<string>
+  taskLevels: TaskLevel[]
   taskMembers?: TaskMember[]
 }
 
@@ -46,15 +50,16 @@ export function TaskDetailPage({
   onEditTask,
   onRemoveMember,
   onSetTaskStatus,
+  onToggleTaskLevel,
   onUndoAction,
   pendingAction,
   statusHistory,
   task,
+  taskLevelCompletedIds,
+  taskLevels,
   taskMembers,
 }: TaskDetailPageProps) {
   const canManageTask = task.owner_id === currentUserId || folderOwnerId === currentUserId
-
-  const isCompleted = !task.is_active
 
   let currentUserStatus: TaskProgressStatus | null = null
   if (contributions) {
@@ -62,6 +67,8 @@ export function TaskDetailPage({
     else if (contributions.half_done.some(c => c.userId === currentUserId)) currentUserStatus = 'half_done'
     else if (contributions.ongoing.some(c => c.userId === currentUserId)) currentUserStatus = 'ongoing'
   }
+
+  const isCompleted = !task.is_active || currentUserStatus === 'completed'
 
   const statusStyles: Record<TaskProgressStatus, string> = {
     ongoing: 'bg-[#e0f2fe] text-[#0369a1] border-[#bae6fd] hover:bg-[#bae6fd]',
@@ -98,7 +105,21 @@ export function TaskDetailPage({
               {isCompleted && <span className="stitch-badge stitch-badge--inactive">Inactive</span>}
             </div>
           </div>
-          {task.description && <div className="page-header__desc" style={{ margin: '4px 0 0', color: 'var(--ink-2)' }}><LinkifiedText text={task.description} /></div>}
+          {taskLevels.length > 0 ? (
+            <div style={{ marginTop: '14px', maxWidth: 680 }}>
+              <TaskChecklist
+                completedLevelIds={taskLevelCompletedIds}
+                disabled={pendingAction !== null}
+                levels={taskLevels}
+                onToggle={(taskLevelId, checked) => onToggleTaskLevel(task.id, taskLevelId, checked)}
+                pendingAction={pendingAction}
+              />
+            </div>
+          ) : task.description ? (
+            <div className="page-header__desc" style={{ margin: '4px 0 0', color: 'var(--ink-2)' }}>
+              <LinkifiedText text={task.description} />
+            </div>
+          ) : null}
         </div>
 
         <div className="page-header__actions">

@@ -1,5 +1,5 @@
 import type { ReorderDirection, TaskProgressStatus } from '../../lib/database.types'
-import type { Task, TaskMember, TaskStatusAction } from '../../lib/growtData'
+import type { Task, TaskLevel, TaskMember, TaskStatusAction } from '../../lib/growtData'
 import { EmptyState } from '../../components/EmptyState'
 import { TaskCard } from './TaskCard'
 import type { TaskEditValues } from './TaskEditForm'
@@ -34,10 +34,13 @@ type TaskListProps = {
   onOpenTask?: (task: Task) => void
   onRemoveTaskMember?: (task: Task, userId: string) => void
   onSetTaskStatus: (taskId: string, status: TaskProgressStatus) => void
+  onToggleTaskLevel: (taskId: string, taskLevelId: string, checked: boolean) => void
   onUndoAction: (action: TaskStatusAction) => void
   onUpdateTask: (taskId: string, values: TaskEditValues) => void
   pendingAction: string | null
   statusHistoryByTask?: Map<string, Record<TaskProgressStatus, StatusContribution[]>>
+  taskLevelCompletedIdsByTask?: Map<string, Set<string>>
+  taskLevelsByTask?: Map<string, TaskLevel[]>
   taskMembersByTask?: Map<string, TaskMember[]>
   tasks: Task[]
 }
@@ -60,10 +63,13 @@ export function TaskList({
   onOpenTask,
   onRemoveTaskMember,
   onSetTaskStatus,
+  onToggleTaskLevel,
   onUndoAction,
   onUpdateTask,
   pendingAction,
   statusHistoryByTask,
+  taskLevelCompletedIdsByTask,
+  taskLevelsByTask,
   taskMembersByTask,
   tasks,
 }: TaskListProps) {
@@ -94,12 +100,15 @@ export function TaskList({
           onOpenTask={onOpenTask}
           onRemoveTaskMember={onRemoveTaskMember}
           onSetTaskStatus={onSetTaskStatus}
+          onToggleTaskLevel={onToggleTaskLevel}
           onUndoAction={onUndoAction}
           onUpdateTask={onUpdateTask}
           pendingAction={pendingAction}
           scopedTaskIds={reorderableTaskIds}
           statusHistory={statusHistoryByTask?.get(task.id)}
           task={task}
+          taskLevelCompletedIds={taskLevelCompletedIdsByTask?.get(task.id)}
+          taskLevels={taskLevelsByTask?.get(task.id)}
           taskMembers={taskMembersByTask?.get(task.id)}
         />
       ))}

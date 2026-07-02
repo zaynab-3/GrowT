@@ -16,6 +16,7 @@ export type ProfileSummary = Pick<Profile, 'avatar_choice' | 'avatar_url' | 'dis
 export type Folder = Database['public']['Tables']['folders']['Row']
 export type FolderMember = Database['public']['Tables']['folder_members']['Row']
 export type Task = Database['public']['Tables']['tasks']['Row']
+export type TaskLevel = Database['public']['Tables']['task_levels']['Row']
 export type TaskMember = Database['public']['Tables']['task_members']['Row']
 export type TaskProgress = Database['public']['Tables']['task_progress']['Row']
 export type TaskStatusAction = Database['public']['Tables']['task_status_actions']['Row']
@@ -529,6 +530,86 @@ export async function listTaskMembers(client: GrowTClient, taskId: string) {
   }
 
   return data
+}
+
+export async function listTaskLevelsForTasks(client: GrowTClient, taskIds: string[]) {
+  const uniqueTaskIds = Array.from(new Set(taskIds)).filter(Boolean)
+
+  if (!uniqueTaskIds.length) {
+    return []
+  }
+
+  const { data, error } = await client
+    .from('task_levels')
+    .select('*')
+    .in('task_id', uniqueTaskIds)
+    .order('position', { ascending: true })
+    .order('created_at', { ascending: true })
+
+  if (error) {
+    throw error
+  }
+
+  return data
+}
+
+export async function syncTaskLevels(
+  client: GrowTClient,
+  taskId: string,
+  itemTitles: string[],
+) {
+  const nextTitles = itemTitles.map((item) => item.trim()).filter(Boolean)
+  const existingLevels = await listTaskLevelsForTasks(client, [taskId])
+  const levelsToDelete = existingLevels.slice(nextTitles.length)
+
+  if (levelsToDelete.length) {
+    const { error } = await client
+      .from('task_levels')
+      .delete()
+      .in('id', levelsToDelete.map((level) => level.id))
+
+    if (error) {
+      throw error
+    }
+  }
+
+  for (const [index, title] of nextTitles.entries()) {
+    const existingLevel = existingLevels[index]
+
+    if (!existingLevel) {
+      const { error } = await client
+        .from('task_levels')
+        .insert({
+          task_id: taskId,
+          title,
+          description: null,
+          position: index,
+        } as never)
+
+      if (error) {
+        throw error
+      }
+
+      continue
+    }
+
+    if (existingLevel.title !== title || existingLevel.position !== index || existingLevel.description !== null) {
+      const { error } = await client
+        .from('task_levels')
+        .update({
+          title,
+          description: null,
+          position: index,
+        } as never)
+        .eq('id', existingLevel.id)
+
+      if (error) {
+        throw error
+      }
+    }
+  }
+
+  return listTaskLevelsForTasks(client, [taskId])
 }
 
 export async function addTaskMemberByUsername(

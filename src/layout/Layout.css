@@ -15,6 +15,31 @@ html, body, #root {
   color: var(--ink);
 }
 
+.app-shell--centered {
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--bg);
+}
+
+.app-shell--centered .auth-panel {
+  display: grid;
+  gap: 12px;
+  place-items: center;
+  text-align: center;
+}
+
+.app-shell--centered .auth-panel h1 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 26px;
+}
+
+.app-shell--centered .auth-panel p {
+  margin: 0;
+  color: var(--ink-3);
+}
+
 .app-frame {
   display: grid;
   grid-template-columns: var(--sidebar-width) minmax(0, 1fr);

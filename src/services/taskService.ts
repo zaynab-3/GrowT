@@ -6,6 +6,7 @@ import {
   listDeletedTasks as listDeletedTasksWithClient,
   listStandaloneTasks as listStandaloneTasksWithClient,
   listTaskActionsForTasks as listTaskActionsForTasksWithClient,
+  listTaskLevelsForTasks as listTaskLevelsForTasksWithClient,
   listTaskMembers as listTaskMembersWithClient,
   listTaskProgressForTasks as listTaskProgressForTasksWithClient,
   listTasks as listTasksWithClient,
@@ -14,6 +15,7 @@ import {
   restoreTask as restoreTaskWithClient,
   setTaskProgress as setTaskProgressWithClient,
   softDeleteTask as softDeleteTaskWithClient,
+  syncTaskLevels as syncTaskLevelsWithClient,
   undoLatestTaskProgress as undoLatestTaskProgressWithClient,
   updateTask as updateTaskWithClient,
 } from '../lib/growtData'
@@ -34,6 +36,10 @@ export function listDeletedTasks() {
 
 export function listTaskMembers(taskId: string) {
   return listTaskMembersWithClient(getSupabaseClient(), taskId)
+}
+
+export function listTaskLevelsForTasks(taskIds: string[]) {
+  return listTaskLevelsForTasksWithClient(getSupabaseClient(), taskIds)
 }
 
 export function listTaskProgressForTasks(taskIds: string[]) {
@@ -81,6 +87,10 @@ export function updateTask(task: {
   assignedUserId: string | null
 }) {
   return updateTaskWithClient(getSupabaseClient(), task)
+}
+
+export function syncTaskLevels(taskId: string, itemTitles: string[]) {
+  return syncTaskLevelsWithClient(getSupabaseClient(), taskId, itemTitles)
 }
 
 export function softDeleteTask(taskId: string) {

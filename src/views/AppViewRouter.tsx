@@ -9,7 +9,7 @@ import { TaskRestorePanel } from '../features/tasks/TaskRestorePanel'
 import type { FolderCategory, ReorderDirection, TaskProgressStatus } from '../lib/database.types'
 import type { AvatarChoice, ColorPalette, ThemeMode } from '../lib/database.types'
 import { isSharedFolder } from '../lib/growtDisplay'
-import type { Folder, Task, TaskMember, TaskStatusAction } from '../lib/growtData'
+import type { Folder, Task, TaskLevel, TaskMember, TaskStatusAction } from '../lib/growtData'
 import { AcquaintancesView } from './AcquaintancesView'
 import { DashboardView } from './DashboardView'
 import { FolderDetailPage } from './FolderDetailPage'
@@ -27,6 +27,7 @@ import type { AppRoute, AppView } from './viewTypes'
 type AssignableMember = { id: string; label: string }
 type ContributionCounts = Record<TaskProgressStatus, number>
 type StatusContribution = { action: TaskStatusAction; userId: string }
+const EMPTY_TASK_LEVEL_SET = new Set<string>()
 
 type AppViewRouterProps = {
   activeFolder: Folder | null
@@ -87,6 +88,7 @@ type AppViewRouterProps = {
   onSaveProfile: (event: FormEvent<HTMLFormElement>) => void
   onSelectFolder: (folderId: string) => void
   onSetTaskStatus: (taskId: string, status: TaskProgressStatus) => void
+  onToggleTaskLevel: (taskId: string, taskLevelId: string, checked: boolean) => void
   onUndoAction: (action: TaskStatusAction) => void
   onUpdateFolder: (values: FolderEditValues) => void
   onUpdateTask: (taskId: string, values: TaskEditValues) => void
@@ -104,6 +106,8 @@ type AppViewRouterProps = {
   standaloneTasks: Task[]
   statusTotals: ContributionCounts
   statusHistoryByTask: Map<string, Record<TaskProgressStatus, StatusContribution[]>>
+  taskLevelCompletedIdsByTask: Map<string, Set<string>>
+  taskLevelsByTask: Map<string, TaskLevel[]>
   taskMembersByTask: Map<string, TaskMember[]>
   tasks: Task[]
 }
@@ -212,6 +216,7 @@ export function AppViewRouter({
   onRestoreTask,
   onSaveProfile,
   onSetTaskStatus,
+  onToggleTaskLevel,
   onUndoAction,
   onUpdateFolder,
   onUpdateTask,
@@ -229,6 +234,8 @@ export function AppViewRouter({
   standaloneTasks,
   statusTotals,
   statusHistoryByTask,
+  taskLevelCompletedIdsByTask,
+  taskLevelsByTask,
   taskMembersByTask,
   tasks,
 }: AppViewRouterProps) {
@@ -289,10 +296,13 @@ export function AppViewRouter({
           onMemberUsernameChange={onMemberUsernameChange}
           onMoveTask={onMoveTask}
           onSetTaskStatus={onSetTaskStatus}
+          onToggleTaskLevel={onToggleTaskLevel}
           onUndoAction={onUndoAction}
           onUpdateTask={onUpdateTask}
           pendingAction={pendingAction}
           statusHistoryByTask={statusHistoryByTask}
+          taskLevelCompletedIdsByTask={taskLevelCompletedIdsByTask}
+          taskLevelsByTask={taskLevelsByTask}
           tasks={filteredTasks}
         />
       ) : dataLoading ? (
@@ -353,10 +363,13 @@ export function AppViewRouter({
           onEditTask={onEditTask}
           onRemoveMember={onRemoveTaskMember}
           onSetTaskStatus={onSetTaskStatus}
+          onToggleTaskLevel={onToggleTaskLevel}
           onUndoAction={onUndoAction}
           pendingAction={pendingAction}
           statusHistory={statusHistoryByTask.get(taskToView.id)}
           task={taskToView}
+          taskLevelCompletedIds={taskLevelCompletedIdsByTask.get(taskToView.id) ?? EMPTY_TASK_LEVEL_SET}
+          taskLevels={taskLevelsByTask.get(taskToView.id) ?? []}
           taskMembers={taskMembersByTask.get(taskToView.id)}
         />
       ) : dataLoading ? (
@@ -419,6 +432,7 @@ export function AppViewRouter({
           onUpdateTask={(values) => onUpdateTask(taskToEdit.id, values)}
           onAddTaskMember={(username) => onAddTaskMember(taskToEdit, username)}
           task={taskToEdit}
+          taskLevels={taskLevelsByTask.get(taskToEdit.id) ?? []}
         />
       ) : dataLoading ? (
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-on-surface-variant font-body-md min-h-[400px]">
@@ -503,11 +517,14 @@ export function AppViewRouter({
           onOpenTask={onOpenTask}
           onRemoveTaskMember={onRemoveTaskMember}
           onSetTaskStatus={onSetTaskStatus}
+          onToggleTaskLevel={onToggleTaskLevel}
           onUndoAction={onUndoAction}
           onUpdateTask={onUpdateTask}
           pendingAction={pendingAction}
           standaloneTasks={standaloneTasks}
           statusHistoryByTask={statusHistoryByTask}
+          taskLevelCompletedIdsByTask={taskLevelCompletedIdsByTask}
+          taskLevelsByTask={taskLevelsByTask}
           taskMembersByTask={taskMembersByTask}
         />
       )

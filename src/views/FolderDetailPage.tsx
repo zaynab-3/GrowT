@@ -14,7 +14,7 @@ import { LinkifiedText } from '../components/LinkifiedText'
 import { UserAvatar } from '../components/UserAvatar'
 import type { FolderCategory, ReorderDirection, TaskProgressStatus } from '../lib/database.types'
 import { formatDateTime, getCategoryLabel, isSharedFolder } from '../lib/growtDisplay'
-import type { Folder, Task, TaskStatusAction } from '../lib/growtData'
+import type { Folder, Task, TaskLevel, TaskStatusAction } from '../lib/growtData'
 import { calculateFolderProgress } from '../lib/growtState'
 
 import { TaskList } from '../features/tasks/TaskList'
@@ -51,10 +51,13 @@ type FolderDetailPageProps = {
   onMemberUsernameChange: (username: string) => void
   onMoveTask: (task: Task, direction: ReorderDirection) => void
   onSetTaskStatus: (taskId: string, status: TaskProgressStatus) => void
+  onToggleTaskLevel: (taskId: string, taskLevelId: string, checked: boolean) => void
   onUndoAction: (action: TaskStatusAction) => void
   onUpdateTask: (taskId: string, values: TaskEditValues) => void
   pendingAction: string | null
   statusHistoryByTask: Map<string, Record<TaskProgressStatus, StatusContribution[]>>
+  taskLevelCompletedIdsByTask: Map<string, Set<string>>
+  taskLevelsByTask: Map<string, TaskLevel[]>
   tasks: Task[]
 }
 
@@ -104,10 +107,13 @@ export function FolderDetailPage({
   onMemberUsernameChange,
   onMoveTask,
   onSetTaskStatus,
+  onToggleTaskLevel,
   onUndoAction,
   onUpdateTask,
   pendingAction,
   statusHistoryByTask,
+  taskLevelCompletedIdsByTask,
+  taskLevelsByTask,
   tasks,
 }: FolderDetailPageProps) {
   const shared = isSharedFolder(folder)
@@ -407,10 +413,13 @@ export function FolderDetailPage({
                   onEditTask={onEditTask}
                   onMoveTask={onMoveTask}
                   onSetTaskStatus={onSetTaskStatus}
+                  onToggleTaskLevel={onToggleTaskLevel}
                   onUndoAction={onUndoAction}
                   onUpdateTask={onUpdateTask}
                   pendingAction={pendingAction}
                   statusHistoryByTask={statusHistoryByTask}
+                  taskLevelCompletedIdsByTask={taskLevelCompletedIdsByTask}
+                  taskLevelsByTask={taskLevelsByTask}
                   tasks={tasks}
                 />
               </div>

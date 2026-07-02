@@ -1,7 +1,7 @@
 import type { FormEvent } from 'react'
 import type { FolderCategory, ReorderDirection, TaskProgressStatus } from '../../lib/database.types'
 import { statusColumns, formatDateTime } from '../../lib/growtDisplay'
-import type { Folder, Task, TaskStatusAction } from '../../lib/growtData'
+import type { Folder, Task, TaskLevel, TaskStatusAction } from '../../lib/growtData'
 import { TaskForm, type TaskCreateValues } from '../tasks/TaskForm'
 import { TaskList } from '../tasks/TaskList'
 import type { TaskEditValues } from '../tasks/TaskEditForm'
@@ -47,14 +47,20 @@ type FolderDetailProps = {
   onMemberUsernameChange: (username: string) => void
   onMoveTask: (task: Task, direction: ReorderDirection, scopedTaskIds?: string[]) => void
   onSetTaskStatus: (taskId: string, status: TaskProgressStatus) => void
+  onToggleTaskLevel?: (taskId: string, taskLevelId: string, checked: boolean) => void
   onToggleFolderEdit: () => void
   onUndoAction: (action: TaskStatusAction) => void
   onUpdateFolder: (values: FolderEditValues) => void
   onUpdateTask: (taskId: string, values: TaskEditValues) => void
   pendingAction: string | null
   showTasks?: boolean
+  taskLevelCompletedIdsByTask?: Map<string, Set<string>>
+  taskLevelsByTask?: Map<string, TaskLevel[]>
   tasks: Task[]
 }
+
+const EMPTY_TASK_LEVELS_BY_TASK = new Map<string, TaskLevel[]>()
+const EMPTY_COMPLETED_LEVEL_IDS_BY_TASK = new Map<string, Set<string>>()
 
 export function FolderDetail({
   activeFolder,
@@ -82,12 +88,15 @@ export function FolderDetail({
   onMemberUsernameChange,
   onMoveTask,
   onSetTaskStatus,
+  onToggleTaskLevel = () => undefined,
   onToggleFolderEdit,
   onUndoAction,
   onUpdateFolder,
   onUpdateTask,
   pendingAction,
   showTasks = true,
+  taskLevelCompletedIdsByTask = EMPTY_COMPLETED_LEVEL_IDS_BY_TASK,
+  taskLevelsByTask = EMPTY_TASK_LEVELS_BY_TASK,
   tasks,
 }: FolderDetailProps) {
   const folderStatusTotals = tasks.reduce<ContributionCounts>(
@@ -247,9 +256,12 @@ export function FolderDetail({
                 onEditTask={onEditTask}
                 onMoveTask={onMoveTask}
                 onSetTaskStatus={onSetTaskStatus}
+                onToggleTaskLevel={onToggleTaskLevel}
                 onUndoAction={onUndoAction}
                 onUpdateTask={onUpdateTask}
                 pendingAction={pendingAction}
+                taskLevelCompletedIdsByTask={taskLevelCompletedIdsByTask}
+                taskLevelsByTask={taskLevelsByTask}
                 tasks={tasks}
               />
             </section>

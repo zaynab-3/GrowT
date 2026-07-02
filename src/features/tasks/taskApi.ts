@@ -6,6 +6,7 @@ export {
   listDeletedTasks,
   listStandaloneTasks,
   listTaskActionsForTasks,
+  listTaskLevelsForTasks,
   listTaskMembers,
   listTaskProgressForTasks,
   listTasks,
@@ -14,6 +15,7 @@ export {
   restoreTask,
   setTaskProgress,
   softDeleteTask,
+  syncTaskLevels,
   undoLatestTaskProgress,
   updateTask,
 } from '../../services/taskService'

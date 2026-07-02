@@ -19,6 +19,7 @@ export function IncomingRequests({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <div className="stitch-member-list">
+        {isBusy && !requests.length ? <p className="stitch-empty-text">Loading requests...</p> : null}
         {requests.map((request) => (
           <div className="stitch-member-row" key={request.request_id}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -48,7 +49,7 @@ export function IncomingRequests({
             </div>
           </div>
         ))}
-        {!requests.length ? <p className="stitch-empty-text">No incoming requests.</p> : null}
+        {!isBusy && !requests.length ? <p className="stitch-empty-text">No incoming requests.</p> : null}
       </div>
     </div>
   )

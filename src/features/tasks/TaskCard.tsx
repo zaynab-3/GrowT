@@ -1,15 +1,17 @@
 import { ChevronDown, ChevronUp, Edit2, Trash2, Calendar, Archive } from 'lucide-react'
 import type { ReorderDirection, TaskProgressStatus } from '../../lib/database.types'
 import { formatDateTime, getCategoryLabel } from '../../lib/growtDisplay'
-import type { Task, TaskMember, TaskStatusAction } from '../../lib/growtData'
+import type { Task, TaskLevel, TaskMember, TaskStatusAction } from '../../lib/growtData'
 import { TaskEditForm, type TaskEditValues } from './TaskEditForm'
 import { SwipeActions } from '../../components/SwipeActions'
 import { UserAvatar } from '../../components/UserAvatar'
 import { LinkifiedText } from '../../components/LinkifiedText'
 import { TaskStatusParticipants, type TaskStatusContributions } from './TaskStatusParticipants'
+import { TaskChecklist } from './TaskChecklist'
 
 type StatusContribution = { action: TaskStatusAction; userId: string }
 type AssignableMember = { id: string; label: string }
+const EMPTY_TASK_LEVEL_SET = new Set<string>()
 
 type TaskCardProps = {
   assignableMembers: AssignableMember[]
@@ -29,6 +31,7 @@ type TaskCardProps = {
   onMoveTask: (task: Task, direction: ReorderDirection, scopedTaskIds?: string[]) => void
   onRemoveTaskMember?: (task: Task, userId: string) => void
   onSetTaskStatus: (taskId: string, status: TaskProgressStatus) => void
+  onToggleTaskLevel: (taskId: string, taskLevelId: string, checked: boolean) => void
   onUndoAction: (action: TaskStatusAction) => void
   onUpdateTask: (taskId: string, values: TaskEditValues) => void
   onOpenTask?: (task: Task) => void
@@ -36,6 +39,8 @@ type TaskCardProps = {
   scopedTaskIds?: string[]
   statusHistory?: TaskStatusContributions
   task: Task
+  taskLevelCompletedIds?: Set<string>
+  taskLevels?: TaskLevel[]
   taskMembers?: TaskMember[]
 }
 
@@ -56,6 +61,7 @@ export function TaskCard({
   onMoveTask,
   onRemoveTaskMember,
   onSetTaskStatus,
+  onToggleTaskLevel,
   onUndoAction,
   onOpenTask,
   onUpdateTask,
@@ -63,11 +69,12 @@ export function TaskCard({
   scopedTaskIds,
   statusHistory,
   task,
+  taskLevelCompletedIds,
+  taskLevels = [],
 }: TaskCardProps) {
   const canManageTask = task.owner_id === currentUserId || folderOwnerId === currentUserId
   const canReorderTask = task.folder_id ? folderOwnerId === currentUserId : task.owner_id === currentUserId
   const isEditing = editingTaskId === task.id
-  const isCompleted = !task.is_active
 
   // Determine current user's status for this task
   let currentUserStatus: TaskProgressStatus | null = null
@@ -76,6 +83,9 @@ export function TaskCard({
     else if (contributions.half_done.some(c => c.userId === currentUserId)) currentUserStatus = 'half_done'
     else if (contributions.ongoing.some(c => c.userId === currentUserId)) currentUserStatus = 'ongoing'
   }
+
+  const isCompleted = !task.is_active || currentUserStatus === 'completed'
+  const completedLevelIds = taskLevelCompletedIds ?? EMPTY_TASK_LEVEL_SET
 
   let lastActionToUndo: TaskStatusAction | null = null
   if (contributions) {
@@ -106,6 +116,7 @@ export function TaskCard({
           onCancel={onCloseEdit}
           onSave={(values) => onUpdateTask(task.id, values)}
           task={task}
+          taskLevels={taskLevels}
         />
       </div>
     )
@@ -196,11 +207,19 @@ export function TaskCard({
             </div>
           </div>
 
-          {task.description && (
+          {taskLevels.length > 0 ? (
+            <TaskChecklist
+              completedLevelIds={completedLevelIds}
+              disabled={pendingAction !== null || !canUpdateStatus}
+              levels={taskLevels}
+              onToggle={(taskLevelId, checked) => onToggleTaskLevel(task.id, taskLevelId, checked)}
+              pendingAction={pendingAction}
+            />
+          ) : task.description ? (
             <div className="font-body-md text-on-surface-variant leading-relaxed text-[13px] mb-4">
               <LinkifiedText text={task.description} />
             </div>
-          )}
+          ) : null}
 
           <div className="flex items-center justify-between border-t border-surface-variant/50 pt-4 mt-2 flex-wrap" onClick={e => e.stopPropagation()}>
             <div className="flex flex-wrap gap-2 mb-4 md:mb-0">

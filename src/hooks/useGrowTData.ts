@@ -11,6 +11,7 @@ import type {
   Profile,
   ProfileSummary,
   Task,
+  TaskLevel,
   TaskMember,
   TaskStatusAction,
 } from '../lib/growtData'
@@ -35,6 +36,7 @@ type UseGrowTDataParams = {
   searchQuery: string
   selectedFolderId: string | null
   standaloneTasks: Task[]
+  taskLevels: TaskLevel[]
   taskMembers: TaskMember[]
   tasks: Task[]
   userId: string | null
@@ -49,6 +51,7 @@ export function useGrowTData({
   searchQuery,
   selectedFolderId,
   standaloneTasks,
+  taskLevels,
   taskMembers,
   tasks,
   userId,
@@ -61,7 +64,34 @@ export function useGrowTData({
     currentProfile?.display_name ?? (currentProfile?.username ? `@${currentProfile.username}` : 'Account')
 
   const activeActions = useMemo(() => actions.filter((action) => !action.is_undone), [actions])
+  const activeRootActions = useMemo(
+    () => activeActions.filter((action) => action.task_level_id === null),
+    [activeActions],
+  )
   const folderTaskIdSet = useMemo(() => new Set(tasks.map((task) => task.id)), [tasks])
+
+  const taskLevelsByTask = useMemo(() => {
+    const grouped = new Map<string, TaskLevel[]>()
+
+    for (const level of taskLevels) {
+      grouped.set(level.task_id, [...(grouped.get(level.task_id) ?? []), level])
+    }
+
+    for (const [taskId, levelsForTask] of grouped) {
+      grouped.set(
+        taskId,
+        [...levelsForTask].sort((first, second) => {
+          if (first.position !== second.position) {
+            return first.position - second.position
+          }
+
+          return Date.parse(first.created_at) - Date.parse(second.created_at)
+        }),
+      )
+    }
+
+    return grouped
+  }, [taskLevels])
 
   const taskMembersByTask = useMemo(() => {
     const grouped = new Map<string, TaskMember[]>()
@@ -81,7 +111,7 @@ export function useGrowTData({
     const grouped = new Map<string, Record<TaskProgressStatus, StatusContribution[]>>()
     const seenContributions = new Set<string>()
 
-    for (const action of sortActions(activeActions)) {
+    for (const action of sortActions(activeRootActions)) {
       const key = contributionKey(action)
       if (seenContributions.has(key)) {
         continue
@@ -104,13 +134,13 @@ export function useGrowTData({
     }
 
     return grouped
-  }, [activeActions])
+  }, [activeRootActions])
 
   const statusHistoryByTask = useMemo(() => {
     const grouped = new Map<string, Record<TaskProgressStatus, StatusContribution[]>>()
     const seenStatusMarks = new Set<string>()
 
-    for (const action of sortActions(activeActions)) {
+    for (const action of sortActions(activeRootActions)) {
       const key = `${action.task_id}:${action.task_level_id ?? 'root'}:${action.new_status}:${action.user_id}`
       if (seenStatusMarks.has(key)) {
         continue
@@ -133,12 +163,39 @@ export function useGrowTData({
     }
 
     return grouped
-  }, [activeActions])
+  }, [activeRootActions])
+
+  const taskLevelCompletedIdsByTask = useMemo(() => {
+    const completedIdsByTask = new Map<string, Set<string>>()
+    const seenUserLevels = new Set<string>()
+
+    for (const action of sortActions(activeActions)) {
+      if (!action.task_level_id || action.user_id !== userId) {
+        continue
+      }
+
+      const key = `${action.task_id}:${action.task_level_id}:${action.user_id}`
+      if (seenUserLevels.has(key)) {
+        continue
+      }
+
+      seenUserLevels.add(key)
+      if (action.new_status !== 'completed') {
+        continue
+      }
+
+      const completedIds = completedIdsByTask.get(action.task_id) ?? new Set<string>()
+      completedIds.add(action.task_level_id)
+      completedIdsByTask.set(action.task_id, completedIds)
+    }
+
+    return completedIdsByTask
+  }, [activeActions, userId])
 
   const statusTotals = useMemo(() => {
     const allActiveTasks = [...tasks, ...standaloneTasks]
-    return calculateUserProgress(allActiveTasks, actions, userId ?? '')
-  }, [tasks, standaloneTasks, actions, userId])
+    return calculateUserProgress(allActiveTasks, activeRootActions, userId ?? '')
+  }, [activeRootActions, tasks, standaloneTasks, userId])
 
   const activeFolderIsShared = activeFolder ? isSharedFolder(activeFolder) : false
   const canInviteMembers = Boolean(activeFolder && activeFolderIsShared && activeFolder.owner_id === userId)
@@ -170,7 +227,7 @@ export function useGrowTData({
       ensureCounts(memberId)
     }
 
-    for (const action of activeActions) {
+    for (const action of activeRootActions) {
       if (!folderTaskIdSet.has(action.task_id)) {
         continue
       }
@@ -185,7 +242,7 @@ export function useGrowTData({
     }
 
     return countsByUser
-  }, [activeActions, folderMemberUserIds, folderTaskIdSet])
+  }, [activeRootActions, folderMemberUserIds, folderTaskIdSet])
 
   const normalizedSearchQuery = searchQuery.trim().toLowerCase()
 
@@ -260,6 +317,7 @@ export function useGrowTData({
       return matchesSearch(normalizedSearchQuery, [
         task.title,
         task.description,
+        ...(taskLevelsByTask.get(task.id) ?? []).flatMap((level) => [level.title, level.description]),
         task.category,
         getCategoryLabel(task.category),
         task.is_active ? 'active' : 'inactive',
@@ -268,7 +326,7 @@ export function useGrowTData({
         ...contributorValues,
       ])
     })
-  }, [contributionsByTask, normalizedSearchQuery, profilesById, tasks])
+  }, [contributionsByTask, normalizedSearchQuery, profilesById, taskLevelsByTask, tasks])
 
   const filteredStandaloneTasks = useMemo(() => {
     if (!normalizedSearchQuery) {
@@ -292,6 +350,7 @@ export function useGrowTData({
       return matchesSearch(normalizedSearchQuery, [
         task.title,
         task.description,
+        ...(taskLevelsByTask.get(task.id) ?? []).flatMap((level) => [level.title, level.description]),
         task.category,
         getCategoryLabel(task.category),
         task.is_active ? 'active' : 'inactive',
@@ -301,7 +360,7 @@ export function useGrowTData({
         ...contributorValues,
       ])
     })
-  }, [contributionsByTask, normalizedSearchQuery, profilesById, standaloneTasks, taskMembersByTask])
+  }, [contributionsByTask, normalizedSearchQuery, profilesById, standaloneTasks, taskLevelsByTask, taskMembersByTask])
 
   const getProfileAvatar = useCallback(
     (profileId: string | undefined | null) => {
@@ -361,6 +420,8 @@ export function useGrowTData({
     standaloneAssignableMembers,
     statusTotals,
     statusHistoryByTask,
+    taskLevelCompletedIdsByTask,
+    taskLevelsByTask,
     taskMembersByTask,
   }
 }

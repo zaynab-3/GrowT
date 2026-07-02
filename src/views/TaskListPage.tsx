@@ -1,7 +1,7 @@
 import { Plus, CheckSquare } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import type { ReorderDirection, TaskProgressStatus } from '../lib/database.types'
-import type { Folder as _Folder, Task, TaskMember, TaskStatusAction } from '../lib/growtData'
+import type { Folder as _Folder, Task, TaskLevel, TaskMember, TaskStatusAction } from '../lib/growtData'
 import '../features/tasks/Tasks.css'
 import { TaskCard } from '../features/tasks/TaskCard'
 import type { TaskEditValues } from '../features/tasks/TaskEditForm'
@@ -29,11 +29,14 @@ type TaskListPageProps = {
   onRemoveTaskMember: (task: Task, userId: string) => void
   onAddTaskMember: (task: Task, username: string) => void
   onSetTaskStatus: (taskId: string, status: TaskProgressStatus) => void
+  onToggleTaskLevel: (taskId: string, taskLevelId: string, checked: boolean) => void
   onUndoAction: (action: TaskStatusAction) => void
   onUpdateTask: (taskId: string, values: TaskEditValues) => void
   pendingAction: string | null
   standaloneTasks: Task[]
   statusHistoryByTask: Map<string, Record<TaskProgressStatus, StatusContribution[]>>
+  taskLevelCompletedIdsByTask: Map<string, Set<string>>
+  taskLevelsByTask: Map<string, TaskLevel[]>
   taskMembersByTask: Map<string, TaskMember[]>
 }
 
@@ -55,11 +58,14 @@ export function TaskListPage({
   onRemoveTaskMember,
   onAddTaskMember,
   onSetTaskStatus,
+  onToggleTaskLevel,
   onUndoAction,
   onUpdateTask,
   pendingAction,
   standaloneTasks,
   statusHistoryByTask,
+  taskLevelCompletedIdsByTask,
+  taskLevelsByTask,
   taskMembersByTask,
 }: TaskListPageProps) {
   const [scope, setScope] = useState<TaskScope>('all')
@@ -161,12 +167,15 @@ export function TaskListPage({
                   onOpenTask={onOpenTask}
                   onRemoveTaskMember={onRemoveTaskMember}
                   onSetTaskStatus={onSetTaskStatus}
+                  onToggleTaskLevel={onToggleTaskLevel}
                   onUndoAction={onUndoAction}
                   onUpdateTask={onUpdateTask}
                   pendingAction={pendingAction}
                   scopedTaskIds={reorderableIds}
                   statusHistory={statusHistoryByTask.get(task.id)}
                   task={task}
+                  taskLevelCompletedIds={taskLevelCompletedIdsByTask.get(task.id)}
+                  taskLevels={taskLevelsByTask.get(task.id)}
                   taskMembers={taskMembersByTask.get(task.id)}
                 />
               ))

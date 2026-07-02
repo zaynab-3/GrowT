@@ -28,6 +28,7 @@ import {
   listDeletedTasks,
   listStandaloneTasks,
   listTaskActionsForTasks,
+  listTaskLevelsForTasks,
   listTaskMembers,
   listTaskProgressForTasks,
   listTasks,
@@ -36,6 +37,7 @@ import {
   restoreTask,
   setTaskProgress,
   softDeleteTask,
+  syncTaskLevels,
   undoLatestTaskProgress,
   updateTask,
 } from './features/tasks/taskApi'
@@ -76,6 +78,7 @@ import type {
   Profile,
   ProfileSummary,
   Task,
+  TaskLevel,
   TaskMember,
   TaskProgress,
   TaskStatusAction,
@@ -163,6 +166,10 @@ function logBackgroundError(label: string, error: unknown) {
   console.error(label, error)
 }
 
+function mergeTaskActions(current: TaskStatusAction[], nextActions: TaskStatusAction[]) {
+  return sortActions(nextActions.reduce((rows, action) => upsertById(rows, action), current))
+}
+
 function App() {
   const { authReady, authView, session, setAuthView, setSession } = useAuthSession()
   const [introLoading, setIntroLoading] = useState(true)
@@ -195,6 +202,7 @@ function App() {
   const [memberUsername, setMemberUsername] = useState('')
   const [tasks, setTasks] = useState<Task[]>([])
   const [standaloneTasks, setStandaloneTasks] = useState<Task[]>([])
+  const [taskLevels, setTaskLevels] = useState<TaskLevel[]>([])
   const [taskMembers, setTaskMembers] = useState<TaskMember[]>([])
   const [deletedFolders, setDeletedFolders] = useState<Folder[]>([])
   const [deletedTasks, setDeletedTasks] = useState<Task[]>([])
@@ -207,6 +215,7 @@ function App() {
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
   const [confirmRequest, setConfirmRequest] = useState<ConfirmRequest | null>(null)
   const [dataLoading, setDataLoading] = useState(false)
+  const [initialDataReady, setInitialDataReady] = useState(false)
   const [saving, setSaving] = useState(false)
   const [pendingAction, setPendingAction] = useState<string | null>(null)
   const [realtimeStatus, setRealtimeStatus] = useState('Idle')
@@ -214,6 +223,7 @@ function App() {
   const user = session?.user ?? null
   const sessionKey = session?.access_token ?? null
   const activeSessionKeyRef = useRef<string | null>(null)
+  const liveScopeKeyRef = useRef<string>('all-active-folders')
   const previousUserIdRef = useRef<string | null>(null)
   const profilesByIdRef = useRef<Record<string, ProfileSummary>>({})
   const taskIdsRef = useRef<Set<string>>(new Set())
@@ -347,9 +357,20 @@ function App() {
   useEffect(() => {
     const folderId = routeFolderId(route)
     if (folderId !== selectedFolderId) {
+      const previousTaskIds = new Set(tasks.map((task) => task.id))
       setSelectedFolderId(folderId)
+      setTasks([])
+      setMembers([])
+      setTaskLevels((current) => current.filter((level) => !previousTaskIds.has(level.task_id)))
+      setProgress((current) => current.filter((item) => !previousTaskIds.has(item.task_id)))
+      setActions((current) => current.filter((action) => !previousTaskIds.has(action.task_id)))
+      setEditingTaskId(null)
     }
-  }, [route, selectedFolderId])
+  }, [route, selectedFolderId, tasks])
+
+  useEffect(() => {
+    liveScopeKeyRef.current = selectedFolderId ?? 'all-active-folders'
+  }, [selectedFolderId])
 
   const {
     accountLabel,
@@ -367,6 +388,8 @@ function App() {
     standaloneAssignableMembers,
     statusTotals,
     statusHistoryByTask,
+    taskLevelCompletedIdsByTask,
+    taskLevelsByTask,
     taskMembersByTask,
   } = useGrowTData({
     actions,
@@ -377,6 +400,7 @@ function App() {
     searchQuery,
     selectedFolderId,
     standaloneTasks,
+    taskLevels,
     taskMembers,
     tasks,
     userId: user?.id ?? null,
@@ -484,6 +508,7 @@ function App() {
       setMembers([])
       setTasks([])
       setStandaloneTasks([])
+      setTaskLevels([])
       setTaskMembers([])
       setDeletedFolders([])
       setDeletedTasks([])
@@ -492,6 +517,7 @@ function App() {
       setSelectedFolderId(null)
       setConfirmRequest(null)
       setDataLoading(false)
+      setInitialDataReady(false)
       setSaving(false)
       setPendingAction(null)
       setRealtimeStatus('Idle')
@@ -608,7 +634,8 @@ function App() {
       const sharedTaskIds = nextTasks
         .filter((task) => task.category === 'shared')
         .map((task) => task.id)
-      const [nextProgress, nextActions, nextMembersByTask] = await Promise.all([
+      const [nextLevels, nextProgress, nextActions, nextMembersByTask] = await Promise.all([
+        listTaskLevelsForTasks(taskIds),
         listTaskProgressForTasks(taskIds),
         listTaskActionsForTasks(taskIds),
         Promise.all(sharedTaskIds.map((taskId) => listTaskMembers(taskId))),
@@ -620,6 +647,7 @@ function App() {
       }
 
       setStandaloneTasks(sortByPositionAndCreatedAt(nextTasks))
+      setTaskLevels((current) => replaceRowsForTasks(current, taskIds, nextLevels))
       setTaskMembers(sortTaskMembers(nextTaskMembers))
       setProgress((current) => replaceRowsForTasks(current, taskIds, nextProgress))
       setActions((current) => sortActions(replaceRowsForTasks(current, taskIds, nextActions)))
@@ -675,16 +703,19 @@ function App() {
       setCurrentProfile(null)
       setFolders([])
       setStandaloneTasks([])
+      setTaskLevels([])
       setTaskMembers([])
       setDeletedFolders([])
       setDeletedTasks([])
       setSelectedFolderId(null)
+      setInitialDataReady(false)
       return
     }
 
     const requestSessionKey = sessionKey
 
     setDataLoading(true)
+    setInitialDataReady(false)
     setMessage('')
 
     try {
@@ -718,6 +749,7 @@ function App() {
     } finally {
       if (isCurrentSession(requestSessionKey)) {
         setDataLoading(false)
+        setInitialDataReady(true)
       }
     }
   }, [authReady, isCurrentSession, refreshArchive, refreshFolders, refreshStandaloneTasks, sessionKey, user])
@@ -768,6 +800,7 @@ function App() {
     }
 
     const requestSessionKey = sessionKey
+    const requestScopeKey = activeFolder?.id ?? 'all-active-folders'
 
     setDataLoading(true)
     setMessage('')
@@ -785,17 +818,19 @@ function App() {
         nextTasks = await listTasksInActiveFolders()
       }
       const taskIds = nextTasks.map((task) => task.id)
-      const [nextProgress, nextActions] = await Promise.all([
+      const [nextLevels, nextProgress, nextActions] = await Promise.all([
+        listTaskLevelsForTasks(taskIds),
         listTaskProgressForTasks(taskIds),
         listTaskActionsForTasks(taskIds),
       ])
 
-      if (!isCurrentSession(requestSessionKey)) {
+      if (!isCurrentSession(requestSessionKey) || liveScopeKeyRef.current !== requestScopeKey) {
         return
       }
 
       setTasks(sortByPositionAndCreatedAt(nextTasks))
       setMembers(nextMembers)
+      setTaskLevels((current) => replaceRowsForTasks(current, taskIds, nextLevels))
       setProgress((current) => replaceRowsForTasks(current, taskIds, nextProgress))
       setActions((current) => sortActions(replaceRowsForTasks(current, taskIds, nextActions)))
 
@@ -1041,6 +1076,8 @@ function App() {
     setMembers([])
     setTasks([])
     setStandaloneTasks([])
+    setTaskLevels([])
+    setTaskMembers([])
     setDeletedFolders([])
     setDeletedTasks([])
     setProgress([])
@@ -1048,6 +1085,7 @@ function App() {
     setSelectedFolderId(null)
     setConfirmRequest(null)
     setDataLoading(false)
+    setInitialDataReady(false)
     setSaving(false)
     setPendingAction(null)
     setRealtimeStatus('Idle')
@@ -1465,8 +1503,13 @@ function App() {
         description: values.description,
         category: values.category,
       })
+      const nextTaskLevels = await syncTaskLevels(
+        task.id,
+        values.descriptionMode === 'checklist' ? values.checklistItems : [],
+      )
 
       setTasks((current) => sortByPositionAndCreatedAt(upsertById(current, task)))
+      setTaskLevels((current) => replaceRowsForTasks(current, [task.id], nextTaskLevels))
       if (route.name === 'task-new') {
         navigateToRoute({ name: 'folder-detail', folderId: activeFolder.id })
       }
@@ -1512,8 +1555,13 @@ function App() {
         assignedUserId: null,
         dueDate: null,
       })
+      const nextTaskLevels = await syncTaskLevels(
+        task.id,
+        values.descriptionMode === 'checklist' ? values.checklistItems : [],
+      )
 
       setStandaloneTasks((current) => sortByPositionAndCreatedAt(upsertById(current, task)))
+      setTaskLevels((current) => replaceRowsForTasks(current, [task.id], nextTaskLevels))
       if (route.name === 'task-new') {
         navigateToRoute({ name: 'tasks' })
       }
@@ -1634,12 +1682,17 @@ function App() {
         isActive: values.isActive,
         assignedUserId: values.assignedUserId,
       })
+      const nextTaskLevels = await syncTaskLevels(
+        task.id,
+        values.descriptionMode === 'checklist' ? values.checklistItems : [],
+      )
 
       if (task.folder_id) {
         setTasks((current) => sortByPositionAndCreatedAt(upsertById(current, task)))
       } else {
         setStandaloneTasks((current) => sortByPositionAndCreatedAt(upsertById(current, task)))
       }
+      setTaskLevels((current) => replaceRowsForTasks(current, [task.id], nextTaskLevels))
       setEditingTaskId(null)
       setMessage('Task saved.')
       await Promise.all([refreshLiveSessionRef.current(), refreshStandaloneTasks()])
@@ -1670,6 +1723,7 @@ function App() {
           } else {
             setStandaloneTasks((current) => current.filter((currentTask) => currentTask.id !== task.id))
           }
+          setTaskLevels((current) => current.filter((level) => level.task_id !== task.id))
           setProgress((current) => current.filter((item) => item.task_id !== task.id))
           setActions((current) => current.filter((action) => action.task_id !== task.id))
           setDeletedTasks((current) => sortByPositionAndCreatedAt(upsertById(current, { ...task, deleted_at: new Date().toISOString() })))
@@ -1692,16 +1746,72 @@ function App() {
     }
 
     const actionId = `${taskId}:${status}`
+    const levelsForTask = taskLevelsByTask.get(taskId) ?? []
     setPendingAction(actionId)
     setMessage('')
 
     try {
+      const levelActions =
+        status === 'completed' && levelsForTask.length
+          ? await Promise.all(levelsForTask.map((level) => setTaskProgress(taskId, level.id, 'completed')))
+          : []
       const action = await setTaskProgress(taskId, null, status)
-      setActions((current) => sortActions(upsertById(current, action)))
+      setActions((current) => mergeTaskActions(current, [...levelActions, action]))
       await Promise.all([refreshLiveSessionRef.current(), refreshStandaloneTasks()])
     } catch (error) {
       console.error('Task status update failed', error)
       setMessage(error instanceof Error ? error.message : 'Unable to update task status.')
+    } finally {
+      setPendingAction(null)
+    }
+  }
+
+  async function handleToggleTaskLevel(taskId: string, taskLevelId: string, checked: boolean) {
+    if (!isSupabaseConfigured || !user) {
+      return
+    }
+
+    setPendingAction(`level:${taskLevelId}`)
+    setMessage('')
+
+    try {
+      if (checked) {
+        const levelAction = await setTaskProgress(taskId, taskLevelId, 'completed')
+        const completedLevelIds = new Set(taskLevelCompletedIdsByTask.get(taskId) ?? [])
+        completedLevelIds.add(taskLevelId)
+
+        const levelsForTask = taskLevelsByTask.get(taskId) ?? []
+        const allLevelsCompleted =
+          levelsForTask.length > 0 && levelsForTask.every((level) => completedLevelIds.has(level.id))
+        const nextActions = [levelAction]
+
+        if (allLevelsCompleted) {
+          nextActions.push(await setTaskProgress(taskId, null, 'completed'))
+        }
+
+        setActions((current) => mergeTaskActions(current, nextActions))
+      } else {
+        const undoneLevelAction = await undoLatestTaskProgress(taskId, taskLevelId)
+        const nextActions = [undoneLevelAction]
+        const userRootCompleted = contributionsByTask
+          .get(taskId)
+          ?.completed.some((row) => row.userId === user.id)
+
+        if (userRootCompleted) {
+          try {
+            nextActions.push(await undoLatestTaskProgress(taskId, null))
+          } catch (error) {
+            logBackgroundError('Root task completion undo skipped', error)
+          }
+        }
+
+        setActions((current) => mergeTaskActions(current, nextActions))
+      }
+
+      await Promise.all([refreshLiveSessionRef.current(), refreshStandaloneTasks()])
+    } catch (error) {
+      console.error('Task checklist update failed', error)
+      setMessage(error instanceof Error ? error.message : 'Unable to update checklist item.')
     } finally {
       setPendingAction(null)
     }
@@ -1810,6 +1920,15 @@ function App() {
     }
 
     return authPanel
+  }
+
+  if (!initialDataReady) {
+    return (
+      <LoadingState
+        message="Loading your profile, workspaces, tasks, and live status."
+        title="Preparing GrowT"
+      />
+    )
   }
 
   const userId = session.user.id
@@ -1925,6 +2044,7 @@ function App() {
         onSaveProfile={handleUpdateProfile}
         onSelectFolder={setSelectedFolderId}
         onSetTaskStatus={(taskId, status) => void handleSetTaskStatus(taskId, status)}
+        onToggleTaskLevel={(taskId, taskLevelId, checked) => void handleToggleTaskLevel(taskId, taskLevelId, checked)}
         onUndoAction={(action) => void handleUndoTaskStatus(action)}
         onUpdateFolder={(values) => void handleUpdateFolder(values)}
         onUpdateTask={(taskId, values) => void handleUpdateTask(taskId, values)}
@@ -1942,6 +2062,8 @@ function App() {
         standaloneTasks={standaloneTasks}
         statusTotals={statusTotals}
         statusHistoryByTask={statusHistoryByTask}
+        taskLevelCompletedIdsByTask={taskLevelCompletedIdsByTask}
+        taskLevelsByTask={taskLevelsByTask}
         taskMembersByTask={taskMembersByTask}
         tasks={tasks}
       />

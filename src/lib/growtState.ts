@@ -198,7 +198,11 @@ export function calculateUserProgress(
 
   // Filter actions for this user and active tasks
   const userActions = actions.filter(
-    (action) => !action.is_undone && action.user_id === userId && taskIdsSet.has(action.task_id)
+    (action) =>
+      !action.is_undone &&
+      action.task_level_id === null &&
+      action.user_id === userId &&
+      taskIdsSet.has(action.task_id)
   )
 
   // Sort descending by created_at to process the latest action first

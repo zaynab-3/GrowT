@@ -1,5 +1,5 @@
 import type { FolderCategory, ReorderDirection, TaskProgressStatus } from '../../lib/database.types'
-import type { Task, TaskMember, TaskStatusAction } from '../../lib/growtData'
+import type { Task, TaskLevel, TaskMember, TaskStatusAction } from '../../lib/growtData'
 import { TaskForm, type TaskCreateValues } from './TaskForm'
 import { TaskList } from './TaskList'
 import type { TaskEditValues } from './TaskEditForm'
@@ -33,10 +33,13 @@ type StandaloneTasksPanelProps = {
   onOpenTask: (task: Task) => void
   onRemoveTaskMember: (task: Task, userId: string) => void
   onSetTaskStatus: (taskId: string, status: TaskProgressStatus) => void
+  onToggleTaskLevel: (taskId: string, taskLevelId: string, checked: boolean) => void
   onUndoAction: (action: TaskStatusAction) => void
   onUpdateTask: (taskId: string, values: TaskEditValues) => void
   pendingAction: string | null
   sectionLabel?: string
+  taskLevelCompletedIdsByTask: Map<string, Set<string>>
+  taskLevelsByTask: Map<string, TaskLevel[]>
   taskMembersByTask: Map<string, TaskMember[]>
   tasks: Task[]
   title?: string
@@ -61,10 +64,13 @@ export function StandaloneTasksPanel({
   onOpenTask,
   onRemoveTaskMember,
   onSetTaskStatus,
+  onToggleTaskLevel,
   onUndoAction,
   onUpdateTask,
   pendingAction,
   sectionLabel = 'My tasks',
+  taskLevelCompletedIdsByTask,
+  taskLevelsByTask,
   taskMembersByTask,
   tasks,
   title = 'Standalone Tasks',
@@ -102,9 +108,12 @@ export function StandaloneTasksPanel({
         onOpenTask={onOpenTask}
         onRemoveTaskMember={onRemoveTaskMember}
         onSetTaskStatus={onSetTaskStatus}
+        onToggleTaskLevel={onToggleTaskLevel}
         onUndoAction={onUndoAction}
         onUpdateTask={onUpdateTask}
         pendingAction={pendingAction}
+        taskLevelCompletedIdsByTask={taskLevelCompletedIdsByTask}
+        taskLevelsByTask={taskLevelsByTask}
         taskMembersByTask={taskMembersByTask}
         tasks={tasks}
       />

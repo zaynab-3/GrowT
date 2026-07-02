@@ -64,7 +64,7 @@ export function AppShell({
           </section>
         </div>
 
-        {message ? <p className="toast">{message}</p> : null}
+        {message ? <p className="toast" role="status">{message}</p> : null}
         {confirmDialog}
       </NotificationProvider>
     </main>

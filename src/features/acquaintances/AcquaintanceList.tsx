@@ -17,6 +17,7 @@ export function AcquaintanceList({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <div className="stitch-member-list">
+        {isBusy && !acquaintances.length ? <p className="stitch-empty-text">Loading connections...</p> : null}
         {acquaintances.map((acquaintance) => (
           <div className="stitch-member-row" key={acquaintance.relationship_id}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -36,7 +37,7 @@ export function AcquaintanceList({
             </button>
           </div>
         ))}
-        {!acquaintances.length ? <p className="stitch-empty-text">No acquaintances yet.</p> : null}
+        {!isBusy && !acquaintances.length ? <p className="stitch-empty-text">No acquaintances yet.</p> : null}
       </div>
     </div>
   )

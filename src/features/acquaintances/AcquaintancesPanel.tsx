@@ -28,7 +28,7 @@ export function AcquaintancesPanel() {
   const [requests, setRequests] = useState<AcquaintanceRequestItem[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<ProfileRelationshipSearchResult[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [isSearching, setIsSearching] = useState(false)
   const [pendingAction, setPendingAction] = useState<string | null>(null)
   const [message, setMessage] = useState('')
@@ -119,6 +119,13 @@ export function AcquaintancesPanel() {
     void authService.getUser().then(({ data }) => {
       if (isActive) {
         setCurrentUserId(data.user?.id ?? null)
+        if (!data.user) {
+          setIsLoading(false)
+        }
+      }
+    }).catch(() => {
+      if (isActive) {
+        setIsLoading(false)
       }
     })
 
@@ -398,7 +405,7 @@ export function AcquaintancesPanel() {
                 <Users size={18} className="text-primary" />
                 Connections
               </h3>
-              <span className="bg-primary-container text-on-primary-container px-3 py-1 rounded-full font-label-md text-label-md shadow-sm">{acquaintances.length}</span>
+              <span className="bg-primary-container text-on-primary-container px-3 py-1 rounded-full font-label-md text-label-md shadow-sm">{isLoading ? '...' : acquaintances.length}</span>
             </div>
             <div className="mt-4">
               <AcquaintanceList

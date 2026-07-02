@@ -1,8 +1,9 @@
-import type { FormEvent, ReactNode } from 'react'
+import { useState, type FormEvent, type ReactNode } from 'react'
 import {
   ArrowLeft,
   ArrowRight,
   AtSign,
+  Eye,
   EyeOff,
   LockKeyhole,
   Mail,
@@ -123,6 +124,23 @@ export function AuthPanel({
   resetConfirmPassword,
   resetPassword,
 }: AuthPanelProps) {
+  const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({})
+
+  function passwordToggle(fieldId: string, label: string) {
+    const isVisible = Boolean(visiblePasswords[fieldId])
+
+    return (
+      <button
+        aria-label={isVisible ? `Hide ${label}` : `Show ${label}`}
+        className="auth-password-toggle"
+        onClick={() => setVisiblePasswords((current) => ({ ...current, [fieldId]: !isVisible }))}
+        type="button"
+      >
+        {isVisible ? <EyeOff size={18} strokeWidth={2.1} /> : <Eye size={18} strokeWidth={2.1} />}
+      </button>
+    )
+  }
+
   if (authView === 'reset') {
     return (
       <main className="auth-page">
@@ -139,7 +157,8 @@ export function AuthPanel({
               label="New password"
               onChange={onResetPasswordChange}
               placeholder="New password"
-              type="password"
+              trailing={passwordToggle('reset-password', 'new password')}
+              type={visiblePasswords['reset-password'] ? 'text' : 'password'}
               value={resetPassword}
             />
             <AuthField
@@ -149,15 +168,16 @@ export function AuthPanel({
               label="Confirm password"
               onChange={onResetConfirmPasswordChange}
               placeholder="Confirm new password"
-              type="password"
+              trailing={passwordToggle('reset-confirm-password', 'confirm password')}
+              type={visiblePasswords['reset-confirm-password'] ? 'text' : 'password'}
               value={resetConfirmPassword}
             />
             <button className="button button--primary" disabled={authLoading} type="submit">
               {authLoading ? 'Updating…' : 'Update password'}
             </button>
           </form>
-          {message ? <p className="notice">{message}</p> : null}
         </section>
+        {message ? <p className="auth-toast" role="status">{message}</p> : null}
       </main>
     )
   }
@@ -206,7 +226,8 @@ export function AuthPanel({
                 label="Password"
                 onChange={onRegisterPasswordChange}
                 placeholder="Create a strong password"
-                type="password"
+                trailing={passwordToggle('register-password', 'password')}
+                type={visiblePasswords['register-password'] ? 'text' : 'password'}
                 value={registerPassword}
               />
               <AuthField
@@ -216,7 +237,8 @@ export function AuthPanel({
                 label="Confirm password"
                 onChange={onRegisterConfirmPasswordChange}
                 placeholder="Repeat your password"
-                type="password"
+                trailing={passwordToggle('register-confirm-password', 'confirm password')}
+                type={visiblePasswords['register-confirm-password'] ? 'text' : 'password'}
                 value={registerConfirmPassword}
               />
               <button className="button button--primary" disabled={authLoading} type="submit">
@@ -300,8 +322,8 @@ export function AuthPanel({
                 label=""
                 onChange={onLoginPasswordChange}
                 placeholder="********"
-                trailing={<EyeOff size={18} strokeWidth={2.1} />}
-                type="password"
+                trailing={passwordToggle('login-password', 'password')}
+                type={visiblePasswords['login-password'] ? 'text' : 'password'}
                 value={loginPassword}
               />
               <label className="checkbox-row" htmlFor="remember-me">
@@ -341,9 +363,8 @@ export function AuthPanel({
             </div>
           </>
         ) : null}
-
-        {message ? <p className="notice">{message}</p> : null}
       </section>
+      {message ? <p className="auth-toast" role="status">{message}</p> : null}
     </main>
   )
 }
