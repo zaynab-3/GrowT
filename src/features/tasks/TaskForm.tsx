@@ -9,12 +9,14 @@ export type TaskCreateValues = {
   checklistItems: string[]
   description: string | null
   descriptionMode: TaskDescriptionMode
+  hasExportButton: boolean
   title: string
   inviteUsernames?: string[]
 }
 
 type TaskFormProps = {
   defaultCategory: FolderCategory
+  forceExportButton?: boolean
   isSaving: boolean
   onCreate: (values: TaskCreateValues) => void
   showCategory?: boolean
@@ -23,6 +25,7 @@ type TaskFormProps = {
 
 export function TaskForm({
   defaultCategory,
+  forceExportButton = false,
   isSaving,
   onCreate,
   showCategory = false,
@@ -33,6 +36,7 @@ export function TaskForm({
   const [descriptionMode, setDescriptionMode] = useState<TaskDescriptionMode>('description')
   const [checklistItems, setChecklistItems] = useState<string[]>([''])
   const [category, setCategory] = useState<FolderCategory>(defaultCategory)
+  const [hasExportButton, setHasExportButton] = useState(false)
 
   useEffect(() => {
     setCategory(defaultCategory)
@@ -50,12 +54,14 @@ export function TaskForm({
       checklistItems: descriptionMode === 'checklist' ? normalizeChecklistItems(checklistItems) : [],
       description: descriptionMode === 'description' ? description.trim() || null : null,
       descriptionMode,
+      hasExportButton,
       title: title.trim(),
     })
     setTitle('')
     setDescription('')
     setDescriptionMode('description')
     setChecklistItems(getInitialChecklistItems([]))
+    setHasExportButton(false)
     setCategory(defaultCategory)
   }
 
@@ -97,6 +103,18 @@ export function TaskForm({
         onDescriptionChange={setDescription}
         onModeChange={setDescriptionMode}
       />
+
+      {!forceExportButton && (
+        <label className="checkbox-row" htmlFor="quick-task-export-button">
+          <input
+            checked={hasExportButton}
+            id="quick-task-export-button"
+            onChange={(event) => setHasExportButton(event.target.checked)}
+            type="checkbox"
+          />
+          Export video task
+        </label>
+      )}
     </form>
   )
 }

@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, Edit2, Trash2, Calendar, Archive } from 'lucide-react'
+import { CheckCircle2, ChevronDown, ChevronUp, Edit2, Trash2, Calendar, Archive, Upload } from 'lucide-react'
 import type { ReorderDirection, TaskProgressStatus } from '../../lib/database.types'
 import { formatDateTime, getCategoryLabel } from '../../lib/growtDisplay'
 import type { Task, TaskLevel, TaskMember, TaskStatusAction } from '../../lib/growtData'
@@ -18,6 +18,7 @@ type TaskCardProps = {
   contributions?: Record<TaskProgressStatus, StatusContribution[]>
   currentUserId: string
   editingTaskId: string | null
+  forceExportButton?: boolean
   folderOwnerId?: string
   getProfileAvatar: (userId: string) => string | null
   getProfileLabel: (userId: string) => string
@@ -31,6 +32,7 @@ type TaskCardProps = {
   onMoveTask: (task: Task, direction: ReorderDirection, scopedTaskIds?: string[]) => void
   onRemoveTaskMember?: (task: Task, userId: string) => void
   onSetTaskStatus: (taskId: string, status: TaskProgressStatus) => void
+  onSetTaskExported: (taskId: string, isExported?: boolean) => void
   onToggleTaskLevel: (taskId: string, taskLevelId: string, checked: boolean) => void
   onUndoAction: (action: TaskStatusAction) => void
   onUpdateTask: (taskId: string, values: TaskEditValues) => void
@@ -49,6 +51,7 @@ export function TaskCard({
   contributions,
   currentUserId,
   editingTaskId,
+  forceExportButton = false,
   folderOwnerId,
   getProfileAvatar,
   getProfileLabel,
@@ -60,6 +63,7 @@ export function TaskCard({
   onEditTask,
   onMoveTask,
   onRemoveTaskMember,
+  onSetTaskExported,
   onSetTaskStatus,
   onToggleTaskLevel,
   onUndoAction,
@@ -86,6 +90,7 @@ export function TaskCard({
 
   const isCompleted = !task.is_active || currentUserStatus === 'completed'
   const completedLevelIds = taskLevelCompletedIds ?? EMPTY_TASK_LEVEL_SET
+  const showExportButton = forceExportButton || task.has_export_button
 
   let lastActionToUndo: TaskStatusAction | null = null
   if (contributions) {
@@ -114,6 +119,7 @@ export function TaskCard({
           assignableMembers={assignableMembers}
           isSaving={isSaving}
           onCancel={onCloseEdit}
+          forceExportButton={forceExportButton}
           onSave={(values) => onUpdateTask(task.id, values)}
           task={task}
           taskLevels={taskLevels}
@@ -181,6 +187,26 @@ export function TaskCard({
               <span className={`px-3 py-1 rounded-full font-label-md text-[10px] uppercase tracking-wider ${task.category === 'shared' ? 'bg-secondary-fixed text-on-secondary-fixed' : task.category === 'work' ? 'bg-tertiary-fixed text-on-tertiary-fixed' : 'bg-primary-fixed text-on-primary-fixed'}`}>
                 {getCategoryLabel(task.category)}
               </span>
+              {showExportButton && (
+                <button
+                  className={`inline-flex min-h-6 items-center gap-1 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors ${
+                    task.is_exported
+                      ? 'border-emerald-500/60 bg-emerald-100 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-300'
+                      : 'border-violet-300 bg-white text-violet-700 hover:bg-violet-50 dark:border-violet-400/40 dark:bg-white/5 dark:text-violet-200 dark:hover:bg-violet-400/10'
+                  }`}
+                  disabled={pendingAction === `export:${task.id}`}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    if (!task.is_exported) {
+                      onSetTaskExported(task.id, true)
+                    }
+                  }}
+                  type="button"
+                >
+                  {task.is_exported ? <CheckCircle2 size={12} /> : <Upload size={12} />}
+                  {task.is_exported ? 'Exported' : 'Export'}
+                </button>
+              )}
               {!task.is_active && <span className="px-3 py-1 bg-surface-variant text-on-surface-variant rounded-full font-label-md text-[10px] uppercase tracking-wider">Inactive</span>}
               
             </div>

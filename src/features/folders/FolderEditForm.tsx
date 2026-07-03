@@ -5,6 +5,7 @@ import type { Folder } from '../../lib/growtData'
 
 export type FolderEditValues = {
   category: FolderCategory
+  containsExportVideos: boolean
   description: string | null
   dueDate: string | null
   isActive: boolean
@@ -22,6 +23,7 @@ export function FolderEditForm({ folder, isSaving, onCancel, onSave }: FolderEdi
   const [title, setTitle] = useState(folder.title)
   const [description, setDescription] = useState(folder.description ?? '')
   const [category, setCategory] = useState<FolderCategory>(folder.category)
+  const [containsExportVideos, setContainsExportVideos] = useState(folder.contains_export_videos)
   const [dueDate, setDueDate] = useState(formatDateInputValue(folder.due_date))
   const [isActive, setIsActive] = useState(folder.is_active)
 
@@ -29,6 +31,7 @@ export function FolderEditForm({ folder, isSaving, onCancel, onSave }: FolderEdi
     setTitle(folder.title)
     setDescription(folder.description ?? '')
     setCategory(folder.category)
+    setContainsExportVideos(folder.contains_export_videos)
     setDueDate(formatDateInputValue(folder.due_date))
     setIsActive(folder.is_active)
   }, [folder])
@@ -42,6 +45,7 @@ export function FolderEditForm({ folder, isSaving, onCancel, onSave }: FolderEdi
 
     onSave({
       category,
+      containsExportVideos,
       description: description.trim() || null,
       dueDate: dueDate || null,
       isActive,
@@ -98,6 +102,15 @@ export function FolderEditForm({ folder, isSaving, onCancel, onSave }: FolderEdi
           type="checkbox"
         />
         Active folder
+      </label>
+      <label className="checkbox-row" htmlFor="edit-folder-export-videos">
+        <input
+          checked={containsExportVideos}
+          id="edit-folder-export-videos"
+          onChange={(event) => setContainsExportVideos(event.target.checked)}
+          type="checkbox"
+        />
+        Contains export videos
       </label>
       <div className="form-actions">
         <button className="button button--secondary" disabled={isSaving} onClick={onCancel} type="button">

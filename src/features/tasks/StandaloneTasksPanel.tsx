@@ -32,6 +32,7 @@ type StandaloneTasksPanelProps = {
   onMoveTask: (task: Task, direction: ReorderDirection, scopedTaskIds?: string[]) => void
   onOpenTask: (task: Task) => void
   onRemoveTaskMember: (task: Task, userId: string) => void
+  onSetTaskExported: (taskId: string, isExported?: boolean) => void
   onSetTaskStatus: (taskId: string, status: TaskProgressStatus) => void
   onToggleTaskLevel: (taskId: string, taskLevelId: string, checked: boolean) => void
   onUndoAction: (action: TaskStatusAction) => void
@@ -63,6 +64,7 @@ export function StandaloneTasksPanel({
   onMoveTask,
   onOpenTask,
   onRemoveTaskMember,
+  onSetTaskExported,
   onSetTaskStatus,
   onToggleTaskLevel,
   onUndoAction,
@@ -107,6 +109,7 @@ export function StandaloneTasksPanel({
         onMoveTask={onMoveTask}
         onOpenTask={onOpenTask}
         onRemoveTaskMember={onRemoveTaskMember}
+        onSetTaskExported={onSetTaskExported}
         onSetTaskStatus={onSetTaskStatus}
         onToggleTaskLevel={onToggleTaskLevel}
         onUndoAction={onUndoAction}

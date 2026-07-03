@@ -21,8 +21,13 @@ export function listDeletedFolders() {
   return listDeletedFoldersWithClient(getSupabaseClient())
 }
 
-export function createFolder(title: string, description: string | null, category: FolderCategory) {
-  return createFolderWithClient(getSupabaseClient(), title, description, category)
+export function createFolder(
+  title: string,
+  description: string | null,
+  category: FolderCategory,
+  containsExportVideos: boolean,
+) {
+  return createFolderWithClient(getSupabaseClient(), title, description, category, containsExportVideos)
 }
 
 export function updateFolder(folder: {
@@ -30,6 +35,7 @@ export function updateFolder(folder: {
   title: string
   description: string | null
   category: FolderCategory
+  containsExportVideos: boolean
   dueDate: string | null
   isActive: boolean
 }) {

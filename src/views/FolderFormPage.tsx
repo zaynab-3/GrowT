@@ -14,6 +14,7 @@ import '../styles/components.css'
 type FolderFormPageProps = {
   // For new folder
   folderCategory?: FolderCategory
+  folderContainsExportVideos?: boolean
   folderDescription?: string
   folderTitle?: string
   isSaving: boolean
@@ -21,6 +22,7 @@ type FolderFormPageProps = {
   onBack: () => void
   onCreateFolder?: (event: FormEvent<HTMLFormElement>, inviteUsernames?: string[]) => void
   onFolderCategoryChange?: (category: FolderCategory) => void
+  onFolderContainsExportVideosChange?: (containsExportVideos: boolean) => void
   onFolderDescriptionChange?: (description: string) => void
   onFolderTitleChange?: (title: string) => void
   onUpdateFolder?: (values: FolderEditValues) => void
@@ -30,6 +32,7 @@ type FolderFormPageProps = {
 
 export function FolderFormPage({
   folderCategory,
+  folderContainsExportVideos,
   folderDescription,
   folderTitle,
   isSaving,
@@ -37,6 +40,7 @@ export function FolderFormPage({
   onBack,
   onCreateFolder,
   onFolderCategoryChange,
+  onFolderContainsExportVideosChange,
   onFolderDescriptionChange,
   onFolderTitleChange,
   onUpdateFolder,
@@ -46,6 +50,7 @@ export function FolderFormPage({
   const [editTitle, setEditTitle] = useState(folder?.title ?? '')
   const [editDesc, setEditDesc] = useState(folder?.description ?? '')
   const [editCategory, setEditCategory] = useState<FolderCategory>(folder?.category ?? 'personal')
+  const [editContainsExportVideos, setEditContainsExportVideos] = useState(folder?.contains_export_videos ?? false)
   const [editDueDate, setEditDueDate] = useState(formatDateInputValue(folder?.due_date ?? null))
   const [editIsActive, setEditIsActive] = useState(folder?.is_active ?? true)
   const [inviteUsernames, setInviteUsernames] = useState<string[]>([])
@@ -57,6 +62,7 @@ export function FolderFormPage({
     if (!editTitle.trim() || !onUpdateFolder) return
     onUpdateFolder({
       category: editCategory,
+      containsExportVideos: editContainsExportVideos,
       description: editDesc.trim() || null,
       dueDate: editDueDate || null,
       isActive: editIsActive,
@@ -139,6 +145,16 @@ export function FolderFormPage({
                     />
                   </div>
 
+                  <label className="checkbox-row" htmlFor="edit-folder-export-videos-page">
+                    <input
+                      checked={editContainsExportVideos}
+                      id="edit-folder-export-videos-page"
+                      onChange={(e) => setEditContainsExportVideos(e.target.checked)}
+                      type="checkbox"
+                    />
+                    Contains export videos
+                  </label>
+
                   <div className="form-field">
                     <label htmlFor="edit-folder-due-page">Due date</label>
                     <div className="date-input-wrapper">
@@ -210,6 +226,16 @@ export function FolderFormPage({
                       value={folderCategory ?? 'personal'}
                     />
                   </div>
+
+                  <label className="checkbox-row" htmlFor="new-folder-export-videos">
+                    <input
+                      checked={folderContainsExportVideos ?? false}
+                      id="new-folder-export-videos"
+                      onChange={(e) => onFolderContainsExportVideosChange?.(e.target.checked)}
+                      type="checkbox"
+                    />
+                    Contains export videos
+                  </label>
 
                   {(folderCategory === 'shared') && (
                     <div className="form-field mt-4 pt-4 border-t border-surface-variant/30">

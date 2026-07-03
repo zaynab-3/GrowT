@@ -338,11 +338,13 @@ export async function createFolder(
   title: string,
   description: string | null,
   category: FolderCategory,
+  containsExportVideos: boolean,
 ) {
   const { data, error } = await client.rpc('create_folder', {
     title,
     description,
     category,
+    contains_export_videos: containsExportVideos,
   } as unknown as FunctionArgs<'create_folder'>)
 
   if (error) {
@@ -359,6 +361,7 @@ export async function updateFolder(
     title: string
     description: string | null
     category: FolderCategory
+    containsExportVideos: boolean
     dueDate: string | null
     isActive: boolean
   },
@@ -370,6 +373,7 @@ export async function updateFolder(
     category: folder.category,
     due_date: folder.dueDate,
     is_active: folder.isActive,
+    contains_export_videos: folder.containsExportVideos,
   } as unknown as FunctionArgs<'update_folder'>)
 
   if (error) {
@@ -663,6 +667,7 @@ export async function createTask(
     title: string
     description: string | null
     category: FolderCategory | null
+    hasExportButton: boolean
   },
 ) {
   const { data, error } = await client.rpc('create_task', {
@@ -672,6 +677,7 @@ export async function createTask(
     category: task.category,
     assigned_user_id: null,
     due_date: null,
+    has_export_button: task.hasExportButton,
   } as unknown as FunctionArgs<'create_task'>)
 
   if (error) {
@@ -689,6 +695,7 @@ export async function createStandaloneTask(
     category: FolderCategory
     assignedUserId: string | null
     dueDate: string | null
+    hasExportButton: boolean
   },
 ) {
   const { data, error } = await client.rpc('create_standalone_task', {
@@ -697,6 +704,7 @@ export async function createStandaloneTask(
     category: task.category,
     assigned_user_id: task.assignedUserId,
     due_date: task.dueDate,
+    has_export_button: task.hasExportButton,
   } as unknown as FunctionArgs<'create_standalone_task'>)
 
   if (error) {
@@ -714,6 +722,7 @@ export async function updateTask(
     description: string | null
     category: FolderCategory
     dueDate: string | null
+    hasExportButton: boolean
     isActive: boolean
     assignedUserId: string | null
   },
@@ -726,6 +735,7 @@ export async function updateTask(
     due_date: task.dueDate,
     is_active: task.isActive,
     assigned_user_id: task.assignedUserId,
+    has_export_button: task.hasExportButton,
   } as unknown as FunctionArgs<'update_task'>)
 
   if (error) {
@@ -913,6 +923,23 @@ export async function setTaskProgress(
   }
 
   return data as unknown as TaskStatusAction
+}
+
+export async function setTaskExported(
+  client: GrowTClient,
+  taskId: string,
+  isExported = true,
+) {
+  const { data, error } = await client.rpc('set_task_exported', {
+    task_id: taskId,
+    is_exported: isExported,
+  } as unknown as FunctionArgs<'set_task_exported'>)
+
+  if (error) {
+    throw error
+  }
+
+  return data as unknown as Task
 }
 
 export async function undoLatestTaskProgress(

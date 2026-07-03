@@ -13,6 +13,7 @@ import {
   reorderTask as reorderTaskWithClient,
   removeTaskMember as removeTaskMemberWithClient,
   restoreTask as restoreTaskWithClient,
+  setTaskExported as setTaskExportedWithClient,
   setTaskProgress as setTaskProgressWithClient,
   softDeleteTask as softDeleteTaskWithClient,
   syncTaskLevels as syncTaskLevelsWithClient,
@@ -63,6 +64,7 @@ export function createTask(task: {
   title: string
   description: string | null
   category: FolderCategory | null
+  hasExportButton: boolean
 }) {
   return createTaskWithClient(getSupabaseClient(), task)
 }
@@ -73,6 +75,7 @@ export function createStandaloneTask(task: {
   category: FolderCategory
   assignedUserId: string | null
   dueDate: string | null
+  hasExportButton: boolean
 }) {
   return createStandaloneTaskWithClient(getSupabaseClient(), task)
 }
@@ -83,6 +86,7 @@ export function updateTask(task: {
   description: string | null
   category: FolderCategory
   dueDate: string | null
+  hasExportButton: boolean
   isActive: boolean
   assignedUserId: string | null
 }) {
@@ -111,6 +115,10 @@ export function reorderTask(taskId: string, direction: ReorderDirection, scopedT
 
 export function setTaskProgress(taskId: string, taskLevelId: string | null, status: TaskProgressStatus) {
   return setTaskProgressWithClient(getSupabaseClient(), taskId, taskLevelId, status)
+}
+
+export function setTaskExported(taskId: string, isExported = true) {
+  return setTaskExportedWithClient(getSupabaseClient(), taskId, isExported)
 }
 
 export function undoLatestTaskProgress(taskId: string, taskLevelId: string | null) {

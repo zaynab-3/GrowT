@@ -50,6 +50,7 @@ type FolderDetailPageProps = {
   onInviteMember: (event: FormEvent<HTMLFormElement>) => void
   onMemberUsernameChange: (username: string) => void
   onMoveTask: (task: Task, direction: ReorderDirection) => void
+  onSetTaskExported: (taskId: string, isExported?: boolean) => void
   onSetTaskStatus: (taskId: string, status: TaskProgressStatus) => void
   onToggleTaskLevel: (taskId: string, taskLevelId: string, checked: boolean) => void
   onUndoAction: (action: TaskStatusAction) => void
@@ -106,6 +107,7 @@ export function FolderDetailPage({
   onInviteMember,
   onMemberUsernameChange,
   onMoveTask,
+  onSetTaskExported,
   onSetTaskStatus,
   onToggleTaskLevel,
   onUndoAction,
@@ -184,6 +186,12 @@ export function FolderDetailPage({
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 dark:bg-white/10 dark:text-slate-300">
                   {folder.is_active ? 'Active' : 'Inactive'}
                 </span>
+
+                {folder.contains_export_videos && (
+                  <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-300">
+                    Export videos
+                  </span>
+                )}
               </div>
             </div>
 
@@ -380,6 +388,7 @@ export function FolderDetailPage({
             <div className="stitch-panel__body">
               <TaskForm
                 defaultCategory={folder.category as FolderCategory}
+                forceExportButton={folder.contains_export_videos}
                 isSaving={isSaving}
                 onCreate={onCreateFolderTask}
               />
@@ -405,6 +414,7 @@ export function FolderDetailPage({
                   editingTaskId={editingTaskId}
                   emptyMessage={normalizedSearchQuery ? 'No tasks match this search.' : 'Add your first task above.'}
                   folderOwnerId={folder.owner_id}
+                  forceExportButton={folder.contains_export_videos}
                   getProfileAvatar={getProfileAvatar}
                   getProfileLabel={getProfileLabel}
                   isSaving={isSaving}
@@ -412,6 +422,7 @@ export function FolderDetailPage({
                   onDeleteTask={onDeleteTask}
                   onEditTask={onEditTask}
                   onMoveTask={onMoveTask}
+                  onSetTaskExported={onSetTaskExported}
                   onSetTaskStatus={onSetTaskStatus}
                   onToggleTaskLevel={onToggleTaskLevel}
                   onUndoAction={onUndoAction}
@@ -514,6 +525,11 @@ export function FolderDetailPage({
                 <div className="stitch-detail-item">
                   <span className="stitch-detail-label">Status</span>
                   <strong className="stitch-detail-value">{folder.is_active ? 'Active' : 'Inactive'}</strong>
+                </div>
+
+                <div className="stitch-detail-item">
+                  <span className="stitch-detail-label">Exports</span>
+                  <strong className="stitch-detail-value">{folder.contains_export_videos ? 'Videos' : 'Optional'}</strong>
                 </div>
 
                 <div className="stitch-detail-item">

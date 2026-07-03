@@ -35,6 +35,7 @@ import {
   reorderTask,
   removeTaskMember,
   restoreTask,
+  setTaskExported,
   setTaskProgress,
   softDeleteTask,
   syncTaskLevels,
@@ -198,6 +199,7 @@ function App() {
   const [folderTitle, setFolderTitle] = useState('')
   const [folderDescription, setFolderDescription] = useState('')
   const [folderCategory, setFolderCategory] = useState<FolderCategory>('personal')
+  const [folderContainsExportVideos, setFolderContainsExportVideos] = useState(false)
   const [members, setMembers] = useState<FolderMember[]>([])
   const [memberUsername, setMemberUsername] = useState('')
   const [tasks, setTasks] = useState<Task[]>([])
@@ -1140,12 +1142,14 @@ function App() {
         folderTitle.trim(),
         folderDescription.trim() || null,
         folderCategory,
+        folderContainsExportVideos,
       )
       setFolders((current) => sortFolders(upsertById(current, folder)))
       setSelectedFolderId(folder.id)
       setFolderTitle('')
       setFolderDescription('')
       setFolderCategory('personal')
+      setFolderContainsExportVideos(false)
 
       if (route.name === 'folder-new') {
         navigateToRoute({ name: 'folder-detail', folderId: folder.id })
@@ -1190,6 +1194,7 @@ function App() {
         title: values.title,
         description: values.description,
         category: values.category,
+        containsExportVideos: values.containsExportVideos,
         dueDate: values.dueDate,
         isActive: values.isActive,
       })
@@ -1502,6 +1507,7 @@ function App() {
         title: values.title,
         description: values.description,
         category: values.category,
+        hasExportButton: values.hasExportButton,
       })
       const nextTaskLevels = await syncTaskLevels(
         task.id,
@@ -1554,6 +1560,7 @@ function App() {
         category: values.category,
         assignedUserId: null,
         dueDate: null,
+        hasExportButton: values.hasExportButton,
       })
       const nextTaskLevels = await syncTaskLevels(
         task.id,
@@ -1679,6 +1686,7 @@ function App() {
         description: values.description,
         category: values.category,
         dueDate: values.dueDate,
+        hasExportButton: values.hasExportButton,
         isActive: values.isActive,
         assignedUserId: values.assignedUserId,
       })
@@ -1761,6 +1769,32 @@ function App() {
     } catch (error) {
       console.error('Task status update failed', error)
       setMessage(error instanceof Error ? error.message : 'Unable to update task status.')
+    } finally {
+      setPendingAction(null)
+    }
+  }
+
+  async function handleSetTaskExported(taskId: string, isExported = true) {
+    if (!isSupabaseConfigured) {
+      return
+    }
+
+    setPendingAction(`export:${taskId}`)
+    setMessage('')
+
+    try {
+      const task = await setTaskExported(taskId, isExported)
+
+      if (task.folder_id) {
+        setTasks((current) => sortByPositionAndCreatedAt(upsertById(current, task)))
+      } else {
+        setStandaloneTasks((current) => sortByPositionAndCreatedAt(upsertById(current, task)))
+      }
+
+      await Promise.all([refreshLiveSessionRef.current(), refreshStandaloneTasks()])
+    } catch (error) {
+      console.error('Task export update failed', error)
+      setMessage(error instanceof Error ? error.message : 'Unable to update export status.')
     } finally {
       setPendingAction(null)
     }
@@ -1992,6 +2026,7 @@ function App() {
         editingTaskId={editingTaskId}
         filteredTasks={filteredTasks}
         folderCategory={folderCategory}
+        folderContainsExportVideos={folderContainsExportVideos}
         folderDescription={folderDescription}
         folderMemberUserIds={folderMemberUserIds}
         folderTitle={folderTitle}
@@ -2022,6 +2057,7 @@ function App() {
         onEditFolder={editFolderPage}
         onEditTask={editTaskPage}
         onFolderCategoryChange={setFolderCategory}
+        onFolderContainsExportVideosChange={setFolderContainsExportVideos}
         onFolderDescriptionChange={setFolderDescription}
         onFolderTitleChange={setFolderTitle}
         onHardDeleteFolder={handleHardDeleteFolder}
@@ -2043,6 +2079,7 @@ function App() {
         onRestoreTask={handleRestoreTask}
         onSaveProfile={handleUpdateProfile}
         onSelectFolder={setSelectedFolderId}
+        onSetTaskExported={(taskId, isExported) => void handleSetTaskExported(taskId, isExported)}
         onSetTaskStatus={(taskId, status) => void handleSetTaskStatus(taskId, status)}
         onToggleTaskLevel={(taskId, taskLevelId, checked) => void handleToggleTaskLevel(taskId, taskLevelId, checked)}
         onUndoAction={(action) => void handleUndoTaskStatus(action)}

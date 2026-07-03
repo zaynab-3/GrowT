@@ -12,6 +12,7 @@ export type TaskEditValues = {
   description: string | null
   descriptionMode: TaskDescriptionMode
   dueDate: string | null
+  hasExportButton: boolean
   isActive: boolean
   title: string
 }
@@ -23,6 +24,7 @@ type AssignableMember = {
 
 type TaskEditFormProps = {
   assignableMembers: AssignableMember[]
+  forceExportButton?: boolean
   isSaving: boolean
   onCancel: () => void
   onSave: (values: TaskEditValues) => void
@@ -32,6 +34,7 @@ type TaskEditFormProps = {
 
 export function TaskEditForm({
   assignableMembers,
+  forceExportButton = false,
   isSaving,
   onCancel,
   onSave,
@@ -48,6 +51,7 @@ export function TaskEditForm({
   )
   const [category, setCategory] = useState<FolderCategory>(task.category)
   const [dueDate, setDueDate] = useState(formatDateInputValue(task.due_date))
+  const [hasExportButton, setHasExportButton] = useState(task.has_export_button)
   const [isActive, setIsActive] = useState(task.is_active)
   const [assignedUserId, setAssignedUserId] = useState(task.assigned_user_id ?? '')
 
@@ -58,6 +62,7 @@ export function TaskEditForm({
     setChecklistItems(getInitialChecklistItems(taskLevels.map((level) => level.title ?? level.description ?? '')))
     setCategory(task.category)
     setDueDate(formatDateInputValue(task.due_date))
+    setHasExportButton(task.has_export_button)
     setIsActive(task.is_active)
     setAssignedUserId(task.assigned_user_id ?? '')
   }, [task, taskLevels])
@@ -76,6 +81,7 @@ export function TaskEditForm({
       description: descriptionMode === 'description' ? description.trim() || null : null,
       descriptionMode,
       dueDate: dueDate || null,
+      hasExportButton,
       isActive,
       title: title.trim(),
     })
@@ -152,6 +158,17 @@ export function TaskEditForm({
         />
         Active task
       </label>
+      {!forceExportButton && (
+        <label className="checkbox-row" htmlFor={`edit-task-export-${task.id}`}>
+          <input
+            checked={hasExportButton}
+            id={`edit-task-export-${task.id}`}
+            onChange={(event) => setHasExportButton(event.target.checked)}
+            type="checkbox"
+          />
+          Export video task
+        </label>
+      )}
       <div className="form-actions">
         <button className="button button--secondary" disabled={isSaving} onClick={onCancel} type="button">
           Cancel

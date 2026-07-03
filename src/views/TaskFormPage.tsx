@@ -24,6 +24,7 @@ type TaskFormPageProps = {
   assignableMembers: AssignableMember[]
   folderTitle?: string
   isSaving: boolean
+  forceExportButton?: boolean
   mode: 'create' | 'edit'
   onBack: () => void
   onCreateTask?: (values: TaskCreateValues) => void
@@ -38,6 +39,7 @@ export function TaskFormPage({
   assignableMembers,
   folderTitle,
   isSaving,
+  forceExportButton = false,
   mode,
   onBack,
   onCreateTask,
@@ -53,6 +55,7 @@ export function TaskFormPage({
   const [createDescMode, setCreateDescMode] = useState<TaskDescriptionMode>('description')
   const [createChecklistItems, setCreateChecklistItems] = useState<string[]>([''])
   const [createCategory, setCreateCategory] = useState<FolderCategory>(defaultCategory)
+  const [createHasExportButton, setCreateHasExportButton] = useState(false)
 
   // Edit mode
   const [editTitle, setEditTitle] = useState(task?.title ?? '')
@@ -63,6 +66,7 @@ export function TaskFormPage({
   )
   const [editCategory, setEditCategory] = useState<FolderCategory>(task?.category ?? defaultCategory)
   const [editDueDate, setEditDueDate] = useState(formatDateInputValue(task?.due_date ?? null))
+  const [editHasExportButton, setEditHasExportButton] = useState(task?.has_export_button ?? false)
   const [editIsActive, setEditIsActive] = useState(task?.is_active ?? true)
   const [editAssignedUserId, setEditAssignedUserId] = useState(task?.assigned_user_id ?? '')
   const [inviteUsernames, setInviteUsernames] = useState<string[]>([])
@@ -82,6 +86,7 @@ export function TaskFormPage({
     setEditChecklistItems(getInitialChecklistItems(taskLevels.map((level) => level.title ?? level.description ?? '')))
     setEditCategory(task.category)
     setEditDueDate(formatDateInputValue(task.due_date))
+    setEditHasExportButton(task.has_export_button)
     setEditIsActive(task.is_active)
     setEditAssignedUserId(task.assigned_user_id ?? '')
   }, [task, taskLevels])
@@ -94,6 +99,7 @@ export function TaskFormPage({
       checklistItems: createDescMode === 'checklist' ? normalizeChecklistItems(createChecklistItems) : [],
       description: createDescMode === 'description' ? createDesc.trim() || null : null,
       descriptionMode: createDescMode,
+      hasExportButton: createHasExportButton,
       title: createTitle.trim(),
       inviteUsernames: inviteUsernames.length > 0 ? inviteUsernames : undefined,
     })
@@ -101,6 +107,7 @@ export function TaskFormPage({
     setCreateDesc('')
     setCreateDescMode('description')
     setCreateChecklistItems([''])
+    setCreateHasExportButton(false)
     setInviteUsernames([])
     setInviteProfilesByUsername({})
   }
@@ -115,6 +122,7 @@ export function TaskFormPage({
       description: editDescMode === 'description' ? editDesc.trim() || null : null,
       descriptionMode: editDescMode,
       dueDate: editDueDate || null,
+      hasExportButton: editHasExportButton,
       isActive: editIsActive,
       title: editTitle.trim(),
     })
@@ -237,6 +245,18 @@ export function TaskFormPage({
                     />
                   </div>
 
+                  {!forceExportButton && (
+                    <label className="checkbox-row" htmlFor="edit-task-export-page">
+                      <input
+                        checked={editHasExportButton}
+                        id="edit-task-export-page"
+                        onChange={(e) => setEditHasExportButton(e.target.checked)}
+                        type="checkbox"
+                      />
+                      Export video task
+                    </label>
+                  )}
+
                   <div className="form-field">
                     <label htmlFor="edit-task-due-page">Due date</label>
                     <div className="date-input-wrapper">
@@ -354,6 +374,18 @@ export function TaskFormPage({
                       value={createCategory}
                     />
                   </div>
+
+                  {!forceExportButton && (
+                    <label className="checkbox-row" htmlFor="new-task-export">
+                      <input
+                        checked={createHasExportButton}
+                        id="new-task-export"
+                        onChange={(e) => setCreateHasExportButton(e.target.checked)}
+                        type="checkbox"
+                      />
+                      Export video task
+                    </label>
+                  )}
 
                   {createCategory === 'shared' && (
                     <div className="form-field mt-4 pt-4 border-t border-surface-variant/30">

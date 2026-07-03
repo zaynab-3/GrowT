@@ -13,6 +13,7 @@ export {
   reorderTask,
   removeTaskMember,
   restoreTask,
+  setTaskExported,
   setTaskProgress,
   softDeleteTask,
   syncTaskLevels,

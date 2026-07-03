@@ -1,4 +1,4 @@
-import { ArrowLeft, Edit2, Trash2, CheckCircle, Undo2, Link } from 'lucide-react'
+import { ArrowLeft, Edit2, Trash2, CheckCircle, Undo2, Link, Upload } from 'lucide-react'
 import { formatDateTime } from '../lib/growtDisplay'
 import type { TaskProgressStatus } from '../lib/database.types'
 import type { Task, TaskLevel, TaskMember, TaskStatusAction } from '../lib/growtData'
@@ -16,6 +16,7 @@ type TaskDetailPageProps = {
   contributions?: Record<TaskProgressStatus, StatusContribution[]>
   statusHistory?: TaskStatusContributions
   currentUserId: string
+  forceExportButton?: boolean
   folderOwnerId?: string
   getProfileAvatar: (userId: string) => string | null
   getProfileLabel: (userId: string) => string
@@ -26,6 +27,7 @@ type TaskDetailPageProps = {
   onDeleteTask: (task: Task) => void
   onEditTask: (taskId: string) => void
   onRemoveMember?: (task: Task, userId: string) => void
+  onSetTaskExported: (taskId: string, isExported?: boolean) => void
   onSetTaskStatus: (taskId: string, status: TaskProgressStatus) => void
   onToggleTaskLevel: (taskId: string, taskLevelId: string, checked: boolean) => void
   onUndoAction: (action: TaskStatusAction) => void
@@ -39,6 +41,7 @@ type TaskDetailPageProps = {
 export function TaskDetailPage({
   contributions,
   currentUserId,
+  forceExportButton = false,
   folderOwnerId,
   getProfileAvatar,
   getProfileLabel,
@@ -49,6 +52,7 @@ export function TaskDetailPage({
   onDeleteTask,
   onEditTask,
   onRemoveMember,
+  onSetTaskExported,
   onSetTaskStatus,
   onToggleTaskLevel,
   onUndoAction,
@@ -69,6 +73,7 @@ export function TaskDetailPage({
   }
 
   const isCompleted = !task.is_active || currentUserStatus === 'completed'
+  const showExportButton = forceExportButton || task.has_export_button
 
   const statusStyles: Record<TaskProgressStatus, string> = {
     ongoing: 'bg-[#e0f2fe] text-[#0369a1] border-[#bae6fd] hover:bg-[#bae6fd]',
@@ -102,6 +107,25 @@ export function TaskDetailPage({
             <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 800, textDecoration: isCompleted ? 'line-through' : 'none', opacity: isCompleted ? 0.7 : 1 }}>{task.title}</h1>
             <div style={{ display: 'flex', gap: '6px' }}>
               <span className="stitch-badge">{getCategoryLabel(task.category)}</span>
+              {showExportButton && (
+                <button
+                  className={`inline-flex min-h-6 items-center gap-1 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors ${
+                    task.is_exported
+                      ? 'border-emerald-500/60 bg-emerald-100 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-300'
+                      : 'border-violet-300 bg-white text-violet-700 hover:bg-violet-50 dark:border-violet-400/40 dark:bg-white/5 dark:text-violet-200 dark:hover:bg-violet-400/10'
+                  }`}
+                  disabled={pendingAction === `export:${task.id}`}
+                  onClick={() => {
+                    if (!task.is_exported) {
+                      onSetTaskExported(task.id, true)
+                    }
+                  }}
+                  type="button"
+                >
+                  {task.is_exported ? <CheckCircle size={12} /> : <Upload size={12} />}
+                  {task.is_exported ? 'Exported' : 'Export'}
+                </button>
+              )}
               {isCompleted && <span className="stitch-badge stitch-badge--inactive">Inactive</span>}
             </div>
           </div>
@@ -232,6 +256,12 @@ export function TaskDetailPage({
                 <div className="stitch-detail-item">
                   <span className="stitch-detail-label">Status</span>
                   <strong className="stitch-detail-value">{task.is_active ? 'Active' : 'Inactive'}</strong>
+                </div>
+                <div className="stitch-detail-item">
+                  <span className="stitch-detail-label">Export</span>
+                  <strong className="stitch-detail-value">
+                    {showExportButton ? (task.is_exported ? 'Exported' : 'Ready') : 'None'}
+                  </strong>
                 </div>
                 <div className="stitch-detail-item">
                   <span className="stitch-detail-label">Due Date</span>

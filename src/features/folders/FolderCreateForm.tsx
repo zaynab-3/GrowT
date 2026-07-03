@@ -4,6 +4,7 @@ import { categoryOptions } from '../../lib/growtDisplay'
 
 export type FolderCreateValues = {
   category: FolderCategory
+  containsExportVideos: boolean
   description: string | null
   title: string
   inviteUsernames?: string[]
@@ -11,22 +12,26 @@ export type FolderCreateValues = {
 
 type FolderCreateFormProps = {
   folderCategory: FolderCategory
+  folderContainsExportVideos: boolean
   folderDescription: string
   folderTitle: string
   isSaving: boolean
   onCreateFolder: (event: FormEvent<HTMLFormElement>) => void
   onFolderCategoryChange: (category: FolderCategory) => void
+  onFolderContainsExportVideosChange: (containsExportVideos: boolean) => void
   onFolderDescriptionChange: (description: string) => void
   onFolderTitleChange: (title: string) => void
 }
 
 export function FolderCreateForm({
   folderCategory,
+  folderContainsExportVideos,
   folderDescription,
   folderTitle,
   isSaving,
   onCreateFolder,
   onFolderCategoryChange,
+  onFolderContainsExportVideosChange,
   onFolderDescriptionChange,
   onFolderTitleChange,
 }: FolderCreateFormProps) {
@@ -57,6 +62,15 @@ export function FolderCreateForm({
           </option>
         ))}
       </select>
+      <label className="checkbox-row" htmlFor="folder-export-videos">
+        <input
+          checked={folderContainsExportVideos}
+          id="folder-export-videos"
+          onChange={(event) => onFolderContainsExportVideosChange(event.target.checked)}
+          type="checkbox"
+        />
+        Contains export videos
+      </label>
       <button className="button button--primary" disabled={isSaving} type="submit">
         Create folder
       </button>

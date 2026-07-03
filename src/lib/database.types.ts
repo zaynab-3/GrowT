@@ -147,6 +147,7 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           description: string | null
+          contains_export_videos: boolean
           due_date: string | null
           id: string
           is_active: boolean
@@ -161,6 +162,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           description?: string | null
+          contains_export_videos?: boolean
           due_date?: string | null
           id?: string
           is_active?: boolean
@@ -175,6 +177,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           description?: string | null
+          contains_export_videos?: boolean
           due_date?: string | null
           id?: string
           is_active?: boolean
@@ -594,8 +597,10 @@ export type Database = {
           description: string | null
           due_date: string | null
           folder_id: string | null
+          has_export_button: boolean
           id: string
           is_active: boolean
+          is_exported: boolean
           owner_id: string
           position: number
           title: string
@@ -609,8 +614,10 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           folder_id?: string | null
+          has_export_button?: boolean
           id?: string
           is_active?: boolean
+          is_exported?: boolean
           owner_id: string
           position?: number
           title: string
@@ -624,8 +631,10 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           folder_id?: string | null
+          has_export_button?: boolean
           id?: string
           is_active?: boolean
+          is_exported?: boolean
           owner_id?: string
           position?: number
           title?: string
@@ -727,9 +736,10 @@ export type Database = {
         }
       }
       create_folder: {
-        Args: { category: string; description: string; title: string }
+        Args: { category: string; contains_export_videos?: boolean; description: string; title: string }
         Returns: {
           category: string
+          contains_export_videos: boolean
           created_at: string
           deleted_at: string | null
           description: string | null
@@ -755,6 +765,7 @@ export type Database = {
           category?: string
           description?: string
           due_date?: string
+          has_export_button?: boolean
           title: string
         }
         Returns: {
@@ -765,8 +776,10 @@ export type Database = {
           description: string | null
           due_date: string | null
           folder_id: string | null
+          has_export_button: boolean
           id: string
           is_active: boolean
+          is_exported: boolean
           owner_id: string
           position: number
           title: string
@@ -786,6 +799,7 @@ export type Database = {
           description?: string
           due_date?: string
           folder_id: string
+          has_export_button?: boolean
           title: string
         }
         Returns: {
@@ -796,8 +810,10 @@ export type Database = {
           description: string | null
           due_date: string | null
           folder_id: string | null
+          has_export_button: boolean
           id: string
           is_active: boolean
+          is_exported: boolean
           owner_id: string
           position: number
           title: string
@@ -843,6 +859,7 @@ export type Database = {
         Args: never
         Returns: {
           category: string
+          contains_export_videos: boolean
           created_at: string
           deleted_at: string | null
           description: string | null
@@ -872,8 +889,10 @@ export type Database = {
           description: string | null
           due_date: string | null
           folder_id: string | null
+          has_export_button: boolean
           id: string
           is_active: boolean
+          is_exported: boolean
           owner_id: string
           position: number
           title: string
@@ -896,8 +915,10 @@ export type Database = {
           description: string | null
           due_date: string | null
           folder_id: string | null
+          has_export_button: boolean
           id: string
           is_active: boolean
+          is_exported: boolean
           owner_id: string
           position: number
           title: string
@@ -920,8 +941,10 @@ export type Database = {
           description: string | null
           due_date: string | null
           folder_id: string | null
+          has_export_button: boolean
           id: string
           is_active: boolean
+          is_exported: boolean
           owner_id: string
           position: number
           title: string
@@ -962,8 +985,10 @@ export type Database = {
           description: string | null
           due_date: string | null
           folder_id: string | null
+          has_export_button: boolean
           id: string
           is_active: boolean
+          is_exported: boolean
           owner_id: string
           position: number
           title: string
@@ -1016,6 +1041,7 @@ export type Database = {
         Args: { direction: string; folder_id: string }
         Returns: {
           category: string
+          contains_export_videos: boolean
           created_at: string
           deleted_at: string | null
           description: string | null
@@ -1045,8 +1071,10 @@ export type Database = {
           description: string | null
           due_date: string | null
           folder_id: string | null
+          has_export_button: boolean
           id: string
           is_active: boolean
+          is_exported: boolean
           owner_id: string
           position: number
           title: string
@@ -1064,6 +1092,7 @@ export type Database = {
         Args: { folder_id: string }
         Returns: {
           category: string
+          contains_export_videos: boolean
           created_at: string
           deleted_at: string | null
           description: string | null
@@ -1093,8 +1122,10 @@ export type Database = {
           description: string | null
           due_date: string | null
           folder_id: string | null
+          has_export_button: boolean
           id: string
           is_active: boolean
+          is_exported: boolean
           owner_id: string
           position: number
           title: string
@@ -1170,6 +1201,7 @@ export type Database = {
         Args: { folder_id: string }
         Returns: {
           category: string
+          contains_export_videos: boolean
           created_at: string
           deleted_at: string | null
           description: string | null
@@ -1199,8 +1231,10 @@ export type Database = {
           description: string | null
           due_date: string | null
           folder_id: string | null
+          has_export_button: boolean
           id: string
           is_active: boolean
+          is_exported: boolean
           owner_id: string
           position: number
           title: string
@@ -1258,6 +1292,7 @@ export type Database = {
       update_folder: {
         Args: {
           category?: string
+          contains_export_videos?: boolean
           description?: string
           due_date?: string
           folder_id: string
@@ -1266,6 +1301,7 @@ export type Database = {
         }
         Returns: {
           category: string
+          contains_export_videos: boolean
           created_at: string
           deleted_at: string | null
           description: string | null
@@ -1291,6 +1327,7 @@ export type Database = {
           category?: string
           description?: string
           due_date?: string
+          has_export_button?: boolean
           is_active?: boolean
           task_id: string
           title: string
@@ -1303,8 +1340,36 @@ export type Database = {
           description: string | null
           due_date: string | null
           folder_id: string | null
+          has_export_button: boolean
           id: string
           is_active: boolean
+          is_exported: boolean
+          owner_id: string
+          position: number
+          title: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "tasks"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      set_task_exported: {
+        Args: { is_exported?: boolean; task_id: string }
+        Returns: {
+          assigned_user_id: string | null
+          category: string
+          created_at: string
+          deleted_at: string | null
+          description: string | null
+          due_date: string | null
+          folder_id: string | null
+          has_export_button: boolean
+          id: string
+          is_active: boolean
+          is_exported: boolean
           owner_id: string
           position: number
           title: string

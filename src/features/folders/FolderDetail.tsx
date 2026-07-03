@@ -46,6 +46,7 @@ type FolderDetailProps = {
   onInviteMember: (event: FormEvent<HTMLFormElement>) => void
   onMemberUsernameChange: (username: string) => void
   onMoveTask: (task: Task, direction: ReorderDirection, scopedTaskIds?: string[]) => void
+  onSetTaskExported: (taskId: string, isExported?: boolean) => void
   onSetTaskStatus: (taskId: string, status: TaskProgressStatus) => void
   onToggleTaskLevel?: (taskId: string, taskLevelId: string, checked: boolean) => void
   onToggleFolderEdit: () => void
@@ -87,6 +88,7 @@ export function FolderDetail({
   onInviteMember,
   onMemberUsernameChange,
   onMoveTask,
+  onSetTaskExported,
   onSetTaskStatus,
   onToggleTaskLevel = () => undefined,
   onToggleFolderEdit,
@@ -235,6 +237,7 @@ export function FolderDetail({
               
               <TaskForm
                 defaultCategory={activeFolder.category as FolderCategory}
+                forceExportButton={activeFolder.contains_export_videos}
                 isSaving={isSaving}
                 onCreate={onCreateFolderTask}
               />
@@ -248,6 +251,7 @@ export function FolderDetail({
                   normalizedSearchQuery ? 'No tasks match this search.' : 'Add a task to start the live session.'
                 }
                 folderOwnerId={activeFolder.owner_id}
+                forceExportButton={activeFolder.contains_export_videos}
                 getProfileAvatar={getProfileAvatar}
                 getProfileLabel={getProfileLabel}
                 isSaving={isSaving}
@@ -255,6 +259,7 @@ export function FolderDetail({
                 onDeleteTask={onDeleteTask}
                 onEditTask={onEditTask}
                 onMoveTask={onMoveTask}
+                onSetTaskExported={onSetTaskExported}
                 onSetTaskStatus={onSetTaskStatus}
                 onToggleTaskLevel={onToggleTaskLevel}
                 onUndoAction={onUndoAction}

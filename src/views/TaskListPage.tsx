@@ -28,6 +28,7 @@ type TaskListPageProps = {
   onOpenTask: (task: Task) => void
   onRemoveTaskMember: (task: Task, userId: string) => void
   onAddTaskMember: (task: Task, username: string) => void
+  onSetTaskExported: (taskId: string, isExported?: boolean) => void
   onSetTaskStatus: (taskId: string, status: TaskProgressStatus) => void
   onToggleTaskLevel: (taskId: string, taskLevelId: string, checked: boolean) => void
   onUndoAction: (action: TaskStatusAction) => void
@@ -57,6 +58,7 @@ export function TaskListPage({
   onOpenTask,
   onRemoveTaskMember,
   onAddTaskMember,
+  onSetTaskExported,
   onSetTaskStatus,
   onToggleTaskLevel,
   onUndoAction,
@@ -166,6 +168,7 @@ export function TaskListPage({
                   onMoveTask={onMoveTask}
                   onOpenTask={onOpenTask}
                   onRemoveTaskMember={onRemoveTaskMember}
+                  onSetTaskExported={onSetTaskExported}
                   onSetTaskStatus={onSetTaskStatus}
                   onToggleTaskLevel={onToggleTaskLevel}
                   onUndoAction={onUndoAction}

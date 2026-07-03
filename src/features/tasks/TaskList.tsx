@@ -22,6 +22,7 @@ type TaskListProps = {
   currentUserId: string
   editingTaskId: string | null
   emptyMessage: string
+  forceExportButton?: boolean
   folderOwnerId?: string
   getProfileAvatar: (userId: string) => string | null
   getProfileLabel: (userId: string) => string
@@ -33,6 +34,7 @@ type TaskListProps = {
   onMoveTask: (task: Task, direction: ReorderDirection, scopedTaskIds?: string[]) => void
   onOpenTask?: (task: Task) => void
   onRemoveTaskMember?: (task: Task, userId: string) => void
+  onSetTaskExported: (taskId: string, isExported?: boolean) => void
   onSetTaskStatus: (taskId: string, status: TaskProgressStatus) => void
   onToggleTaskLevel: (taskId: string, taskLevelId: string, checked: boolean) => void
   onUndoAction: (action: TaskStatusAction) => void
@@ -51,6 +53,7 @@ export function TaskList({
   currentUserId,
   editingTaskId,
   emptyMessage,
+  forceExportButton = false,
   folderOwnerId,
   getProfileAvatar,
   getProfileLabel,
@@ -62,6 +65,7 @@ export function TaskList({
   onMoveTask,
   onOpenTask,
   onRemoveTaskMember,
+  onSetTaskExported,
   onSetTaskStatus,
   onToggleTaskLevel,
   onUndoAction,
@@ -85,6 +89,7 @@ export function TaskList({
           contributions={contributionsByTask.get(task.id)}
           currentUserId={currentUserId}
           editingTaskId={editingTaskId}
+          forceExportButton={forceExportButton}
           folderOwnerId={folderOwnerId}
           getProfileAvatar={getProfileAvatar}
           getProfileLabel={getProfileLabel}
@@ -99,6 +104,7 @@ export function TaskList({
           onMoveTask={onMoveTask}
           onOpenTask={onOpenTask}
           onRemoveTaskMember={onRemoveTaskMember}
+          onSetTaskExported={onSetTaskExported}
           onSetTaskStatus={onSetTaskStatus}
           onToggleTaskLevel={onToggleTaskLevel}
           onUndoAction={onUndoAction}

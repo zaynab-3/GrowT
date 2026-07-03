@@ -41,6 +41,7 @@ type AppViewRouterProps = {
   editingTaskId: string | null
   filteredTasks: Task[]
   folderCategory: FolderCategory
+  folderContainsExportVideos: boolean
   folderDescription: string
   folderMemberUserIds: string[]
   folderTitle: string
@@ -68,6 +69,7 @@ type AppViewRouterProps = {
   onEditFolder: (folderId: string) => void
   onEditTask: (taskId: string) => void
   onFolderCategoryChange: (category: FolderCategory) => void
+  onFolderContainsExportVideosChange: (containsExportVideos: boolean) => void
   onFolderDescriptionChange: (description: string) => void
   onFolderTitleChange: (title: string) => void
   onInviteMember: (event: FormEvent<HTMLFormElement>) => void
@@ -87,6 +89,7 @@ type AppViewRouterProps = {
   onRestoreTask: (task: Task) => void
   onSaveProfile: (event: FormEvent<HTMLFormElement>) => void
   onSelectFolder: (folderId: string) => void
+  onSetTaskExported: (taskId: string, isExported?: boolean) => void
   onSetTaskStatus: (taskId: string, status: TaskProgressStatus) => void
   onToggleTaskLevel: (taskId: string, taskLevelId: string, checked: boolean) => void
   onUndoAction: (action: TaskStatusAction) => void
@@ -171,6 +174,7 @@ export function AppViewRouter({
   editingTaskId,
   filteredTasks,
   folderCategory,
+  folderContainsExportVideos,
   folderDescription,
   folderMemberUserIds,
   folderTitle,
@@ -197,6 +201,7 @@ export function AppViewRouter({
   onEditFolder,
   onEditTask,
   onFolderCategoryChange,
+  onFolderContainsExportVideosChange,
   onFolderDescriptionChange,
   onFolderTitleChange,
   onInviteMember,
@@ -215,6 +220,7 @@ export function AppViewRouter({
   onRestoreFolder,
   onRestoreTask,
   onSaveProfile,
+  onSetTaskExported,
   onSetTaskStatus,
   onToggleTaskLevel,
   onUndoAction,
@@ -256,6 +262,7 @@ export function AppViewRouter({
       return (
         <FolderFormPage
           folderCategory={folderCategory}
+          folderContainsExportVideos={folderContainsExportVideos}
           folderDescription={folderDescription}
           folderTitle={folderTitle}
           isSaving={isSaving}
@@ -263,6 +270,7 @@ export function AppViewRouter({
           onBack={() => onNavigate('folders')}
           onCreateFolder={onCreateFolder}
           onFolderCategoryChange={onFolderCategoryChange}
+          onFolderContainsExportVideosChange={onFolderContainsExportVideosChange}
           onFolderDescriptionChange={onFolderDescriptionChange}
           onFolderTitleChange={onFolderTitleChange}
         />
@@ -295,6 +303,7 @@ export function AppViewRouter({
           onInviteMember={onInviteMember}
           onMemberUsernameChange={onMemberUsernameChange}
           onMoveTask={onMoveTask}
+          onSetTaskExported={onSetTaskExported}
           onSetTaskStatus={onSetTaskStatus}
           onToggleTaskLevel={onToggleTaskLevel}
           onUndoAction={onUndoAction}
@@ -362,6 +371,8 @@ export function AppViewRouter({
           onDeleteTask={onDeleteTask}
           onEditTask={onEditTask}
           onRemoveMember={onRemoveTaskMember}
+          forceExportButton={activeFolder?.contains_export_videos ?? false}
+          onSetTaskExported={onSetTaskExported}
           onSetTaskStatus={onSetTaskStatus}
           onToggleTaskLevel={onToggleTaskLevel}
           onUndoAction={onUndoAction}
@@ -394,6 +405,7 @@ export function AppViewRouter({
         <TaskFormPage
           assignableMembers={route.folderId ? assignableMembers : standaloneAssignableMembers}
           defaultCategory={activeFolder?.category ?? 'personal'}
+          forceExportButton={activeFolder?.contains_export_videos ?? false}
           folderTitle={activeFolder?.title}
           isSaving={isSaving}
           mode="create"
@@ -426,6 +438,7 @@ export function AppViewRouter({
         <TaskFormPage
           assignableMembers={taskAssignableMembers}
           folderTitle={activeFolder?.title}
+          forceExportButton={activeFolder?.contains_export_videos ?? false}
           isSaving={isSaving}
           mode="edit"
           onBack={() => route.folderId ? onNavigate('folders') : onNavigate('tasks')}
@@ -516,6 +529,7 @@ export function AppViewRouter({
           onMoveTask={onMoveTask}
           onOpenTask={onOpenTask}
           onRemoveTaskMember={onRemoveTaskMember}
+          onSetTaskExported={onSetTaskExported}
           onSetTaskStatus={onSetTaskStatus}
           onToggleTaskLevel={onToggleTaskLevel}
           onUndoAction={onUndoAction}
