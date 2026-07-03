@@ -115,10 +115,9 @@ export function TaskDetailPage({
                       : 'border-violet-300 bg-white text-violet-700 hover:bg-violet-50 dark:border-violet-400/40 dark:bg-white/5 dark:text-violet-200 dark:hover:bg-violet-400/10'
                   }`}
                   disabled={pendingAction === `export:${task.id}`}
+                  title={task.is_exported ? 'Mark as not exported' : 'Mark as exported'}
                   onClick={() => {
-                    if (!task.is_exported) {
-                      onSetTaskExported(task.id, true)
-                    }
+                    onSetTaskExported(task.id, !task.is_exported)
                   }}
                   type="button"
                 >
