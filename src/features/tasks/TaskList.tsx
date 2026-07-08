@@ -1,5 +1,6 @@
 import type { ReorderDirection, TaskProgressStatus } from '../../lib/database.types'
 import type { Task, TaskLevel, TaskMember, TaskStatusAction } from '../../lib/growtData'
+import type { RecipientReport } from '../../lib/recipient'
 import { EmptyState } from '../../components/EmptyState'
 import { TaskCard } from './TaskCard'
 import type { TaskEditValues } from './TaskEditForm'
@@ -40,6 +41,7 @@ type TaskListProps = {
   onUndoAction: (action: TaskStatusAction) => void
   onUpdateTask: (taskId: string, values: TaskEditValues) => void
   pendingAction: string | null
+  recipientReportsByTask?: Map<string, RecipientReport>
   statusHistoryByTask?: Map<string, Record<TaskProgressStatus, StatusContribution[]>>
   taskLevelCompletedIdsByTask?: Map<string, Set<string>>
   taskLevelsByTask?: Map<string, TaskLevel[]>
@@ -71,6 +73,7 @@ export function TaskList({
   onUndoAction,
   onUpdateTask,
   pendingAction,
+  recipientReportsByTask,
   statusHistoryByTask,
   taskLevelCompletedIdsByTask,
   taskLevelsByTask,
@@ -110,6 +113,7 @@ export function TaskList({
           onUndoAction={onUndoAction}
           onUpdateTask={onUpdateTask}
           pendingAction={pendingAction}
+          recipientReport={recipientReportsByTask?.get(task.id)}
           scopedTaskIds={reorderableTaskIds}
           statusHistory={statusHistoryByTask?.get(task.id)}
           task={task}

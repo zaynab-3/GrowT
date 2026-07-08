@@ -2,6 +2,7 @@ import { Plus, CheckSquare } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import type { ReorderDirection, TaskProgressStatus } from '../lib/database.types'
 import type { Folder as _Folder, Task, TaskLevel, TaskMember, TaskStatusAction } from '../lib/growtData'
+import type { RecipientReport } from '../lib/recipient'
 import '../features/tasks/Tasks.css'
 import { TaskCard } from '../features/tasks/TaskCard'
 import type { TaskEditValues } from '../features/tasks/TaskEditForm'
@@ -34,6 +35,7 @@ type TaskListPageProps = {
   onUndoAction: (action: TaskStatusAction) => void
   onUpdateTask: (taskId: string, values: TaskEditValues) => void
   pendingAction: string | null
+  recipientReportsByTask: Map<string, RecipientReport>
   standaloneTasks: Task[]
   statusHistoryByTask: Map<string, Record<TaskProgressStatus, StatusContribution[]>>
   taskLevelCompletedIdsByTask: Map<string, Set<string>>
@@ -64,6 +66,7 @@ export function TaskListPage({
   onUndoAction,
   onUpdateTask,
   pendingAction,
+  recipientReportsByTask,
   standaloneTasks,
   statusHistoryByTask,
   taskLevelCompletedIdsByTask,
@@ -174,6 +177,7 @@ export function TaskListPage({
                   onUndoAction={onUndoAction}
                   onUpdateTask={onUpdateTask}
                   pendingAction={pendingAction}
+                  recipientReport={recipientReportsByTask.get(task.id)}
                   scopedTaskIds={reorderableIds}
                   statusHistory={statusHistoryByTask.get(task.id)}
                   task={task}

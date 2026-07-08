@@ -65,6 +65,7 @@ export function createTask(task: {
   description: string | null
   category: FolderCategory | null
   hasExportButton: boolean
+  recipientAmount?: number | null
 }) {
   return createTaskWithClient(getSupabaseClient(), task)
 }
@@ -76,6 +77,7 @@ export function createStandaloneTask(task: {
   assignedUserId: string | null
   dueDate: string | null
   hasExportButton: boolean
+  recipientAmount: number
 }) {
   return createStandaloneTaskWithClient(getSupabaseClient(), task)
 }
@@ -89,6 +91,7 @@ export function updateTask(task: {
   hasExportButton: boolean
   isActive: boolean
   assignedUserId: string | null
+  recipientAmount?: number | null
 }) {
   return updateTaskWithClient(getSupabaseClient(), task)
 }

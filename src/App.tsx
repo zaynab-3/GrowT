@@ -53,6 +53,7 @@ import {
   isSharedFolder,
   normalizeUsername,
 } from './lib/growtDisplay'
+import { parseRecipientAmount } from './lib/recipient'
 import { defaultAvatarChoice, defaultColorPalette, defaultThemeMode, getAvatarSrc, isThemeMode, resolveThemeMode } from './lib/appearance'
 import {
   getPasswordError,
@@ -200,6 +201,7 @@ function App() {
   const [folderDescription, setFolderDescription] = useState('')
   const [folderCategory, setFolderCategory] = useState<FolderCategory>('personal')
   const [folderContainsExportVideos, setFolderContainsExportVideos] = useState(false)
+  const [folderRecipientTaskAmount, setFolderRecipientTaskAmount] = useState('')
   const [members, setMembers] = useState<FolderMember[]>([])
   const [memberUsername, setMemberUsername] = useState('')
   const [tasks, setTasks] = useState<Task[]>([])
@@ -387,6 +389,8 @@ function App() {
     getProfileAvatar,
     getProfileLabel,
     normalizedSearchQuery,
+    recipientReportsByFolder,
+    recipientReportsByTask,
     standaloneAssignableMembers,
     statusTotals,
     statusHistoryByTask,
@@ -1143,6 +1147,7 @@ function App() {
         folderDescription.trim() || null,
         folderCategory,
         folderContainsExportVideos,
+        parseRecipientAmount(folderRecipientTaskAmount),
       )
       setFolders((current) => sortFolders(upsertById(current, folder)))
       setSelectedFolderId(folder.id)
@@ -1150,6 +1155,7 @@ function App() {
       setFolderDescription('')
       setFolderCategory('personal')
       setFolderContainsExportVideos(false)
+      setFolderRecipientTaskAmount('')
 
       if (route.name === 'folder-new') {
         navigateToRoute({ name: 'folder-detail', folderId: folder.id })
@@ -1197,6 +1203,7 @@ function App() {
         containsExportVideos: values.containsExportVideos,
         dueDate: values.dueDate,
         isActive: values.isActive,
+        recipientTaskAmount: values.recipientTaskAmount,
       })
 
       setFolders((current) => sortFolders(upsertById(current, folder)))
@@ -1508,6 +1515,7 @@ function App() {
         description: values.description,
         category: values.category,
         hasExportButton: values.hasExportButton,
+        recipientAmount: activeFolder.owner_id === user.id ? values.recipientAmount : null,
       })
       const nextTaskLevels = await syncTaskLevels(
         task.id,
@@ -1561,6 +1569,7 @@ function App() {
         assignedUserId: null,
         dueDate: null,
         hasExportButton: values.hasExportButton,
+        recipientAmount: values.recipientAmount,
       })
       const nextTaskLevels = await syncTaskLevels(
         task.id,
@@ -1676,6 +1685,12 @@ function App() {
       return
     }
 
+    const knownTask = findKnownTask(taskId)
+    const owningFolder = knownTask?.folder_id
+      ? folders.find((folder) => folder.id === knownTask.folder_id)
+      : null
+    const canEditRecipientAmount = !knownTask?.folder_id || owningFolder?.owner_id === user?.id
+
     setSaving(true)
     setMessage('')
 
@@ -1689,6 +1704,7 @@ function App() {
         hasExportButton: values.hasExportButton,
         isActive: values.isActive,
         assignedUserId: values.assignedUserId,
+        recipientAmount: canEditRecipientAmount ? values.recipientAmount : null,
       })
       const nextTaskLevels = await syncTaskLevels(
         task.id,
@@ -2029,6 +2045,7 @@ function App() {
         folderContainsExportVideos={folderContainsExportVideos}
         folderDescription={folderDescription}
         folderMemberUserIds={folderMemberUserIds}
+        folderRecipientTaskAmount={folderRecipientTaskAmount}
         folderTitle={folderTitle}
         folders={folders}
         getContributionCounts={getContributionCounts}
@@ -2059,6 +2076,7 @@ function App() {
         onFolderCategoryChange={setFolderCategory}
         onFolderContainsExportVideosChange={setFolderContainsExportVideos}
         onFolderDescriptionChange={setFolderDescription}
+        onFolderRecipientTaskAmountChange={setFolderRecipientTaskAmount}
         onFolderTitleChange={setFolderTitle}
         onHardDeleteFolder={handleHardDeleteFolder}
         onHardDeleteTask={handleHardDeleteTask}
@@ -2092,6 +2110,8 @@ function App() {
         profileThemeMode={profileThemeMode}
         profileUsername={profileUsername}
         realtimeLabel={realtimeStatus}
+        recipientReportsByFolder={recipientReportsByFolder}
+        recipientReportsByTask={recipientReportsByTask}
         route={route}
         sharedFolders={sharedFolders}
         sharedStandaloneTasks={sharedStandaloneTasks}

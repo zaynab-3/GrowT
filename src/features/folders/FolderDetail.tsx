@@ -236,7 +236,9 @@ export function FolderDetail({
               </div>
               
               <TaskForm
+                canEditRecipientAmount={activeFolder.owner_id === currentUserId}
                 defaultCategory={activeFolder.category as FolderCategory}
+                defaultRecipientAmount={activeFolder.recipient_task_amount ?? 0}
                 forceExportButton={activeFolder.contains_export_videos}
                 isSaving={isSaving}
                 onCreate={onCreateFolderTask}

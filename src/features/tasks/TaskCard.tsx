@@ -1,13 +1,16 @@
-import { CheckCircle2, ChevronDown, ChevronUp, Edit2, Trash2, Calendar, Archive, Upload } from 'lucide-react'
+import { useState, type MouseEvent } from 'react'
+import { CheckCircle2, ChevronDown, ChevronUp, Edit2, Trash2, Calendar, Archive, Upload, ReceiptText } from 'lucide-react'
 import type { ReorderDirection, TaskProgressStatus } from '../../lib/database.types'
 import { formatDateTime, getCategoryLabel } from '../../lib/growtDisplay'
 import type { Task, TaskLevel, TaskMember, TaskStatusAction } from '../../lib/growtData'
+import { formatCurrency, type RecipientReport } from '../../lib/recipient'
 import { TaskEditForm, type TaskEditValues } from './TaskEditForm'
 import { SwipeActions } from '../../components/SwipeActions'
 import { UserAvatar } from '../../components/UserAvatar'
 import { LinkifiedText } from '../../components/LinkifiedText'
 import { TaskStatusParticipants, type TaskStatusContributions } from './TaskStatusParticipants'
 import { TaskChecklist } from './TaskChecklist'
+import { RecipientReportPopup } from '../../components/RecipientReportPopup'
 
 type StatusContribution = { action: TaskStatusAction; userId: string }
 type AssignableMember = { id: string; label: string }
@@ -38,6 +41,7 @@ type TaskCardProps = {
   onUpdateTask: (taskId: string, values: TaskEditValues) => void
   onOpenTask?: (task: Task) => void
   pendingAction: string | null
+  recipientReport?: RecipientReport
   scopedTaskIds?: string[]
   statusHistory?: TaskStatusContributions
   task: Task
@@ -70,6 +74,7 @@ export function TaskCard({
   onOpenTask,
   onUpdateTask,
   pendingAction,
+  recipientReport,
   scopedTaskIds,
   statusHistory,
   task,
@@ -77,8 +82,10 @@ export function TaskCard({
   taskLevels = [],
 }: TaskCardProps) {
   const canManageTask = task.owner_id === currentUserId || folderOwnerId === currentUserId
+  const canEditRecipientAmount = task.folder_id ? folderOwnerId === currentUserId : task.owner_id === currentUserId
   const canReorderTask = task.folder_id ? folderOwnerId === currentUserId : task.owner_id === currentUserId
   const isEditing = editingTaskId === task.id
+  const [recipientAnchor, setRecipientAnchor] = useState<DOMRect | null>(null)
 
   // Determine current user's status for this task
   let currentUserStatus: TaskProgressStatus | null = null
@@ -106,7 +113,7 @@ export function TaskCard({
 
   const canUpdateStatus = task.assigned_user_id ? task.assigned_user_id === currentUserId : true
 
-  const handleStatusChange = (e: React.MouseEvent, status: TaskProgressStatus) => {
+  const handleStatusChange = (e: MouseEvent, status: TaskProgressStatus) => {
     e.stopPropagation()
     if (!canUpdateStatus) return
     onSetTaskStatus(task.id, status)
@@ -117,6 +124,7 @@ export function TaskCard({
       <div className="glass-panel rounded-[18px] p-6 hover:-translate-y-1 transition-all duration-300">
         <TaskEditForm
           assignableMembers={assignableMembers}
+          canEditRecipientAmount={canEditRecipientAmount}
           isSaving={isSaving}
           onCancel={onCloseEdit}
           forceExportButton={forceExportButton}
@@ -211,6 +219,19 @@ export function TaskCard({
             </div>
 
             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+              {recipientReport && (
+                <button
+                  className="p-1.5 text-on-surface-variant hover:text-primary transition-colors rounded-md hover:bg-surface-container"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setRecipientAnchor(e.currentTarget.getBoundingClientRect())
+                  }}
+                  title="View recipients"
+                  type="button"
+                >
+                  <ReceiptText size={16} />
+                </button>
+              )}
               {canManageTask && (
                 <>
                   <button 
@@ -231,6 +252,19 @@ export function TaskCard({
               )}
             </div>
           </div>
+
+          {recipientReport && recipientAnchor && (
+            <RecipientReportPopup
+              anchorRect={recipientAnchor}
+              getProfileAvatar={getProfileAvatar}
+              getProfileLabel={getProfileLabel}
+              isOpen={recipientAnchor !== null}
+              onClose={() => setRecipientAnchor(null)}
+              report={recipientReport}
+              subtitle={`"${task.title}" · ${formatCurrency(recipientReport.paidAmount)}`}
+              title="Task Recipients"
+            />
+          )}
 
           {taskLevels.length > 0 ? (
             <TaskChecklist

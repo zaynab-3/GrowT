@@ -10,6 +10,7 @@ import type { FolderCategory, ReorderDirection, TaskProgressStatus } from '../li
 import type { AvatarChoice, ColorPalette, ThemeMode } from '../lib/database.types'
 import { isSharedFolder } from '../lib/growtDisplay'
 import type { Folder, Task, TaskLevel, TaskMember, TaskStatusAction } from '../lib/growtData'
+import type { RecipientReport } from '../lib/recipient'
 import { AcquaintancesView } from './AcquaintancesView'
 import { DashboardView } from './DashboardView'
 import { FolderDetailPage } from './FolderDetailPage'
@@ -44,6 +45,7 @@ type AppViewRouterProps = {
   folderContainsExportVideos: boolean
   folderDescription: string
   folderMemberUserIds: string[]
+  folderRecipientTaskAmount: string
   folderTitle: string
   folders: Folder[]
   getContributionCounts: (userId: string) => ContributionCounts
@@ -71,6 +73,7 @@ type AppViewRouterProps = {
   onFolderCategoryChange: (category: FolderCategory) => void
   onFolderContainsExportVideosChange: (containsExportVideos: boolean) => void
   onFolderDescriptionChange: (description: string) => void
+  onFolderRecipientTaskAmountChange: (amount: string) => void
   onFolderTitleChange: (title: string) => void
   onInviteMember: (event: FormEvent<HTMLFormElement>) => void
   onMemberUsernameChange: (username: string) => void
@@ -102,6 +105,8 @@ type AppViewRouterProps = {
   profileThemeMode: ThemeMode
   profileUsername: string
   realtimeLabel: string
+  recipientReportsByFolder: Map<string, RecipientReport>
+  recipientReportsByTask: Map<string, RecipientReport>
   route: AppRoute
   sharedFolders: Folder[]
   sharedStandaloneTasks: Task[]
@@ -177,6 +182,7 @@ export function AppViewRouter({
   folderContainsExportVideos,
   folderDescription,
   folderMemberUserIds,
+  folderRecipientTaskAmount,
   folderTitle,
   folders,
   getProfileAvatar,
@@ -203,6 +209,7 @@ export function AppViewRouter({
   onFolderCategoryChange,
   onFolderContainsExportVideosChange,
   onFolderDescriptionChange,
+  onFolderRecipientTaskAmountChange,
   onFolderTitleChange,
   onInviteMember,
   onMemberUsernameChange,
@@ -233,6 +240,8 @@ export function AppViewRouter({
   profileThemeMode,
   profileUsername,
   realtimeLabel,
+  recipientReportsByFolder,
+  recipientReportsByTask,
   route,
   sharedFolders,
   sharedStandaloneTasks,
@@ -264,6 +273,7 @@ export function AppViewRouter({
           folderCategory={folderCategory}
           folderContainsExportVideos={folderContainsExportVideos}
           folderDescription={folderDescription}
+          folderRecipientTaskAmount={folderRecipientTaskAmount}
           folderTitle={folderTitle}
           isSaving={isSaving}
           mode="create"
@@ -272,6 +282,7 @@ export function AppViewRouter({
           onFolderCategoryChange={onFolderCategoryChange}
           onFolderContainsExportVideosChange={onFolderContainsExportVideosChange}
           onFolderDescriptionChange={onFolderDescriptionChange}
+          onFolderRecipientTaskAmountChange={onFolderRecipientTaskAmountChange}
           onFolderTitleChange={onFolderTitleChange}
         />
       )
@@ -309,6 +320,8 @@ export function AppViewRouter({
           onUndoAction={onUndoAction}
           onUpdateTask={onUpdateTask}
           pendingAction={pendingAction}
+          recipientReport={recipientReportsByFolder.get(activeFolder.id)}
+          recipientReportsByTask={recipientReportsByTask}
           statusHistoryByTask={statusHistoryByTask}
           taskLevelCompletedIdsByTask={taskLevelCompletedIdsByTask}
           taskLevelsByTask={taskLevelsByTask}
@@ -377,6 +390,7 @@ export function AppViewRouter({
           onToggleTaskLevel={onToggleTaskLevel}
           onUndoAction={onUndoAction}
           pendingAction={pendingAction}
+          recipientReport={recipientReportsByTask.get(taskToView.id)}
           statusHistory={statusHistoryByTask.get(taskToView.id)}
           task={taskToView}
           taskLevelCompletedIds={taskLevelCompletedIdsByTask.get(taskToView.id) ?? EMPTY_TASK_LEVEL_SET}
@@ -411,6 +425,8 @@ export function AppViewRouter({
           mode="create"
           onBack={() => route.folderId ? onNavigate('folders') : onNavigate('tasks')}
           onCreateTask={route.folderId ? onCreateFolderTask : onCreateStandaloneTask}
+          canEditRecipientAmount={!route.folderId || activeFolder?.owner_id === currentUserId}
+          defaultRecipientAmount={activeFolder?.recipient_task_amount ?? 0}
         />
       )
 
@@ -444,6 +460,7 @@ export function AppViewRouter({
           onBack={() => route.folderId ? onNavigate('folders') : onNavigate('tasks')}
           onUpdateTask={(values) => onUpdateTask(taskToEdit.id, values)}
           onAddTaskMember={(username) => onAddTaskMember(taskToEdit, username)}
+          canEditRecipientAmount={!taskToEdit.folder_id || activeFolder?.owner_id === currentUserId}
           task={taskToEdit}
           taskLevels={taskLevelsByTask.get(taskToEdit.id) ?? []}
         />
@@ -506,6 +523,7 @@ export function AppViewRouter({
       onEditFolder={onEditFolder}
       onMoveFolder={onMoveFolder}
       onOpenFolder={(folderId) => onOpenFolder(folderId)}
+      recipientReportsByFolder={recipientReportsByFolder}
     />
   )
 
@@ -535,6 +553,7 @@ export function AppViewRouter({
           onUndoAction={onUndoAction}
           onUpdateTask={onUpdateTask}
           pendingAction={pendingAction}
+          recipientReportsByTask={recipientReportsByTask}
           standaloneTasks={standaloneTasks}
           statusHistoryByTask={statusHistoryByTask}
           taskLevelCompletedIdsByTask={taskLevelCompletedIdsByTask}

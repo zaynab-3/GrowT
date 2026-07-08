@@ -26,6 +26,7 @@ import {
   type StatusContribution,
 } from '../lib/growtState'
 import { getAvatarSrc } from '../lib/appearance'
+import { buildRecipientReport } from '../lib/recipient'
 
 type UseGrowTDataParams = {
   actions: TaskStatusAction[]
@@ -196,6 +197,27 @@ export function useGrowTData({
     const allActiveTasks = [...tasks, ...standaloneTasks]
     return calculateUserProgress(allActiveTasks, activeRootActions, userId ?? '')
   }, [activeRootActions, tasks, standaloneTasks, userId])
+
+  const recipientReportsByFolder = useMemo(() => {
+    const reportsByFolder = new Map<string, ReturnType<typeof buildRecipientReport>>()
+
+    for (const folder of folders) {
+      const folderTasks = tasks.filter((task) => task.folder_id === folder.id)
+      reportsByFolder.set(folder.id, buildRecipientReport(folderTasks, activeRootActions))
+    }
+
+    return reportsByFolder
+  }, [activeRootActions, folders, tasks])
+
+  const recipientReportsByTask = useMemo(() => {
+    const reportsByTask = new Map<string, ReturnType<typeof buildRecipientReport>>()
+
+    for (const task of [...tasks, ...standaloneTasks]) {
+      reportsByTask.set(task.id, buildRecipientReport([task], activeRootActions))
+    }
+
+    return reportsByTask
+  }, [activeRootActions, standaloneTasks, tasks])
 
   const activeFolderIsShared = activeFolder ? isSharedFolder(activeFolder) : false
   const canInviteMembers = Boolean(activeFolder && activeFolderIsShared && activeFolder.owner_id === userId)
@@ -417,6 +439,8 @@ export function useGrowTData({
     getProfileAvatar,
     getProfileLabel,
     normalizedSearchQuery,
+    recipientReportsByFolder,
+    recipientReportsByTask,
     standaloneAssignableMembers,
     statusTotals,
     statusHistoryByTask,

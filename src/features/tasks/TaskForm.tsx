@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import type { FolderCategory } from '../../lib/database.types'
 import { categoryOptions } from '../../lib/growtDisplay'
+import { formatCurrency, parseRecipientAmount } from '../../lib/recipient'
 import { TaskDescriptionFields } from './TaskDescriptionFields'
 import { getInitialChecklistItems, normalizeChecklistItems, type TaskDescriptionMode } from './taskDescriptionUtils'
 
@@ -10,12 +11,15 @@ export type TaskCreateValues = {
   description: string | null
   descriptionMode: TaskDescriptionMode
   hasExportButton: boolean
+  recipientAmount: number
   title: string
   inviteUsernames?: string[]
 }
 
 type TaskFormProps = {
+  canEditRecipientAmount?: boolean
   defaultCategory: FolderCategory
+  defaultRecipientAmount?: number
   forceExportButton?: boolean
   isSaving: boolean
   onCreate: (values: TaskCreateValues) => void
@@ -24,7 +28,9 @@ type TaskFormProps = {
 }
 
 export function TaskForm({
+  canEditRecipientAmount = true,
   defaultCategory,
+  defaultRecipientAmount = 0,
   forceExportButton = false,
   isSaving,
   onCreate,
@@ -37,10 +43,15 @@ export function TaskForm({
   const [checklistItems, setChecklistItems] = useState<string[]>([''])
   const [category, setCategory] = useState<FolderCategory>(defaultCategory)
   const [hasExportButton, setHasExportButton] = useState(false)
+  const [recipientAmount, setRecipientAmount] = useState(String(defaultRecipientAmount))
 
   useEffect(() => {
     setCategory(defaultCategory)
   }, [defaultCategory])
+
+  useEffect(() => {
+    setRecipientAmount(String(defaultRecipientAmount))
+  }, [defaultRecipientAmount])
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -55,6 +66,7 @@ export function TaskForm({
       description: descriptionMode === 'description' ? description.trim() || null : null,
       descriptionMode,
       hasExportButton,
+      recipientAmount: parseRecipientAmount(recipientAmount),
       title: title.trim(),
     })
     setTitle('')
@@ -63,6 +75,7 @@ export function TaskForm({
     setChecklistItems(getInitialChecklistItems([]))
     setHasExportButton(false)
     setCategory(defaultCategory)
+    setRecipientAmount(String(defaultRecipientAmount))
   }
 
   return (
@@ -103,6 +116,23 @@ export function TaskForm({
         onDescriptionChange={setDescription}
         onModeChange={setDescriptionMode}
       />
+
+      {canEditRecipientAmount && (
+        <label htmlFor="quick-task-recipient-amount">
+          Recipient amount
+          <input
+            id="quick-task-recipient-amount"
+            min="0"
+            onChange={(event) => setRecipientAmount(event.target.value)}
+            step="0.01"
+            type="number"
+            value={recipientAmount}
+          />
+          <span className="form-helper">
+            Current task payout is {formatCurrency(parseRecipientAmount(recipientAmount))}.
+          </span>
+        </label>
+      )}
 
       {!forceExportButton && (
         <label className="checkbox-row" htmlFor="quick-task-export-button">

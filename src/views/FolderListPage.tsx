@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react'
-import { ChevronDown, ChevronUp, FolderPlus, Trash2, Plus, Info, Edit2 } from 'lucide-react'
+import { ChevronDown, ChevronUp, FolderPlus, Trash2, Plus, Info, Edit2, ReceiptText } from 'lucide-react'
 import { getCategoryLabel, isSharedFolder } from '../lib/growtDisplay'
 import type { Folder as FolderType, Task, TaskStatusAction } from '../lib/growtData'
+import { formatCurrency, type RecipientReport } from '../lib/recipient'
 import { LinkifiedText } from '../components/LinkifiedText'
 import type { ReorderDirection, TaskProgressStatus } from '../lib/database.types'
 import { ProgressPopup } from '../components/ProgressPopup'
+import { RecipientReportPopup } from '../components/RecipientReportPopup'
 import { calculateFolderProgress } from '../lib/growtState'
 import { UserAvatar } from '../components/UserAvatar'
 
@@ -66,6 +68,7 @@ type FolderListPageProps = {
   getProfileAvatar: (userId: string) => string | null
   getProfileLabel: (userId: string) => string
   contributionsByTask?: Map<string, Record<TaskProgressStatus, { action: TaskStatusAction; userId: string }[]>>
+  recipientReportsByFolder: Map<string, RecipientReport>
 }
 
 export function FolderListPage({
@@ -81,10 +84,13 @@ export function FolderListPage({
   getProfileAvatar,
   getProfileLabel,
   contributionsByTask,
+  recipientReportsByFolder,
 }: FolderListPageProps) {
   const [scope, setScope] = useState<FolderScope>('all')
   const [activePopupFolderId, setActivePopupFolderId] = useState<string | null>(null)
   const [activePopupAnchor, setActivePopupAnchor] = useState<DOMRect | null>(null)
+  const [activeRecipientFolderId, setActiveRecipientFolderId] = useState<string | null>(null)
+  const [activeRecipientAnchor, setActiveRecipientAnchor] = useState<DOMRect | null>(null)
 
   const personalCount = folders.filter((f) => !isSharedFolder(f) && f.category === 'personal').length
   const workCount = folders.filter((f) => !isSharedFolder(f) && f.category === 'work').length
@@ -218,6 +224,7 @@ export function FolderListPage({
             folderTasks,
             contributionsByTask || new Map(),
           )
+          const recipientReport = recipientReportsByFolder.get(folder.id)
 
           if (!memberCounts.has(folder.owner_id)) {
             memberCounts.set(folder.owner_id, { ongoing: 0, half_done: 0, completed: 0 })
@@ -227,6 +234,7 @@ export function FolderListPage({
             folderTaskCount === 0 ? 0 : Math.round((finalCounts.completed / folderTaskCount) * 100)
 
           const isPopupOpen = activePopupFolderId === folder.id
+          const isRecipientPopupOpen = activeRecipientFolderId === folder.id
           const dueText = folder.due_date
             ? getRemainingTimeText(folder.due_date)
             : folder.is_active
@@ -243,7 +251,7 @@ export function FolderListPage({
             <div
               key={folder.id}
               onClick={() => onOpenFolder(folder.id)}
-              className={`${tone.bg} border-2 border-transparent hover:border-black/5 dark:hover:border-white/5 rounded-[32px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.03)] hover:-translate-y-1 transition-all duration-300 relative group cursor-pointer flex flex-col gap-4 ${isPopupOpen ? 'z-50' : 'z-10'}`}
+              className={`${tone.bg} border-2 border-transparent hover:border-black/5 dark:hover:border-white/5 rounded-[32px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.03)] hover:-translate-y-1 transition-all duration-300 relative group cursor-pointer flex flex-col gap-4 ${isPopupOpen || isRecipientPopupOpen ? 'z-50' : 'z-10'}`}
             >
               <div className="flex justify-between items-center text-xs font-bold">
                 <span className={tone.subtext}>{formatDateLabel(folder.created_at)}</span>
@@ -283,6 +291,8 @@ export function FolderListPage({
                     <button
                       onClick={(event) => {
                         event.stopPropagation()
+                        setActiveRecipientFolderId(null)
+                        setActiveRecipientAnchor(null)
                         setActivePopupFolderId(folder.id)
                         setActivePopupAnchor(event.currentTarget.getBoundingClientRect())
                       }}
@@ -315,6 +325,41 @@ export function FolderListPage({
                     )}
                   </div>
 
+                  {recipientReport && (
+                    <div className="relative flex items-center">
+                      <button
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          setActivePopupFolderId(null)
+                          setActivePopupAnchor(null)
+                          setActiveRecipientFolderId(folder.id)
+                          setActiveRecipientAnchor(event.currentTarget.getBoundingClientRect())
+                        }}
+                        className={`hover:bg-black/5 dark:hover:bg-white/5 p-1.5 rounded-full transition-colors flex items-center justify-center ${tone.text}`}
+                        title="View recipients"
+                        type="button"
+                      >
+                        <ReceiptText size={16} />
+                      </button>
+
+                      {isRecipientPopupOpen && activeRecipientAnchor && (
+                        <RecipientReportPopup
+                          anchorRect={activeRecipientAnchor}
+                          getProfileAvatar={getProfileAvatar}
+                          getProfileLabel={getProfileLabel}
+                          isOpen={isRecipientPopupOpen && activeRecipientAnchor !== null}
+                          onClose={() => {
+                            setActiveRecipientFolderId(null)
+                            setActiveRecipientAnchor(null)
+                          }}
+                          report={recipientReport}
+                          subtitle={`"${folder.title}" · ${formatCurrency(recipientReport.paidAmount)}`}
+                          title="Folder Recipients"
+                        />
+                      )}
+                    </div>
+                  )}
+
                   {canManageFolder && (
                     <>
                       <button
@@ -343,6 +388,7 @@ export function FolderListPage({
                     </>
                   )}
                 </div>
+
               </div>
 
               <div className="flex flex-col items-center text-center my-2">
@@ -357,6 +403,26 @@ export function FolderListPage({
                 <p className={`text-xs mt-2.5 line-clamp-2 min-h-[32px] max-w-[90%] leading-relaxed ${tone.subtext}`}>
                   {folder.description ? <LinkifiedText text={folder.description} /> : 'No description'}
                 </p>
+
+                <div className={`mt-3 flex flex-wrap items-center justify-center gap-2 text-[10px] font-extrabold ${tone.subtext}`}>
+                  <span>{folderTaskCount} {folderTaskCount === 1 ? 'task' : 'tasks'}</span>
+                  <span className="inline-flex items-center gap-1" title="Ongoing">
+                    <i className="recipient-dot recipient-dot--ongoing" />
+                    {recipientReport?.taskStates.ongoing ?? finalCounts.ongoing}
+                  </span>
+                  <span className="inline-flex items-center gap-1" title="Half done">
+                    <i className="recipient-dot recipient-dot--half_done" />
+                    {recipientReport?.taskStates.half_done ?? finalCounts.half_done}
+                  </span>
+                  <span className="inline-flex items-center gap-1" title="Fully completed">
+                    <i className="recipient-dot recipient-dot--fully_completed" />
+                    {recipientReport?.taskStates.fully_completed ?? finalCounts.completed}
+                  </span>
+                  <span className="inline-flex items-center gap-1" title="Completed other half">
+                    <i className="recipient-dot recipient-dot--completed_other_half" />
+                    {recipientReport?.taskStates.completed_other_half ?? 0}
+                  </span>
+                </div>
               </div>
 
               <div className="w-full mt-2">

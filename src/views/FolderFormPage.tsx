@@ -3,6 +3,7 @@ import { ArrowLeft } from 'lucide-react'
 import type { FolderCategory } from '../lib/database.types'
 import { formatDateInputValue, getCategoryLabel } from '../lib/growtDisplay'
 import type { Folder } from '../lib/growtData'
+import { formatCurrency, parseRecipientAmount } from '../lib/recipient'
 import type { FolderEditValues } from '../features/folders/FolderEditForm'
 import type { MemberPickerProfile } from '../features/members/memberPickerApi'
 import { CategoryPillToggle } from '../components/CategoryPillToggle'
@@ -16,6 +17,7 @@ type FolderFormPageProps = {
   folderCategory?: FolderCategory
   folderContainsExportVideos?: boolean
   folderDescription?: string
+  folderRecipientTaskAmount?: string
   folderTitle?: string
   isSaving: boolean
   mode: 'create' | 'edit'
@@ -24,6 +26,7 @@ type FolderFormPageProps = {
   onFolderCategoryChange?: (category: FolderCategory) => void
   onFolderContainsExportVideosChange?: (containsExportVideos: boolean) => void
   onFolderDescriptionChange?: (description: string) => void
+  onFolderRecipientTaskAmountChange?: (amount: string) => void
   onFolderTitleChange?: (title: string) => void
   onUpdateFolder?: (values: FolderEditValues) => void
   // For editing
@@ -34,6 +37,7 @@ export function FolderFormPage({
   folderCategory,
   folderContainsExportVideos,
   folderDescription,
+  folderRecipientTaskAmount,
   folderTitle,
   isSaving,
   mode,
@@ -42,6 +46,7 @@ export function FolderFormPage({
   onFolderCategoryChange,
   onFolderContainsExportVideosChange,
   onFolderDescriptionChange,
+  onFolderRecipientTaskAmountChange,
   onFolderTitleChange,
   onUpdateFolder,
   folder,
@@ -51,6 +56,7 @@ export function FolderFormPage({
   const [editDesc, setEditDesc] = useState(folder?.description ?? '')
   const [editCategory, setEditCategory] = useState<FolderCategory>(folder?.category ?? 'personal')
   const [editContainsExportVideos, setEditContainsExportVideos] = useState(folder?.contains_export_videos ?? false)
+  const [editRecipientTaskAmount, setEditRecipientTaskAmount] = useState(String(folder?.recipient_task_amount ?? 0))
   const [editDueDate, setEditDueDate] = useState(formatDateInputValue(folder?.due_date ?? null))
   const [editIsActive, setEditIsActive] = useState(folder?.is_active ?? true)
   const [inviteUsernames, setInviteUsernames] = useState<string[]>([])
@@ -66,6 +72,7 @@ export function FolderFormPage({
       description: editDesc.trim() || null,
       dueDate: editDueDate || null,
       isActive: editIsActive,
+      recipientTaskAmount: parseRecipientAmount(editRecipientTaskAmount),
       title: editTitle.trim(),
     })
     setInviteUsernames([])
@@ -156,6 +163,22 @@ export function FolderFormPage({
                   </label>
 
                   <div className="form-field">
+                    <label htmlFor="edit-folder-recipient-amount">Default recipient amount per task</label>
+                    <input
+                      id="edit-folder-recipient-amount"
+                      min="0"
+                      onChange={(e) => setEditRecipientTaskAmount(e.target.value)}
+                      placeholder="0.00"
+                      step="0.01"
+                      type="number"
+                      value={editRecipientTaskAmount}
+                    />
+                    <p className="m-0 text-xs font-semibold text-on-surface-variant">
+                      New tasks in this folder start at {formatCurrency(parseRecipientAmount(editRecipientTaskAmount))}.
+                    </p>
+                  </div>
+
+                  <div className="form-field">
                     <label htmlFor="edit-folder-due-page">Due date</label>
                     <div className="date-input-wrapper">
                       <input
@@ -236,6 +259,22 @@ export function FolderFormPage({
                     />
                     Contains export videos
                   </label>
+
+                  <div className="form-field">
+                    <label htmlFor="new-folder-recipient-amount">Default recipient amount per task</label>
+                    <input
+                      id="new-folder-recipient-amount"
+                      min="0"
+                      onChange={(e) => onFolderRecipientTaskAmountChange?.(e.target.value)}
+                      placeholder="12.00"
+                      step="0.01"
+                      type="number"
+                      value={folderRecipientTaskAmount ?? ''}
+                    />
+                    <p className="m-0 text-xs font-semibold text-on-surface-variant">
+                      Each new task starts at {formatCurrency(parseRecipientAmount(folderRecipientTaskAmount ?? '0'))}.
+                    </p>
+                  </div>
 
                   {(folderCategory === 'shared') && (
                     <div className="form-field mt-4 pt-4 border-t border-surface-variant/30">

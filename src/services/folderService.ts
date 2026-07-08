@@ -26,8 +26,16 @@ export function createFolder(
   description: string | null,
   category: FolderCategory,
   containsExportVideos: boolean,
+  recipientTaskAmount: number,
 ) {
-  return createFolderWithClient(getSupabaseClient(), title, description, category, containsExportVideos)
+  return createFolderWithClient(
+    getSupabaseClient(),
+    title,
+    description,
+    category,
+    containsExportVideos,
+    recipientTaskAmount,
+  )
 }
 
 export function updateFolder(folder: {
@@ -38,6 +46,7 @@ export function updateFolder(folder: {
   containsExportVideos: boolean
   dueDate: string | null
   isActive: boolean
+  recipientTaskAmount: number
 }) {
   return updateFolderWithClient(getSupabaseClient(), folder)
 }

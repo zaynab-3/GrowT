@@ -1,5 +1,6 @@
 import type { FolderCategory, ReorderDirection, TaskProgressStatus } from '../../lib/database.types'
 import type { Task, TaskLevel, TaskMember, TaskStatusAction } from '../../lib/growtData'
+import type { RecipientReport } from '../../lib/recipient'
 import { TaskForm, type TaskCreateValues } from './TaskForm'
 import { TaskList } from './TaskList'
 import type { TaskEditValues } from './TaskEditForm'
@@ -38,6 +39,7 @@ type StandaloneTasksPanelProps = {
   onUndoAction: (action: TaskStatusAction) => void
   onUpdateTask: (taskId: string, values: TaskEditValues) => void
   pendingAction: string | null
+  recipientReportsByTask?: Map<string, RecipientReport>
   sectionLabel?: string
   taskLevelCompletedIdsByTask: Map<string, Set<string>>
   taskLevelsByTask: Map<string, TaskLevel[]>
@@ -70,6 +72,7 @@ export function StandaloneTasksPanel({
   onUndoAction,
   onUpdateTask,
   pendingAction,
+  recipientReportsByTask,
   sectionLabel = 'My tasks',
   taskLevelCompletedIdsByTask,
   taskLevelsByTask,
@@ -115,6 +118,7 @@ export function StandaloneTasksPanel({
         onUndoAction={onUndoAction}
         onUpdateTask={onUpdateTask}
         pendingAction={pendingAction}
+        recipientReportsByTask={recipientReportsByTask}
         taskLevelCompletedIdsByTask={taskLevelCompletedIdsByTask}
         taskLevelsByTask={taskLevelsByTask}
         taskMembersByTask={taskMembersByTask}

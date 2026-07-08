@@ -154,6 +154,7 @@ export type Database = {
           is_shared: boolean
           owner_id: string
           position: number
+          recipient_task_amount: number
           title: string
           updated_at: string
         }
@@ -169,6 +170,7 @@ export type Database = {
           is_shared?: boolean
           owner_id: string
           position?: number
+          recipient_task_amount?: number
           title: string
           updated_at?: string
         }
@@ -184,6 +186,7 @@ export type Database = {
           is_shared?: boolean
           owner_id?: string
           position?: number
+          recipient_task_amount?: number
           title?: string
           updated_at?: string
         }
@@ -603,6 +606,7 @@ export type Database = {
           is_exported: boolean
           owner_id: string
           position: number
+          recipient_amount: number
           title: string
           updated_at: string
         }
@@ -620,6 +624,7 @@ export type Database = {
           is_exported?: boolean
           owner_id: string
           position?: number
+          recipient_amount?: number
           title: string
           updated_at?: string
         }
@@ -637,6 +642,7 @@ export type Database = {
           is_exported?: boolean
           owner_id?: string
           position?: number
+          recipient_amount?: number
           title?: string
           updated_at?: string
         }
@@ -736,7 +742,13 @@ export type Database = {
         }
       }
       create_folder: {
-        Args: { category: string; contains_export_videos?: boolean; description: string; title: string }
+        Args: {
+          category: string
+          contains_export_videos?: boolean
+          description: string
+          recipient_task_amount?: number
+          title: string
+        }
         Returns: {
           category: string
           contains_export_videos: boolean
@@ -749,6 +761,7 @@ export type Database = {
           is_shared: boolean
           owner_id: string
           position: number
+          recipient_task_amount: number
           title: string
           updated_at: string
         }
@@ -766,6 +779,7 @@ export type Database = {
           description?: string
           due_date?: string
           has_export_button?: boolean
+          recipient_amount?: number
           title: string
         }
         Returns: {
@@ -782,6 +796,7 @@ export type Database = {
           is_exported: boolean
           owner_id: string
           position: number
+          recipient_amount: number
           title: string
           updated_at: string
         }
@@ -800,6 +815,7 @@ export type Database = {
           due_date?: string
           folder_id: string
           has_export_button?: boolean
+          recipient_amount?: number
           title: string
         }
         Returns: {
@@ -816,6 +832,7 @@ export type Database = {
           is_exported: boolean
           owner_id: string
           position: number
+          recipient_amount: number
           title: string
           updated_at: string
         }
@@ -869,6 +886,7 @@ export type Database = {
           is_shared: boolean
           owner_id: string
           position: number
+          recipient_task_amount: number
           title: string
           updated_at: string
         }[]
@@ -895,6 +913,7 @@ export type Database = {
           is_exported: boolean
           owner_id: string
           position: number
+          recipient_amount: number
           title: string
           updated_at: string
         }[]
@@ -921,6 +940,7 @@ export type Database = {
           is_exported: boolean
           owner_id: string
           position: number
+          recipient_amount: number
           title: string
           updated_at: string
         }[]
@@ -947,6 +967,7 @@ export type Database = {
           is_exported: boolean
           owner_id: string
           position: number
+          recipient_amount: number
           title: string
           updated_at: string
         }[]
@@ -991,6 +1012,7 @@ export type Database = {
           is_exported: boolean
           owner_id: string
           position: number
+          recipient_amount: number
           title: string
           updated_at: string
         }[]
@@ -1051,6 +1073,7 @@ export type Database = {
           is_shared: boolean
           owner_id: string
           position: number
+          recipient_task_amount: number
           title: string
           updated_at: string
         }[]
@@ -1077,6 +1100,7 @@ export type Database = {
           is_exported: boolean
           owner_id: string
           position: number
+          recipient_amount: number
           title: string
           updated_at: string
         }[]
@@ -1102,6 +1126,7 @@ export type Database = {
           is_shared: boolean
           owner_id: string
           position: number
+          recipient_task_amount: number
           title: string
           updated_at: string
         }
@@ -1128,6 +1153,7 @@ export type Database = {
           is_exported: boolean
           owner_id: string
           position: number
+          recipient_amount: number
           title: string
           updated_at: string
         }
@@ -1211,6 +1237,7 @@ export type Database = {
           is_shared: boolean
           owner_id: string
           position: number
+          recipient_task_amount: number
           title: string
           updated_at: string
         }
@@ -1237,6 +1264,7 @@ export type Database = {
           is_exported: boolean
           owner_id: string
           position: number
+          recipient_amount: number
           title: string
           updated_at: string
         }
@@ -1297,6 +1325,7 @@ export type Database = {
           due_date?: string
           folder_id: string
           is_active?: boolean
+          recipient_task_amount?: number
           title: string
         }
         Returns: {
@@ -1311,6 +1340,7 @@ export type Database = {
           is_shared: boolean
           owner_id: string
           position: number
+          recipient_task_amount: number
           title: string
           updated_at: string
         }
@@ -1329,6 +1359,7 @@ export type Database = {
           due_date?: string
           has_export_button?: boolean
           is_active?: boolean
+          recipient_amount?: number
           task_id: string
           title: string
         }
@@ -1346,6 +1377,7 @@ export type Database = {
           is_exported: boolean
           owner_id: string
           position: number
+          recipient_amount: number
           title: string
           updated_at: string
         }
@@ -1372,6 +1404,7 @@ export type Database = {
           is_exported: boolean
           owner_id: string
           position: number
+          recipient_amount: number
           title: string
           updated_at: string
         }

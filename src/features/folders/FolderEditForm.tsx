@@ -2,6 +2,7 @@ import { type FormEvent, useEffect, useState } from 'react'
 import type { FolderCategory } from '../../lib/database.types'
 import { categoryOptions, formatDateInputValue } from '../../lib/growtDisplay'
 import type { Folder } from '../../lib/growtData'
+import { formatCurrency, parseRecipientAmount } from '../../lib/recipient'
 
 export type FolderEditValues = {
   category: FolderCategory
@@ -9,6 +10,7 @@ export type FolderEditValues = {
   description: string | null
   dueDate: string | null
   isActive: boolean
+  recipientTaskAmount: number
   title: string
 }
 
@@ -24,6 +26,7 @@ export function FolderEditForm({ folder, isSaving, onCancel, onSave }: FolderEdi
   const [description, setDescription] = useState(folder.description ?? '')
   const [category, setCategory] = useState<FolderCategory>(folder.category)
   const [containsExportVideos, setContainsExportVideos] = useState(folder.contains_export_videos)
+  const [recipientTaskAmount, setRecipientTaskAmount] = useState(String(folder.recipient_task_amount ?? 0))
   const [dueDate, setDueDate] = useState(formatDateInputValue(folder.due_date))
   const [isActive, setIsActive] = useState(folder.is_active)
 
@@ -32,6 +35,7 @@ export function FolderEditForm({ folder, isSaving, onCancel, onSave }: FolderEdi
     setDescription(folder.description ?? '')
     setCategory(folder.category)
     setContainsExportVideos(folder.contains_export_videos)
+    setRecipientTaskAmount(String(folder.recipient_task_amount ?? 0))
     setDueDate(formatDateInputValue(folder.due_date))
     setIsActive(folder.is_active)
   }, [folder])
@@ -49,6 +53,7 @@ export function FolderEditForm({ folder, isSaving, onCancel, onSave }: FolderEdi
       description: description.trim() || null,
       dueDate: dueDate || null,
       isActive,
+      recipientTaskAmount: parseRecipientAmount(recipientTaskAmount),
       title: title.trim(),
     })
   }
@@ -111,6 +116,20 @@ export function FolderEditForm({ folder, isSaving, onCancel, onSave }: FolderEdi
           type="checkbox"
         />
         Contains export videos
+      </label>
+      <label htmlFor="edit-folder-recipient-inline">
+        Default recipient amount per task
+        <input
+          id="edit-folder-recipient-inline"
+          min="0"
+          onChange={(event) => setRecipientTaskAmount(event.target.value)}
+          step="0.01"
+          type="number"
+          value={recipientTaskAmount}
+        />
+        <span className="text-xs text-on-surface-variant">
+          New tasks start at {formatCurrency(parseRecipientAmount(recipientTaskAmount))}.
+        </span>
       </label>
       <div className="form-actions">
         <button className="button button--secondary" disabled={isSaving} onClick={onCancel} type="button">

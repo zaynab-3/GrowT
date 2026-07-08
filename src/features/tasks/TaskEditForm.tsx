@@ -2,6 +2,7 @@ import { type FormEvent, useEffect, useState } from 'react'
 import type { FolderCategory } from '../../lib/database.types'
 import { categoryOptions, formatDateInputValue } from '../../lib/growtDisplay'
 import type { Task, TaskLevel } from '../../lib/growtData'
+import { formatCurrency, parseRecipientAmount } from '../../lib/recipient'
 import { TaskDescriptionFields } from './TaskDescriptionFields'
 import { getInitialChecklistItems, normalizeChecklistItems, type TaskDescriptionMode } from './taskDescriptionUtils'
 
@@ -14,6 +15,7 @@ export type TaskEditValues = {
   dueDate: string | null
   hasExportButton: boolean
   isActive: boolean
+  recipientAmount: number
   title: string
 }
 
@@ -24,6 +26,7 @@ type AssignableMember = {
 
 type TaskEditFormProps = {
   assignableMembers: AssignableMember[]
+  canEditRecipientAmount?: boolean
   forceExportButton?: boolean
   isSaving: boolean
   onCancel: () => void
@@ -34,6 +37,7 @@ type TaskEditFormProps = {
 
 export function TaskEditForm({
   assignableMembers,
+  canEditRecipientAmount = true,
   forceExportButton = false,
   isSaving,
   onCancel,
@@ -54,6 +58,7 @@ export function TaskEditForm({
   const [hasExportButton, setHasExportButton] = useState(task.has_export_button)
   const [isActive, setIsActive] = useState(task.is_active)
   const [assignedUserId, setAssignedUserId] = useState(task.assigned_user_id ?? '')
+  const [recipientAmount, setRecipientAmount] = useState(String(task.recipient_amount ?? 0))
 
   useEffect(() => {
     setTitle(task.title)
@@ -65,6 +70,7 @@ export function TaskEditForm({
     setHasExportButton(task.has_export_button)
     setIsActive(task.is_active)
     setAssignedUserId(task.assigned_user_id ?? '')
+    setRecipientAmount(String(task.recipient_amount ?? 0))
   }, [task, taskLevels])
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -83,6 +89,9 @@ export function TaskEditForm({
       dueDate: dueDate || null,
       hasExportButton,
       isActive,
+      recipientAmount: canEditRecipientAmount
+        ? parseRecipientAmount(recipientAmount)
+        : task.recipient_amount,
       title: title.trim(),
     })
   }
@@ -149,6 +158,22 @@ export function TaskEditForm({
           </select>
         </label>
       </div>
+      {canEditRecipientAmount && (
+        <label htmlFor={`edit-task-recipient-${task.id}`}>
+          Recipient amount
+          <input
+            id={`edit-task-recipient-${task.id}`}
+            min="0"
+            onChange={(event) => setRecipientAmount(event.target.value)}
+            step="0.01"
+            type="number"
+            value={recipientAmount}
+          />
+          <span className="form-helper">
+            Current task payout is {formatCurrency(parseRecipientAmount(recipientAmount))}.
+          </span>
+        </label>
+      )}
       <label className="checkbox-row" htmlFor={`edit-task-active-${task.id}`}>
         <input
           checked={isActive}

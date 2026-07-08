@@ -1,13 +1,16 @@
-import { ArrowLeft, Edit2, Trash2, CheckCircle, Undo2, Link, Upload } from 'lucide-react'
+import { useState } from 'react'
+import { ArrowLeft, Edit2, Trash2, CheckCircle, Undo2, Link, Upload, ReceiptText } from 'lucide-react'
 import { formatDateTime } from '../lib/growtDisplay'
 import type { TaskProgressStatus } from '../lib/database.types'
 import type { Task, TaskLevel, TaskMember, TaskStatusAction } from '../lib/growtData'
+import { formatCurrency, type RecipientReport } from '../lib/recipient'
 import { TaskStatusGrid } from '../features/tasks/TaskStatusGrid'
 import type { TaskStatusContributions } from '../features/tasks/TaskStatusParticipants'
 import { TaskMembersPanel } from '../features/tasks/TaskMembersPanel'
 import { UserAvatar } from '../components/UserAvatar'
 import { LinkifiedText } from '../components/LinkifiedText'
 import { TaskChecklist } from '../features/tasks/TaskChecklist'
+import { RecipientReportPopup } from '../components/RecipientReportPopup'
 
 type StatusContribution = { action: TaskStatusAction; userId: string }
 import { getCategoryLabel, statusColumns } from '../lib/growtDisplay'
@@ -32,6 +35,7 @@ type TaskDetailPageProps = {
   onToggleTaskLevel: (taskId: string, taskLevelId: string, checked: boolean) => void
   onUndoAction: (action: TaskStatusAction) => void
   pendingAction: string | null
+  recipientReport?: RecipientReport
   task: Task
   taskLevelCompletedIds: Set<string>
   taskLevels: TaskLevel[]
@@ -57,6 +61,7 @@ export function TaskDetailPage({
   onToggleTaskLevel,
   onUndoAction,
   pendingAction,
+  recipientReport,
   statusHistory,
   task,
   taskLevelCompletedIds,
@@ -64,6 +69,7 @@ export function TaskDetailPage({
   taskMembers,
 }: TaskDetailPageProps) {
   const canManageTask = task.owner_id === currentUserId || folderOwnerId === currentUserId
+  const [recipientAnchor, setRecipientAnchor] = useState<DOMRect | null>(null)
 
   let currentUserStatus: TaskProgressStatus | null = null
   if (contributions) {
@@ -146,6 +152,16 @@ export function TaskDetailPage({
         </div>
 
         <div className="page-header__actions">
+          {recipientReport && (
+            <button
+              className="btn btn--secondary"
+              onClick={(event) => setRecipientAnchor(event.currentTarget.getBoundingClientRect())}
+              type="button"
+            >
+              <ReceiptText size={14} /> Recipients
+            </button>
+          )}
+
           {canManageTask && (
             <>
               <button 
@@ -171,6 +187,19 @@ export function TaskDetailPage({
           )}
         </div>
       </div>
+
+      {recipientReport && recipientAnchor && (
+        <RecipientReportPopup
+          anchorRect={recipientAnchor}
+          getProfileAvatar={getProfileAvatar}
+          getProfileLabel={getProfileLabel}
+          isOpen={recipientAnchor !== null}
+          onClose={() => setRecipientAnchor(null)}
+          report={recipientReport}
+          subtitle={`"${task.title}" · ${formatCurrency(recipientReport.paidAmount)}`}
+          title="Task Recipients"
+        />
+      )}
 
       <div className="stitch-board">
         <div className="stitch-board__main">
@@ -261,6 +290,10 @@ export function TaskDetailPage({
                   <strong className="stitch-detail-value">
                     {showExportButton ? (task.is_exported ? 'Exported' : 'Ready') : 'None'}
                   </strong>
+                </div>
+                <div className="stitch-detail-item">
+                  <span className="stitch-detail-label">Recipient Amount</span>
+                  <strong className="stitch-detail-value">{formatCurrency(task.recipient_amount ?? 0)}</strong>
                 </div>
                 <div className="stitch-detail-item">
                   <span className="stitch-detail-label">Due Date</span>

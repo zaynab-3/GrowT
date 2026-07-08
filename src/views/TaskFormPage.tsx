@@ -3,6 +3,7 @@ import { ArrowLeft, Calendar } from 'lucide-react'
 import type { FolderCategory } from '../lib/database.types'
 import { formatDateInputValue, getCategoryLabel } from '../lib/growtDisplay'
 import type { Task, TaskLevel } from '../lib/growtData'
+import { formatCurrency, parseRecipientAmount } from '../lib/recipient'
 import type { TaskCreateValues } from '../features/tasks/TaskForm'
 import type { TaskEditValues } from '../features/tasks/TaskEditForm'
 import { TaskDescriptionFields } from '../features/tasks/TaskDescriptionFields'
@@ -22,6 +23,8 @@ type AssignableMember = { id: string; label: string }
 
 type TaskFormPageProps = {
   assignableMembers: AssignableMember[]
+  canEditRecipientAmount?: boolean
+  defaultRecipientAmount?: number
   folderTitle?: string
   isSaving: boolean
   forceExportButton?: boolean
@@ -37,6 +40,8 @@ type TaskFormPageProps = {
 
 export function TaskFormPage({
   assignableMembers,
+  canEditRecipientAmount = true,
+  defaultRecipientAmount = 0,
   folderTitle,
   isSaving,
   forceExportButton = false,
@@ -56,6 +61,7 @@ export function TaskFormPage({
   const [createChecklistItems, setCreateChecklistItems] = useState<string[]>([''])
   const [createCategory, setCreateCategory] = useState<FolderCategory>(defaultCategory)
   const [createHasExportButton, setCreateHasExportButton] = useState(false)
+  const [createRecipientAmount, setCreateRecipientAmount] = useState(String(defaultRecipientAmount))
 
   // Edit mode
   const [editTitle, setEditTitle] = useState(task?.title ?? '')
@@ -69,11 +75,16 @@ export function TaskFormPage({
   const [editHasExportButton, setEditHasExportButton] = useState(task?.has_export_button ?? false)
   const [editIsActive, setEditIsActive] = useState(task?.is_active ?? true)
   const [editAssignedUserId, setEditAssignedUserId] = useState(task?.assigned_user_id ?? '')
+  const [editRecipientAmount, setEditRecipientAmount] = useState(String(task?.recipient_amount ?? 0))
   const [inviteUsernames, setInviteUsernames] = useState<string[]>([])
   const [inviteProfilesByUsername, setInviteProfilesByUsername] = useState<Record<string, MemberPickerProfile>>({})
   const [memberUsername, setMemberUsername] = useState('')
 
   const isEdit = mode === 'edit'
+
+  useEffect(() => {
+    setCreateRecipientAmount(String(defaultRecipientAmount))
+  }, [defaultRecipientAmount])
 
   useEffect(() => {
     if (!task) {
@@ -89,6 +100,7 @@ export function TaskFormPage({
     setEditHasExportButton(task.has_export_button)
     setEditIsActive(task.is_active)
     setEditAssignedUserId(task.assigned_user_id ?? '')
+    setEditRecipientAmount(String(task.recipient_amount ?? 0))
   }, [task, taskLevels])
 
   function handleCreateSubmit(e: FormEvent<HTMLFormElement>) {
@@ -100,6 +112,7 @@ export function TaskFormPage({
       description: createDescMode === 'description' ? createDesc.trim() || null : null,
       descriptionMode: createDescMode,
       hasExportButton: createHasExportButton,
+      recipientAmount: parseRecipientAmount(createRecipientAmount),
       title: createTitle.trim(),
       inviteUsernames: inviteUsernames.length > 0 ? inviteUsernames : undefined,
     })
@@ -108,6 +121,7 @@ export function TaskFormPage({
     setCreateDescMode('description')
     setCreateChecklistItems([''])
     setCreateHasExportButton(false)
+    setCreateRecipientAmount(String(defaultRecipientAmount))
     setInviteUsernames([])
     setInviteProfilesByUsername({})
   }
@@ -124,6 +138,9 @@ export function TaskFormPage({
       dueDate: editDueDate || null,
       hasExportButton: editHasExportButton,
       isActive: editIsActive,
+      recipientAmount: canEditRecipientAmount
+        ? parseRecipientAmount(editRecipientAmount)
+        : task?.recipient_amount ?? 0,
       title: editTitle.trim(),
     })
     
@@ -257,6 +274,23 @@ export function TaskFormPage({
                     </label>
                   )}
 
+                  {canEditRecipientAmount && (
+                    <div className="form-field">
+                      <label htmlFor="edit-task-recipient-page">Recipient amount</label>
+                      <input
+                        id="edit-task-recipient-page"
+                        min="0"
+                        onChange={(e) => setEditRecipientAmount(e.target.value)}
+                        step="0.01"
+                        type="number"
+                        value={editRecipientAmount}
+                      />
+                      <p className="text-xs text-on-surface-variant">
+                        Current task payout is {formatCurrency(parseRecipientAmount(editRecipientAmount))}.
+                      </p>
+                    </div>
+                  )}
+
                   <div className="form-field">
                     <label htmlFor="edit-task-due-page">Due date</label>
                     <div className="date-input-wrapper">
@@ -387,6 +421,23 @@ export function TaskFormPage({
                     </label>
                   )}
 
+                  {canEditRecipientAmount && (
+                    <div className="form-field">
+                      <label htmlFor="new-task-recipient-page">Recipient amount</label>
+                      <input
+                        id="new-task-recipient-page"
+                        min="0"
+                        onChange={(e) => setCreateRecipientAmount(e.target.value)}
+                        step="0.01"
+                        type="number"
+                        value={createRecipientAmount}
+                      />
+                      <p className="text-xs text-on-surface-variant">
+                        This task starts at {formatCurrency(parseRecipientAmount(createRecipientAmount))}.
+                      </p>
+                    </div>
+                  )}
+
                   {createCategory === 'shared' && (
                     <div className="form-field mt-4 pt-4 border-t border-surface-variant/30">
                       <label>Invite Collaborators</label>
@@ -464,6 +515,9 @@ export function TaskFormPage({
                     Due: {editDueDate}
                   </div>
                 )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--primary)', marginTop: '4px', fontWeight: 700 }}>
+                  Recipient: {formatCurrency(parseRecipientAmount(isEdit ? editRecipientAmount : createRecipientAmount))}
+                </div>
               </div>
             </div>
           </div>

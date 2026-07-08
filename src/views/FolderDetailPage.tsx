@@ -6,15 +6,18 @@ import {
   Edit2,
   Info,
   Link,
+  ReceiptText,
   Trash2,
   Users,
   X,
 } from 'lucide-react'
 import { LinkifiedText } from '../components/LinkifiedText'
+import { RecipientReportPopup } from '../components/RecipientReportPopup'
 import { UserAvatar } from '../components/UserAvatar'
 import type { FolderCategory, ReorderDirection, TaskProgressStatus } from '../lib/database.types'
 import { formatDateTime, getCategoryLabel, isSharedFolder } from '../lib/growtDisplay'
 import type { Folder, Task, TaskLevel, TaskStatusAction } from '../lib/growtData'
+import { formatCurrency, type RecipientReport } from '../lib/recipient'
 import { calculateFolderProgress } from '../lib/growtState'
 
 import { TaskList } from '../features/tasks/TaskList'
@@ -56,6 +59,8 @@ type FolderDetailPageProps = {
   onUndoAction: (action: TaskStatusAction) => void
   onUpdateTask: (taskId: string, values: TaskEditValues) => void
   pendingAction: string | null
+  recipientReport?: RecipientReport
+  recipientReportsByTask?: Map<string, RecipientReport>
   statusHistoryByTask: Map<string, Record<TaskProgressStatus, StatusContribution[]>>
   taskLevelCompletedIdsByTask: Map<string, Set<string>>
   taskLevelsByTask: Map<string, TaskLevel[]>
@@ -113,6 +118,8 @@ export function FolderDetailPage({
   onUndoAction,
   onUpdateTask,
   pendingAction,
+  recipientReport,
+  recipientReportsByTask,
   statusHistoryByTask,
   taskLevelCompletedIdsByTask,
   taskLevelsByTask,
@@ -121,6 +128,7 @@ export function FolderDetailPage({
   const shared = isSharedFolder(folder)
   const isOwner = folder.owner_id === currentUserId
   const [showBreakdown, setShowBreakdown] = useState(false)
+  const [recipientAnchor, setRecipientAnchor] = useState<DOMRect | null>(null)
 
   const { finalCounts: folderStatusTotals, memberCounts } = calculateFolderProgress(tasks, contributionsByTask)
 
@@ -195,8 +203,20 @@ export function FolderDetailPage({
               </div>
             </div>
 
-            {isOwner && (
-              <div className="flex flex-wrap gap-2 lg:justify-end">
+            <div className="flex flex-wrap gap-2 lg:justify-end">
+              {recipientReport && (
+                <button
+                  className="btn btn--secondary"
+                  onClick={(event) => setRecipientAnchor(event.currentTarget.getBoundingClientRect())}
+                  type="button"
+                >
+                  <ReceiptText size={14} />
+                  Recipients
+                </button>
+              )}
+
+              {isOwner && (
+                <>
                 <button
                   className="btn btn--secondary"
                   onClick={() => onCopyShareLink('folder', folder.id)}
@@ -227,9 +247,23 @@ export function FolderDetailPage({
                   <Trash2 size={14} />
                   Delete
                 </button>
-              </div>
-            )}
+                </>
+              )}
+            </div>
           </div>
+
+          {recipientReport && recipientAnchor && (
+            <RecipientReportPopup
+              anchorRect={recipientAnchor}
+              getProfileAvatar={getProfileAvatar}
+              getProfileLabel={getProfileLabel}
+              isOpen={recipientAnchor !== null}
+              onClose={() => setRecipientAnchor(null)}
+              report={recipientReport}
+              subtitle={`"${folder.title}" · ${formatCurrency(recipientReport.paidAmount)}`}
+              title="Folder Recipients"
+            />
+          )}
 
           <div className="mt-6 rounded-2xl border border-slate-200/80 bg-slate-50/90 p-4 dark:border-white/10 dark:bg-white/[0.045]">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
@@ -387,7 +421,9 @@ export function FolderDetailPage({
 
             <div className="stitch-panel__body">
               <TaskForm
+                canEditRecipientAmount={isOwner}
                 defaultCategory={folder.category as FolderCategory}
+                defaultRecipientAmount={folder.recipient_task_amount ?? 0}
                 forceExportButton={folder.contains_export_videos}
                 isSaving={isSaving}
                 onCreate={onCreateFolderTask}
@@ -428,6 +464,7 @@ export function FolderDetailPage({
                   onUndoAction={onUndoAction}
                   onUpdateTask={onUpdateTask}
                   pendingAction={pendingAction}
+                  recipientReportsByTask={recipientReportsByTask}
                   statusHistoryByTask={statusHistoryByTask}
                   taskLevelCompletedIdsByTask={taskLevelCompletedIdsByTask}
                   taskLevelsByTask={taskLevelsByTask}
@@ -530,6 +567,11 @@ export function FolderDetailPage({
                 <div className="stitch-detail-item">
                   <span className="stitch-detail-label">Exports</span>
                   <strong className="stitch-detail-value">{folder.contains_export_videos ? 'Videos' : 'Optional'}</strong>
+                </div>
+
+                <div className="stitch-detail-item">
+                  <span className="stitch-detail-label">Recipient Task Amount</span>
+                  <strong className="stitch-detail-value">{formatCurrency(folder.recipient_task_amount ?? 0)}</strong>
                 </div>
 
                 <div className="stitch-detail-item">
