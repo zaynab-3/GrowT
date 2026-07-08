@@ -372,7 +372,8 @@ export function FolderListPage({
           const selectionBorder = isSelectedForRecipients
             ? 'border-primary/70 ring-4 ring-primary/10'
             : 'border-transparent hover:border-black/5 dark:hover:border-white/5'
-          const dueText = folder.due_date
+          const createdDateText = formatDateLabel(folder.created_at)
+          const statusText = folder.due_date
             ? getRemainingTimeText(folder.due_date)
             : folder.is_active
               ? 'active'
@@ -414,142 +415,142 @@ export function FolderListPage({
                       {isSelectedForRecipients ? 'Selected' : 'Select'}
                     </label>
                   ) : null}
-
-                  <span className={tone.subtext}>{formatDateLabel(folder.created_at)}</span>
                 </div>
 
-                <div className="flex items-center gap-1.5" onClick={(event) => event.stopPropagation()}>
-                  {canReorder && (
-                    <div className="flex items-center rounded-full bg-white/60 p-0.5 shadow-sm dark:bg-white/10">
-                      <button
-                        className={`p-1 rounded-full transition-colors disabled:opacity-35 disabled:cursor-not-allowed hover:bg-black/5 dark:hover:bg-white/10 ${tone.text}`}
-                        disabled={isSaving || isFirst}
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          onMoveFolder(folder, 'up', reorderableFolderIds)
-                        }}
-                        title="Move up"
-                        type="button"
-                      >
-                        <ChevronUp size={14} />
-                      </button>
+                {!recipientReviewMode ? (
+                  <div className="flex items-center gap-1.5" onClick={(event) => event.stopPropagation()}>
+                    {canReorder && (
+                      <div className="flex items-center rounded-full bg-white/60 p-0.5 shadow-sm dark:bg-white/10">
+                        <button
+                          className={`p-1 rounded-full transition-colors disabled:opacity-35 disabled:cursor-not-allowed hover:bg-black/5 dark:hover:bg-white/10 ${tone.text}`}
+                          disabled={isSaving || isFirst}
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            onMoveFolder(folder, 'up', reorderableFolderIds)
+                          }}
+                          title="Move up"
+                          type="button"
+                        >
+                          <ChevronUp size={14} />
+                        </button>
 
-                      <button
-                        className={`p-1 rounded-full transition-colors disabled:opacity-35 disabled:cursor-not-allowed hover:bg-black/5 dark:hover:bg-white/10 ${tone.text}`}
-                        disabled={isSaving || isLast}
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          onMoveFolder(folder, 'down', reorderableFolderIds)
-                        }}
-                        title="Move down"
-                        type="button"
-                      >
-                        <ChevronDown size={14} />
-                      </button>
-                    </div>
-                  )}
-
-                  <div className="relative flex items-center">
-                    <button
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        setActiveRecipientFolderId(null)
-                        setActiveRecipientAnchor(null)
-                        setActivePopupFolderId(folder.id)
-                        setActivePopupAnchor(event.currentTarget.getBoundingClientRect())
-                      }}
-                      className={`hover:bg-black/5 dark:hover:bg-white/5 p-1.5 rounded-full transition-colors flex items-center justify-center ${tone.text}`}
-                      title="View member progress on this folder"
-                      type="button"
-                    >
-                      <Info size={16} />
-                    </button>
-
-                    {isPopupOpen && activePopupAnchor && (
-                      <ProgressPopup
-                        isOpen={isPopupOpen && activePopupAnchor !== null}
-                        onClose={() => {
-                          setActivePopupFolderId(null)
-                          setActivePopupAnchor(null)
-                        }}
-                        anchorRect={activePopupAnchor}
-                        title="Folder Progress"
-                        subtitle={`"${folder.title}"`}
-                        users={Array.from(memberCounts.entries()).map(([userId, stats]) => ({
-                          id: userId,
-                          label: getProfileLabel(userId),
-                          avatarUrl: getProfileAvatar(userId),
-                          ongoing: stats.ongoing,
-                          halfDone: stats.half_done,
-                          completed: stats.completed,
-                        }))}
-                      />
+                        <button
+                          className={`p-1 rounded-full transition-colors disabled:opacity-35 disabled:cursor-not-allowed hover:bg-black/5 dark:hover:bg-white/10 ${tone.text}`}
+                          disabled={isSaving || isLast}
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            onMoveFolder(folder, 'down', reorderableFolderIds)
+                          }}
+                          title="Move down"
+                          type="button"
+                        >
+                          <ChevronDown size={14} />
+                        </button>
+                      </div>
                     )}
-                  </div>
 
-                  {recipientReport && (
                     <div className="relative flex items-center">
                       <button
                         onClick={(event) => {
                           event.stopPropagation()
-                          setActivePopupFolderId(null)
-                          setActivePopupAnchor(null)
-                          setActiveRecipientFolderId(folder.id)
-                          setActiveRecipientAnchor(event.currentTarget.getBoundingClientRect())
+                          setActiveRecipientFolderId(null)
+                          setActiveRecipientAnchor(null)
+                          setActivePopupFolderId(folder.id)
+                          setActivePopupAnchor(event.currentTarget.getBoundingClientRect())
                         }}
                         className={`hover:bg-black/5 dark:hover:bg-white/5 p-1.5 rounded-full transition-colors flex items-center justify-center ${tone.text}`}
-                        title="View recipients"
+                        title="View member progress on this folder"
                         type="button"
                       >
-                        <ReceiptText size={16} />
+                        <Info size={16} />
                       </button>
 
-                      {isRecipientPopupOpen && activeRecipientAnchor && (
-                        <RecipientReportPopup
-                          anchorRect={activeRecipientAnchor}
-                          getProfileAvatar={getProfileAvatar}
-                          getProfileLabel={getProfileLabel}
-                          isOpen={isRecipientPopupOpen && activeRecipientAnchor !== null}
+                      {isPopupOpen && activePopupAnchor && (
+                        <ProgressPopup
+                          isOpen={isPopupOpen && activePopupAnchor !== null}
                           onClose={() => {
-                            setActiveRecipientFolderId(null)
-                            setActiveRecipientAnchor(null)
+                            setActivePopupFolderId(null)
+                            setActivePopupAnchor(null)
                           }}
-                          report={recipientReport}
-                          subtitle={`"${folder.title}" · ${formatCurrency(recipientReport.paidAmount)}`}
-                          title="Folder Recipients"
+                          anchorRect={activePopupAnchor}
+                          title="Folder Progress"
+                          subtitle={`"${folder.title}"`}
+                          users={Array.from(memberCounts.entries()).map(([userId, stats]) => ({
+                            id: userId,
+                            label: getProfileLabel(userId),
+                            avatarUrl: getProfileAvatar(userId),
+                            ongoing: stats.ongoing,
+                            halfDone: stats.half_done,
+                            completed: stats.completed,
+                          }))}
                         />
                       )}
                     </div>
-                  )}
 
-                  {canManageFolder && (
-                    <>
-                      <button
-                        className={`hover:bg-black/5 dark:hover:bg-white/5 p-1.5 rounded-full transition-colors flex items-center justify-center ${tone.text}`}
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          onEditFolder(folder.id)
-                        }}
-                        title="Edit folder"
-                        type="button"
-                      >
-                        <Edit2 size={16} />
-                      </button>
+                    {recipientReport && (
+                      <div className="relative flex items-center">
+                        <button
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            setActivePopupFolderId(null)
+                            setActivePopupAnchor(null)
+                            setActiveRecipientFolderId(folder.id)
+                            setActiveRecipientAnchor(event.currentTarget.getBoundingClientRect())
+                          }}
+                          className={`hover:bg-black/5 dark:hover:bg-white/5 p-1.5 rounded-full transition-colors flex items-center justify-center ${tone.text}`}
+                          title="View recipients"
+                          type="button"
+                        >
+                          <ReceiptText size={16} />
+                        </button>
 
-                      <button
-                        className={`hover:bg-black/5 dark:hover:bg-white/5 p-1.5 rounded-full transition-colors flex items-center justify-center hover:text-error ${tone.text}`}
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          onDeleteFolder(folder)
-                        }}
-                        title="Delete folder"
-                        type="button"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </>
-                  )}
-                </div>
+                        {isRecipientPopupOpen && activeRecipientAnchor && (
+                          <RecipientReportPopup
+                            anchorRect={activeRecipientAnchor}
+                            getProfileAvatar={getProfileAvatar}
+                            getProfileLabel={getProfileLabel}
+                            isOpen={isRecipientPopupOpen && activeRecipientAnchor !== null}
+                            onClose={() => {
+                              setActiveRecipientFolderId(null)
+                              setActiveRecipientAnchor(null)
+                            }}
+                            report={recipientReport}
+                            subtitle={`"${folder.title}" · ${formatCurrency(recipientReport.paidAmount)}`}
+                            title="Folder Recipients"
+                          />
+                        )}
+                      </div>
+                    )}
+
+                    {canManageFolder && (
+                      <>
+                        <button
+                          className={`hover:bg-black/5 dark:hover:bg-white/5 p-1.5 rounded-full transition-colors flex items-center justify-center ${tone.text}`}
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            onEditFolder(folder.id)
+                          }}
+                          title="Edit folder"
+                          type="button"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+
+                        <button
+                          className={`hover:bg-black/5 dark:hover:bg-white/5 p-1.5 rounded-full transition-colors flex items-center justify-center hover:text-error ${tone.text}`}
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            onDeleteFolder(folder)
+                          }}
+                          title="Delete folder"
+                          type="button"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                ) : null}
 
               </div>
 
@@ -633,8 +634,13 @@ export function FolderListPage({
                   )}
                 </div>
 
-                <div className={`px-3.5 py-1.5 rounded-full text-[11px] font-extrabold tracking-wide capitalize shadow-[0_2px_8px_0_rgba(0,0,0,0.02)] ${tone.badge}`}>
-                  {dueText}
+                <div className="folder-card-meta-pills">
+                  <div className={`folder-card-meta-pill ${tone.badge}`}>
+                    {createdDateText}
+                  </div>
+                  <div className={`folder-card-meta-pill capitalize ${tone.badge}`}>
+                    {statusText}
+                  </div>
                 </div>
               </div>
             </div>
