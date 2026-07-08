@@ -35,6 +35,12 @@ export type RecipientReport = {
   users: RecipientUserSummary[]
 }
 
+export type RecipientFolderReview = {
+  folderId: string
+  folderTitle: string
+  report: RecipientReport
+}
+
 export const recipientLegend = [
   { key: 'ongoing', label: 'Ongoing' },
   { key: 'half_done', label: 'Half Done' },
@@ -226,6 +232,63 @@ export function buildRecipientReport(tasks: Task[], actions: TaskStatusAction[])
     completedTaskCount: taskStates.fully_completed + taskStates.completed_other_half,
     paidAmount: normalizeAmount(users.reduce((sum, user) => sum + user.amount, 0)),
     taskCount: tasks.length,
+    taskStates,
+    users,
+  }
+}
+
+export function combineRecipientReports(reports: RecipientReport[]): RecipientReport {
+  const taskStates: RecipientReport['taskStates'] = {
+    completed_other_half: 0,
+    fully_completed: 0,
+    half_done: 0,
+    not_started: 0,
+    ongoing: 0,
+  }
+  const summaries = new Map<string, RecipientUserSummary>()
+
+  for (const report of reports) {
+    taskStates.completed_other_half += report.taskStates.completed_other_half
+    taskStates.fully_completed += report.taskStates.fully_completed
+    taskStates.half_done += report.taskStates.half_done
+    taskStates.not_started += report.taskStates.not_started
+    taskStates.ongoing += report.taskStates.ongoing
+
+    for (const user of report.users) {
+      const summary =
+        summaries.get(user.userId) ??
+        {
+          amount: 0,
+          completedOtherHalf: 0,
+          credits: [],
+          fullyCompleted: 0,
+          halfDone: 0,
+          ongoing: 0,
+          userId: user.userId,
+        }
+
+      summary.amount = normalizeAmount(summary.amount + user.amount)
+      summary.completedOtherHalf += user.completedOtherHalf
+      summary.credits.push(...user.credits)
+      summary.fullyCompleted += user.fullyCompleted
+      summary.halfDone += user.halfDone
+      summary.ongoing += user.ongoing
+      summaries.set(user.userId, summary)
+    }
+  }
+
+  const users = Array.from(summaries.values()).sort((first, second) => {
+    if (second.amount !== first.amount) {
+      return second.amount - first.amount
+    }
+
+    return first.userId.localeCompare(second.userId)
+  })
+
+  return {
+    completedTaskCount: taskStates.fully_completed + taskStates.completed_other_half,
+    paidAmount: normalizeAmount(reports.reduce((sum, report) => sum + report.paidAmount, 0)),
+    taskCount: reports.reduce((sum, report) => sum + report.taskCount, 0),
     taskStates,
     users,
   }

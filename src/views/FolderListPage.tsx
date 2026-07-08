@@ -2,10 +2,16 @@ import { useMemo, useState } from 'react'
 import { ChevronDown, ChevronUp, FolderPlus, Trash2, Plus, Info, Edit2, ReceiptText } from 'lucide-react'
 import { getCategoryLabel, isSharedFolder } from '../lib/growtDisplay'
 import type { Folder as FolderType, Task, TaskStatusAction } from '../lib/growtData'
-import { formatCurrency, type RecipientReport } from '../lib/recipient'
+import {
+  combineRecipientReports,
+  formatCurrency,
+  type RecipientFolderReview,
+  type RecipientReport,
+} from '../lib/recipient'
 import { LinkifiedText } from '../components/LinkifiedText'
 import type { ReorderDirection, TaskProgressStatus } from '../lib/database.types'
 import { ProgressPopup } from '../components/ProgressPopup'
+import { RecipientFolderReviewPopup } from '../components/RecipientFolderReviewPopup'
 import { RecipientReportPopup } from '../components/RecipientReportPopup'
 import { calculateFolderProgress } from '../lib/growtState'
 import { UserAvatar } from '../components/UserAvatar'
@@ -91,6 +97,9 @@ export function FolderListPage({
   const [activePopupAnchor, setActivePopupAnchor] = useState<DOMRect | null>(null)
   const [activeRecipientFolderId, setActiveRecipientFolderId] = useState<string | null>(null)
   const [activeRecipientAnchor, setActiveRecipientAnchor] = useState<DOMRect | null>(null)
+  const [recipientReviewMode, setRecipientReviewMode] = useState(false)
+  const [isRecipientReviewOpen, setIsRecipientReviewOpen] = useState(false)
+  const [selectedRecipientFolderIds, setSelectedRecipientFolderIds] = useState<string[]>([])
 
   const personalCount = folders.filter((f) => !isSharedFolder(f) && f.category === 'personal').length
   const workCount = folders.filter((f) => !isSharedFolder(f) && f.category === 'work').length
@@ -106,6 +115,40 @@ export function FolderListPage({
       }),
     [folders, scope],
   )
+
+  const foldersById = useMemo(() => new Map(folders.map((folder) => [folder.id, folder])), [folders])
+  const selectedRecipientFolderIdSet = useMemo(
+    () => new Set(selectedRecipientFolderIds),
+    [selectedRecipientFolderIds],
+  )
+  const selectedFolderReviews = useMemo<RecipientFolderReview[]>(
+    () =>
+      selectedRecipientFolderIds.flatMap((folderId) => {
+        const folder = foldersById.get(folderId)
+        const report = recipientReportsByFolder.get(folderId)
+
+        if (!folder || !report) {
+          return []
+        }
+
+        return [
+          {
+            folderId,
+            folderTitle: folder.title,
+            report,
+          },
+        ]
+      }),
+    [foldersById, recipientReportsByFolder, selectedRecipientFolderIds],
+  )
+  const combinedRecipientReport = useMemo(
+    () => combineRecipientReports(selectedFolderReviews.map((review) => review.report)),
+    [selectedFolderReviews],
+  )
+  const selectedVisibleFolderCount = visibleFolders.filter((folder) =>
+    selectedRecipientFolderIdSet.has(folder.id),
+  ).length
+  const allVisibleFoldersSelected = visibleFolders.length > 0 && selectedVisibleFolderCount === visibleFolders.length
 
   const reorderableFolderIds = visibleFolders
     .filter((folder) => folder.owner_id === currentUserId)
@@ -135,6 +178,46 @@ export function FolderListPage({
 
     const weeks = Math.round(diffDays / 7)
     return `${weeks} ${weeks === 1 ? 'week' : 'weeks'} left`
+  }
+
+  function handleRecipientReviewModeToggle() {
+    const nextMode = !recipientReviewMode
+    setRecipientReviewMode(nextMode)
+    setActivePopupFolderId(null)
+    setActivePopupAnchor(null)
+    setActiveRecipientFolderId(null)
+    setActiveRecipientAnchor(null)
+
+    if (!nextMode) {
+      setSelectedRecipientFolderIds([])
+      setIsRecipientReviewOpen(false)
+    }
+  }
+
+  function toggleRecipientFolder(folderId: string) {
+    setSelectedRecipientFolderIds((current) =>
+      current.includes(folderId)
+        ? current.filter((selectedFolderId) => selectedFolderId !== folderId)
+        : [...current, folderId],
+    )
+  }
+
+  function toggleVisibleRecipientFolders() {
+    const visibleFolderIds = visibleFolders.map((folder) => folder.id)
+
+    setSelectedRecipientFolderIds((current) => {
+      const currentSet = new Set(current)
+
+      if (allVisibleFoldersSelected) {
+        return current.filter((folderId) => !visibleFolderIds.includes(folderId))
+      }
+
+      for (const folderId of visibleFolderIds) {
+        currentSet.add(folderId)
+      }
+
+      return Array.from(currentSet)
+    })
   }
 
   return (
@@ -212,7 +295,57 @@ export function FolderListPage({
         >
           Shared ({sharedCount})
         </button>
+
+        <button
+          className={`recipient-check-button ${recipientReviewMode ? 'recipient-check-button--active' : ''}`}
+          onClick={handleRecipientReviewModeToggle}
+          type="button"
+        >
+          <ReceiptText size={14} />
+          Check Recipients
+        </button>
+
+        {recipientReviewMode ? (
+          <>
+            <button
+              className="recipient-check-button"
+              disabled={!visibleFolders.length}
+              onClick={toggleVisibleRecipientFolders}
+              type="button"
+            >
+              {allVisibleFoldersSelected ? 'Unselect visible' : 'Select visible'}
+            </button>
+
+            <button
+              className="recipient-check-button recipient-check-button--primary"
+              disabled={!selectedFolderReviews.length}
+              onClick={() => setIsRecipientReviewOpen(true)}
+              type="button"
+            >
+              Review selected ({selectedFolderReviews.length})
+            </button>
+
+            {selectedFolderReviews.length > 0 ? (
+              <button
+                className="recipient-check-button"
+                onClick={() => setSelectedRecipientFolderIds([])}
+                type="button"
+              >
+                Clear
+              </button>
+            ) : null}
+          </>
+        ) : null}
       </div>
+
+      <RecipientFolderReviewPopup
+        combinedReport={combinedRecipientReport}
+        folderReviews={selectedFolderReviews}
+        getProfileAvatar={getProfileAvatar}
+        getProfileLabel={getProfileLabel}
+        isOpen={isRecipientReviewOpen}
+        onClose={() => setIsRecipientReviewOpen(false)}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter-md">
         {visibleFolders.map((folder, index) => {
@@ -235,6 +368,10 @@ export function FolderListPage({
 
           const isPopupOpen = activePopupFolderId === folder.id
           const isRecipientPopupOpen = activeRecipientFolderId === folder.id
+          const isSelectedForRecipients = selectedRecipientFolderIdSet.has(folder.id)
+          const selectionBorder = isSelectedForRecipients
+            ? 'border-primary/70 ring-4 ring-primary/10'
+            : 'border-transparent hover:border-black/5 dark:hover:border-white/5'
           const dueText = folder.due_date
             ? getRemainingTimeText(folder.due_date)
             : folder.is_active
@@ -250,11 +387,36 @@ export function FolderListPage({
           return (
             <div
               key={folder.id}
-              onClick={() => onOpenFolder(folder.id)}
-              className={`${tone.bg} border-2 border-transparent hover:border-black/5 dark:hover:border-white/5 rounded-[32px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.03)] hover:-translate-y-1 transition-all duration-300 relative group cursor-pointer flex flex-col gap-4 ${isPopupOpen || isRecipientPopupOpen ? 'z-50' : 'z-10'}`}
+              onClick={() => {
+                if (recipientReviewMode) {
+                  toggleRecipientFolder(folder.id)
+                  return
+                }
+
+                onOpenFolder(folder.id)
+              }}
+              className={`${tone.bg} border-2 ${selectionBorder} rounded-[32px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.03)] hover:-translate-y-1 transition-all duration-300 relative group ${recipientReviewMode ? 'cursor-copy' : 'cursor-pointer'} flex flex-col gap-4 ${isPopupOpen || isRecipientPopupOpen ? 'z-50' : 'z-10'}`}
             >
               <div className="flex justify-between items-center text-xs font-bold">
-                <span className={tone.subtext}>{formatDateLabel(folder.created_at)}</span>
+                <div className="flex min-w-0 items-center gap-2">
+                  {recipientReviewMode ? (
+                    <label
+                      className={`recipient-card-select ${
+                        isSelectedForRecipients ? 'recipient-card-select--selected' : ''
+                      }`}
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <input
+                        checked={isSelectedForRecipients}
+                        onChange={() => toggleRecipientFolder(folder.id)}
+                        type="checkbox"
+                      />
+                      {isSelectedForRecipients ? 'Selected' : 'Select'}
+                    </label>
+                  ) : null}
+
+                  <span className={tone.subtext}>{formatDateLabel(folder.created_at)}</span>
+                </div>
 
                 <div className="flex items-center gap-1.5" onClick={(event) => event.stopPropagation()}>
                   {canReorder && (
