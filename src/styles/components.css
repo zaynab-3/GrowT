@@ -804,7 +804,7 @@ label {
 .recipient-dot--ongoing { background: var(--ongoing-color); }
 .recipient-dot--half_done { background: var(--halfdone-color); }
 .recipient-dot--fully_completed { background: var(--done-color); }
-.recipient-dot--completed_other_half { background: var(--primary); }
+.recipient-dot--completed_other_half { background: #8b5cf6; }
 
 .recipient-user-list {
   display: grid;
