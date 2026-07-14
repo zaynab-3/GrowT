@@ -253,7 +253,7 @@ export function LandingPage({ onLogin, onRegister }: LandingPageProps) {
           <img
             alt="GrowT dashboard preview"
             className="landing-window__image"
-            src="/landing/dashboard.jpg"
+            src="/landing/dashboard-26fa928a.jpg"
           />
           <div className="landing-float-card landing-float-card--left">
             <LayoutDashboard aria-hidden="true" size={17} />
