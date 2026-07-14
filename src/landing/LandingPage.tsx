@@ -44,17 +44,17 @@ const productShots = [
   {
     alt: 'GrowT dashboard with overview cards and activity',
     label: 'Dashboard',
-    src: '/landing/dashboard.jpg',
+    src: '/landing/dashboard-26fa928a.jpg',
   },
   {
     alt: 'GrowT folders screen with project cards',
     label: 'Folders',
-    src: '/landing/folders.jpg',
+    src: '/landing/folders-926c7ff3.jpg',
   },
   {
     alt: 'GrowT tasks screen with task status tracking',
     label: 'Tasks',
-    src: '/landing/tasks.jpg',
+    src: '/landing/tasks-d8c45f84.jpg',
   },
 ]
 
