@@ -3,6 +3,7 @@ import { SproutIcon } from '../components/SproutIcon'
 import { NotificationBell } from '../features/notifications/NotificationBell'
 import { GlobalSearchDropdown } from '../components/GlobalSearchDropdown'
 import { UserAvatar } from '../components/UserAvatar'
+import { PwaInstallButton } from '../components/PwaInstallButton'
 import './Layout.css'
 import type { AppView } from '../views/viewTypes'
 import type { Folder, Task } from '../lib/growtData'
@@ -42,6 +43,8 @@ export function Topbar({ accountAvatarUrl, accountLabel, contextLabel, folders, 
       </div>
 
       <div className="topbar-actions">
+        <PwaInstallButton variant="topbar" />
+
         <div className="realtime-indicator" aria-label="Realtime syncing active">
           <span className="realtime-pulse" />
           <span className="realtime-indicator__label">Live</span>

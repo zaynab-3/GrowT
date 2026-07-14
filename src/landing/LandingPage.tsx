@@ -8,6 +8,7 @@ import {
   Users2,
 } from 'lucide-react'
 import { GrowTLogo } from '../components/GrowTLogo'
+import { PwaInstallButton } from '../components/PwaInstallButton'
 import './LandingPage.css'
 
 type LandingPageProps = {
@@ -59,10 +60,13 @@ export function LandingPage({ onLogin, onRegister }: LandingPageProps) {
           <GrowTLogo className="landing-brand__logo" size={38} />
           <span>GrowT</span>
         </button>
-        <button className="landing-login" onClick={onLogin} type="button">
-          <span>Login</span>
-          <ArrowRight aria-hidden="true" size={16} strokeWidth={2.4} />
-        </button>
+        <div className="landing-nav__actions">
+          <PwaInstallButton variant="landing" />
+          <button className="landing-login" onClick={onLogin} type="button">
+            <span>Login</span>
+            <ArrowRight aria-hidden="true" size={16} strokeWidth={2.4} />
+          </button>
+        </div>
       </header>
 
       <section className="landing-hero" aria-labelledby="landing-title">

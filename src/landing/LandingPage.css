@@ -52,6 +52,12 @@
   object-fit: contain;
 }
 
+.landing-nav__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .landing-login {
   display: inline-flex;
   align-items: center;

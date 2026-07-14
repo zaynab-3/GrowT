@@ -10,6 +10,7 @@ import {
   UserRound,
 } from 'lucide-react'
 import { GrowTLogo } from '../components/GrowTLogo'
+import { PwaInstallButton } from '../components/PwaInstallButton'
 import './AuthPanel.css'
 
 export type AuthView = 'login' | 'register' | 'forgot' | 'reset'
@@ -145,6 +146,7 @@ export function AuthPanel({
   if (authView === 'reset') {
     return (
       <main className="auth-page">
+        <PwaInstallButton variant="auth" />
         <section className="auth-panel auth-panel--compact">
           <div className="auth-heading">
             <GrowTLogo className="auth-heading__logo" size={70} />
@@ -186,6 +188,7 @@ export function AuthPanel({
 
   return (
     <main className="auth-page">
+      <PwaInstallButton variant="auth" />
       <section className="auth-panel">
         <div className="auth-heading">
           <GrowTLogo className="auth-heading__logo" size={70} />
