@@ -247,95 +247,138 @@ export function FolderListPage({
         </div>
       </div>
 
-      <div className="flex w-full items-center gap-2 overflow-x-auto pb-2 touch-pan-x overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <button
-          onClick={() => setScope('all')}
-          className={`px-4 py-1.5 rounded-full font-label-md text-label-md shadow-sm transition-colors whitespace-nowrap ${
-            scope === 'all'
-              ? 'bg-primary text-on-primary'
-              : 'bg-surface-container-high dark:bg-dark-card text-on-surface-variant hover:bg-surface-variant'
-          }`}
-          type="button"
-        >
-          All
-        </button>
+      <div>
+        <div className="flex w-full snap-x snap-proximity items-center gap-2 overflow-x-auto pb-2 touch-pan-x overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <button
+            onClick={() => setScope('all')}
+            className={`snap-start px-4 py-1.5 rounded-full font-label-md text-label-md shadow-sm transition-colors whitespace-nowrap ${
+              scope === 'all'
+                ? 'bg-primary text-on-primary'
+                : 'bg-surface-container-high dark:bg-dark-card text-on-surface-variant hover:bg-surface-variant'
+            }`}
+            type="button"
+          >
+            All
+          </button>
 
-        <button
-          onClick={() => setScope('work')}
-          className={`px-4 py-1.5 rounded-full font-label-md text-label-md transition-colors whitespace-nowrap ${
-            scope === 'work'
-              ? 'bg-primary text-on-primary'
-              : 'bg-surface-container-high dark:bg-dark-card text-on-surface-variant hover:bg-surface-variant'
-          }`}
-          type="button"
-        >
-          Work ({workCount})
-        </button>
+          <button
+            onClick={() => setScope('work')}
+            className={`snap-start px-4 py-1.5 rounded-full font-label-md text-label-md transition-colors whitespace-nowrap ${
+              scope === 'work'
+                ? 'bg-primary text-on-primary'
+                : 'bg-surface-container-high dark:bg-dark-card text-on-surface-variant hover:bg-surface-variant'
+            }`}
+            type="button"
+          >
+            Work ({workCount})
+          </button>
 
-        <button
-          onClick={() => setScope('personal')}
-          className={`px-4 py-1.5 rounded-full font-label-md text-label-md transition-colors whitespace-nowrap ${
-            scope === 'personal'
-              ? 'bg-primary text-on-primary'
-              : 'bg-surface-container-high dark:bg-dark-card text-on-surface-variant hover:bg-surface-variant'
-          }`}
-          type="button"
-        >
-          Personal ({personalCount})
-        </button>
+          <button
+            onClick={() => setScope('personal')}
+            className={`snap-start px-4 py-1.5 rounded-full font-label-md text-label-md transition-colors whitespace-nowrap ${
+              scope === 'personal'
+                ? 'bg-primary text-on-primary'
+                : 'bg-surface-container-high dark:bg-dark-card text-on-surface-variant hover:bg-surface-variant'
+            }`}
+            type="button"
+          >
+            Personal ({personalCount})
+          </button>
 
-        <button
-          onClick={() => setScope('shared')}
-          className={`px-4 py-1.5 rounded-full font-label-md text-label-md transition-colors whitespace-nowrap ${
-            scope === 'shared'
-              ? 'bg-primary text-on-primary'
-              : 'bg-surface-container-high dark:bg-dark-card text-on-surface-variant hover:bg-surface-variant'
-          }`}
-          type="button"
-        >
-          Shared ({sharedCount})
-        </button>
+          <button
+            onClick={() => setScope('shared')}
+            className={`snap-start px-4 py-1.5 rounded-full font-label-md text-label-md transition-colors whitespace-nowrap ${
+              scope === 'shared'
+                ? 'bg-primary text-on-primary'
+                : 'bg-surface-container-high dark:bg-dark-card text-on-surface-variant hover:bg-surface-variant'
+            }`}
+            type="button"
+          >
+            Shared ({sharedCount})
+          </button>
+        </div>
 
-        <button
-          className={`recipient-check-button ${recipientReviewMode ? 'recipient-check-button--active' : ''}`}
-          onClick={handleRecipientReviewModeToggle}
-          type="button"
-        >
-          <ReceiptText size={14} />
-          Check Recipients
-        </button>
+        <div className="mt-2">
+          <button
+            aria-controls="recipient-review-actions"
+            aria-expanded={recipientReviewMode}
+            className={`inline-flex w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left font-label-md text-label-md transition-all duration-300 sm:w-auto sm:min-w-[220px] ${
+              recipientReviewMode
+                ? 'border-primary/30 bg-primary text-on-primary shadow-[0_8px_24px_rgba(34,139,94,0.20)]'
+                : 'border-black/[0.06] bg-surface-container-low text-on-surface hover:-translate-y-0.5 hover:border-primary/25 hover:bg-surface-container-high dark:border-white/10 dark:bg-dark-card'
+            }`}
+            onClick={handleRecipientReviewModeToggle}
+            type="button"
+          >
+            <span className="inline-flex items-center gap-2">
+              <ReceiptText size={17} />
+              {recipientReviewMode ? 'Done checking' : 'Check recipients'}
+            </span>
 
-        {recipientReviewMode ? (
-          <>
-            <button
-              className="recipient-check-button"
-              disabled={!visibleFolders.length}
-              onClick={toggleVisibleRecipientFolders}
-              type="button"
-            >
-              {allVisibleFoldersSelected ? 'Unselect visible' : 'Select visible'}
-            </button>
+            <ChevronDown
+              aria-hidden="true"
+              className={`shrink-0 transition-transform duration-300 ${
+                recipientReviewMode ? 'rotate-180' : 'rotate-0'
+              }`}
+              size={17}
+            />
+          </button>
 
-            <button
-              className="recipient-check-button recipient-check-button--primary"
-              disabled={!selectedFolderReviews.length}
-              onClick={() => setIsRecipientReviewOpen(true)}
-              type="button"
-            >
-              Review selected ({selectedFolderReviews.length})
-            </button>
+          <div
+            aria-hidden={!recipientReviewMode}
+            className={`grid transition-[grid-template-rows,opacity,transform] duration-300 ease-out ${
+              recipientReviewMode
+                ? 'grid-rows-[1fr] translate-y-0 opacity-100'
+                : 'pointer-events-none grid-rows-[0fr] -translate-y-2 opacity-0'
+            }`}
+            id="recipient-review-actions"
+          >
+            <div className="min-h-0 overflow-hidden">
+              <div className="mt-3 flex flex-col gap-3 rounded-[24px] border border-primary/15 bg-primary/[0.06] p-3 shadow-[0_10px_30px_rgba(15,23,42,0.04)] dark:bg-primary/10 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+                <div className="min-w-0 px-1">
+                  <p className="font-label-md text-label-md font-bold text-on-surface">
+                    Recipient review
+                  </p>
+                  <p className="mt-0.5 font-body-sm text-body-sm text-on-surface-variant">
+                    {selectedFolderReviews.length > 0
+                      ? `${selectedFolderReviews.length} selected · ${selectedVisibleFolderCount} visible here`
+                      : 'Select folders below, then review their recipients.'}
+                  </p>
+                </div>
 
-            {selectedFolderReviews.length > 0 ? (
-              <button
-                className="recipient-check-button"
-                onClick={() => setSelectedRecipientFolderIds([])}
-                type="button"
-              >
-                Clear
-              </button>
-            ) : null}
-          </>
-        ) : null}
+                <div className="grid shrink-0 grid-cols-2 gap-2 sm:flex sm:items-center">
+                  <button
+                    className="inline-flex min-h-10 items-center justify-center rounded-xl border border-black/[0.06] bg-surface px-3 py-2 font-label-sm text-label-sm font-bold text-on-surface transition-all hover:border-primary/25 hover:bg-surface-container-high disabled:cursor-not-allowed disabled:opacity-45 dark:border-white/10 dark:bg-dark-card"
+                    disabled={!recipientReviewMode || !visibleFolders.length}
+                    onClick={toggleVisibleRecipientFolders}
+                    type="button"
+                  >
+                    {allVisibleFoldersSelected ? 'Unselect visible' : 'Select visible'}
+                  </button>
+
+                  <button
+                    className="inline-flex min-h-10 items-center justify-center rounded-xl border border-black/[0.06] bg-surface px-3 py-2 font-label-sm text-label-sm font-bold text-on-surface-variant transition-all hover:border-error/25 hover:text-error disabled:cursor-not-allowed disabled:opacity-45 dark:border-white/10 dark:bg-dark-card"
+                    disabled={!recipientReviewMode || !selectedFolderReviews.length}
+                    onClick={() => setSelectedRecipientFolderIds([])}
+                    type="button"
+                  >
+                    Clear
+                  </button>
+
+                  <button
+                    className="col-span-2 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 font-label-sm text-label-sm font-bold text-on-primary shadow-md shadow-primary/20 transition-all hover:bg-surface-tint hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none sm:col-span-1"
+                    disabled={!recipientReviewMode || !selectedFolderReviews.length}
+                    onClick={() => setIsRecipientReviewOpen(true)}
+                    type="button"
+                  >
+                    <ReceiptText size={15} />
+                    Review selected ({selectedFolderReviews.length})
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <RecipientFolderReviewPopup
