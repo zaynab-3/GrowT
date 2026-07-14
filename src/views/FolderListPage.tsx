@@ -247,7 +247,7 @@ export function FolderListPage({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+      <div className="flex w-full items-center gap-2 overflow-x-auto pb-2 touch-pan-x overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <button
           onClick={() => setScope('all')}
           className={`px-4 py-1.5 rounded-full font-label-md text-label-md shadow-sm transition-colors whitespace-nowrap ${
