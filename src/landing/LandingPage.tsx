@@ -5,11 +5,17 @@ import {
   Clock3,
   FolderKanban,
   LayoutDashboard,
+  Sprout,
   Users2,
 } from 'lucide-react'
+import { useEffect, useRef } from 'react'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { GrowTLogo } from '../components/GrowTLogo'
 import { PwaInstallButton } from '../components/PwaInstallButton'
 import './LandingPage.css'
+
+gsap.registerPlugin(ScrollTrigger)
 
 type LandingPageProps = {
   onLogin: () => void
@@ -52,9 +58,145 @@ const productShots = [
   },
 ]
 
+const typedWords = ['task', 'project', 'goal', 'idea']
+
 export function LandingPage({ onLogin, onRegister }: LandingPageProps) {
+  const pageRef = useRef<HTMLElement>(null)
+  const typedWordRef = useRef<HTMLSpanElement>(null)
+
+  useEffect(() => {
+    const page = pageRef.current
+    const typedWord = typedWordRef.current
+
+    if (!page || !typedWord) return
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    typedWord.textContent = typedWords[0]
+
+    if (reduceMotion) return
+
+    const animationContext = gsap.context(() => {
+      gsap.from('.landing-nav > *', {
+        autoAlpha: 0,
+        duration: 0.65,
+        ease: 'power3.out',
+        stagger: 0.08,
+        y: -18,
+      })
+
+      gsap.from(
+        [
+          '.landing-eyebrow',
+          '.landing-hero h1',
+          '.landing-hero__copy > p',
+          '.landing-hero__actions',
+        ],
+        {
+          autoAlpha: 0,
+          duration: 0.85,
+          ease: 'power3.out',
+          stagger: 0.1,
+          x: -46,
+        },
+      )
+
+      gsap.from('.landing-window', {
+        autoAlpha: 0,
+        delay: 0.16,
+        duration: 1.05,
+        ease: 'power3.out',
+        rotate: 1.4,
+        scale: 0.97,
+        x: 76,
+      })
+
+      gsap.from('.landing-window__chrome span', {
+        delay: 0.7,
+        duration: 0.38,
+        ease: 'back.out(2)',
+        scale: 0,
+        stagger: 0.09,
+      })
+
+      gsap.to('.landing-float-card--left', {
+        duration: 2.8,
+        ease: 'sine.inOut',
+        repeat: -1,
+        y: -10,
+        yoyo: true,
+      })
+
+      gsap.to('.landing-float-card--right', {
+        duration: 3.2,
+        ease: 'sine.inOut',
+        repeat: -1,
+        y: 11,
+        yoyo: true,
+      })
+
+      gsap.to('.landing-growth-art__ring', {
+        duration: 18,
+        ease: 'none',
+        repeat: -1,
+        rotate: 360,
+        transformOrigin: '50% 50%',
+      })
+
+      page.querySelectorAll<HTMLElement>('[data-landing-reveal]').forEach((element) => {
+        const direction = element.dataset.landingReveal
+        const horizontalOffset = direction === 'left' ? -64 : direction === 'right' ? 64 : 0
+
+        gsap.from(element, {
+          autoAlpha: 0,
+          duration: 0.85,
+          ease: 'power3.out',
+          scrollTrigger: {
+            scroller: page,
+            start: 'top 88%',
+            trigger: element,
+          },
+          x: horizontalOffset,
+          y: horizontalOffset === 0 ? 34 : 0,
+        })
+      })
+
+      const typeState = { length: typedWords[0].length, word: typedWords[0] }
+      const updateTypedWord = () => {
+        typedWord.textContent = typeState.word.slice(0, Math.round(typeState.length))
+      }
+      const typeTimeline = gsap.timeline({ repeat: -1, repeatDelay: 0.2 })
+
+      typedWords.forEach((word) => {
+        typeTimeline
+          .call(() => {
+            typeState.word = word
+            typeState.length = 0
+            updateTypedWord()
+          })
+          .to(typeState, {
+            duration: Math.max(0.55, word.length * 0.1),
+            ease: 'none',
+            length: word.length,
+            onUpdate: updateTypedWord,
+          })
+          .to({}, { duration: 1.25 })
+          .to(typeState, {
+            duration: 0.38,
+            ease: 'power1.in',
+            length: 0,
+            onUpdate: updateTypedWord,
+          })
+          .to({}, { duration: 0.12 })
+      })
+
+      ScrollTrigger.refresh()
+    }, page)
+
+    return () => animationContext.revert()
+  }, [])
+
   return (
-    <main className="landing-page">
+    <main className="landing-page" ref={pageRef}>
       <header className="landing-nav">
         <button className="landing-brand" onClick={onRegister} type="button" aria-label="GrowT home">
           <GrowTLogo className="landing-brand__logo" size={38} />
@@ -70,10 +212,22 @@ export function LandingPage({ onLogin, onRegister }: LandingPageProps) {
       </header>
 
       <section className="landing-hero" aria-labelledby="landing-title">
+        <div className="landing-growth-art" aria-hidden="true">
+          <span className="landing-growth-art__ring" />
+          <span className="landing-growth-art__leaf landing-growth-art__leaf--one" />
+          <span className="landing-growth-art__leaf landing-growth-art__leaf--two" />
+        </div>
         <div className="landing-hero__copy">
-          <h1 id="landing-title">
+          <div className="landing-eyebrow">
+            <Sprout aria-hidden="true" size={16} strokeWidth={2.4} />
+            Plan · share · grow
+          </div>
+          <h1 aria-label="Organize your mind, one task at a time." id="landing-title">
             Organize your mind,
-            <span>one task at a time.</span>
+            <span aria-hidden="true" className="landing-type-line">
+              one <strong ref={typedWordRef}>task</strong>
+              <i className="landing-type-cursor" /> at a time.
+            </span>
           </h1>
           <p>
             GrowT is for people who want projects to feel lighter. Plan the work, share the
@@ -113,8 +267,12 @@ export function LandingPage({ onLogin, onRegister }: LandingPageProps) {
       </section>
 
       <section className="landing-proof" aria-label="What GrowT helps with">
-        {featureCards.map(({ description, icon: Icon, title }) => (
-          <article className="landing-feature" key={title}>
+        {featureCards.map(({ description, icon: Icon, title }, index) => (
+          <article
+            className="landing-feature"
+            data-landing-reveal={index % 2 === 0 ? 'left' : 'right'}
+            key={title}
+          >
             <span className="landing-feature__icon">
               <Icon aria-hidden="true" size={20} strokeWidth={2.3} />
             </span>
@@ -125,7 +283,7 @@ export function LandingPage({ onLogin, onRegister }: LandingPageProps) {
       </section>
 
       <section className="landing-gallery" aria-labelledby="landing-gallery-title">
-        <div className="landing-section-copy">
+        <div className="landing-section-copy" data-landing-reveal="left">
           <h2 id="landing-gallery-title">Everything has a clear place to land.</h2>
           <p>
             From a quick personal task to a shared folder with real teammates, GrowT keeps the
@@ -133,8 +291,12 @@ export function LandingPage({ onLogin, onRegister }: LandingPageProps) {
           </p>
         </div>
         <div className="landing-shot-grid">
-          {productShots.map((shot) => (
-            <figure className="landing-shot" key={shot.label}>
+          {productShots.map((shot, index) => (
+            <figure
+              className="landing-shot"
+              data-landing-reveal={index % 2 === 0 ? 'left' : 'right'}
+              key={shot.label}
+            >
               <img alt={shot.alt} src={shot.src} />
               <figcaption>
                 <Clock3 aria-hidden="true" size={15} />

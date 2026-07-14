@@ -175,8 +175,6 @@ select:focus {
 }
 
 @supports (animation-timeline: view()) {
-  .landing-feature,
-  .landing-shot,
   .stitch-card,
   .task-card,
   .glass-card,
