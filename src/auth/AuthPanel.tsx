@@ -9,6 +9,7 @@ import {
   Mail,
   UserRound,
 } from 'lucide-react'
+import { GrowTLogo } from '../components/GrowTLogo'
 import './AuthPanel.css'
 
 export type AuthView = 'login' | 'register' | 'forgot' | 'reset'
@@ -146,6 +147,7 @@ export function AuthPanel({
       <main className="auth-page">
         <section className="auth-panel auth-panel--compact">
           <div className="auth-heading">
+            <GrowTLogo className="auth-heading__logo" size={70} />
             <h1>GrowT</h1>
             <p>Set a new password for your account.</p>
           </div>
@@ -186,6 +188,7 @@ export function AuthPanel({
     <main className="auth-page">
       <section className="auth-panel">
         <div className="auth-heading">
+          <GrowTLogo className="auth-heading__logo" size={70} />
           <h1>GrowT</h1>
           <p>
             {authView === 'register'

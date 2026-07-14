@@ -45,15 +45,11 @@
   padding: 0;
 }
 
-.landing-brand svg {
-  display: grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  padding: 4px;
-  border-radius: 8px;
-  background: var(--primary);
-  color: #ffffff;
+.landing-brand__logo {
+  display: block;
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
 }
 
 .landing-login {

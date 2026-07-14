@@ -5,9 +5,9 @@ import {
   Clock3,
   FolderKanban,
   LayoutDashboard,
-  Leaf,
   Users2,
 } from 'lucide-react'
+import { GrowTLogo } from '../components/GrowTLogo'
 import './LandingPage.css'
 
 type LandingPageProps = {
@@ -56,7 +56,7 @@ export function LandingPage({ onLogin, onRegister }: LandingPageProps) {
     <main className="landing-page">
       <header className="landing-nav">
         <button className="landing-brand" onClick={onRegister} type="button" aria-label="GrowT home">
-          <Leaf aria-hidden="true" size={18} strokeWidth={2.5} />
+          <GrowTLogo className="landing-brand__logo" size={38} />
           <span>GrowT</span>
         </button>
         <button className="landing-login" onClick={onLogin} type="button">
