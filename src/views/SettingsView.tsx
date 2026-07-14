@@ -48,7 +48,7 @@ export function SettingsView({
 }: SettingsViewProps) {
   // map color palette to specific tailwind colors for the bubbles
   const paletteColors: Record<ColorPalette, string> = {
-    sage: '#7858f5', 
+    sage: '#287a5b',
     penguin: '#3b82f6',
     sprout: '#10b981',
     rose: '#f43f5e',
@@ -79,7 +79,7 @@ export function SettingsView({
               <h3 className="font-headline-md text-headline-md text-on-surface dark:text-white" style={{ margin: 0 }}>
                 {profileDisplayName || 'No Display Name'}
               </h3>
-              <p className="text-on-surface-variant dark:text-[#C7C5D3]" style={{ margin: '4px 0 0' }}>
+              <p className="text-on-surface-variant" style={{ margin: '4px 0 0' }}>
                 {profileUsername ? `@${profileUsername}` : 'No username set'}
               </p>
             </div>
@@ -93,11 +93,11 @@ export function SettingsView({
             </h4>
             <div className="space-y-4">
               <div>
-                <label htmlFor="display-name" className="block font-label-md text-label-md text-on-surface-variant dark:text-[#C7C5D3] mb-1.5 ml-1">Display Name</label>
+                <label htmlFor="display-name" className="block font-label-md text-label-md text-on-surface-variant mb-1.5 ml-1">Display Name</label>
                 <input id="display-name" className="w-full bg-white/50 dark:bg-black/20 border border-outline-variant/50 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none" type="text" value={profileDisplayName} onChange={(e) => onProfileDisplayNameChange(e.target.value)} />
               </div>
               <div>
-                <label htmlFor="username" className="block font-label-md text-label-md text-on-surface-variant dark:text-[#C7C5D3] mb-1.5 ml-1">Username</label>
+                <label htmlFor="username" className="block font-label-md text-label-md text-on-surface-variant mb-1.5 ml-1">Username</label>
                 <input id="username" className="w-full bg-white/50 dark:bg-black/20 border border-outline-variant/50 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none" type="text" value={profileUsername} onChange={(e) => onProfileUsernameChange(e.target.value)} />
               </div>
             </div>
@@ -132,13 +132,13 @@ export function SettingsView({
               <Palette size={18} className="text-primary" />
               Theme Mode
             </h4>
-            <div className="grid grid-cols-3 gap-3 p-1 bg-surface-container-low dark:bg-[#211a37] rounded-2xl border border-outline-variant/30 dark:border-white/10">
+            <div className="grid grid-cols-3 gap-3 p-1 bg-surface-container-low dark:bg-[#222624] rounded-2xl border border-outline-variant/30 dark:border-white/10">
               {themeModeOptions.map((option) => (
                 <button 
                   key={option.id}
                   type="button"
                   onClick={() => onProfileThemeModeChange(option.id)}
-                  className={`motion-choice flex flex-col items-center gap-2 py-4 rounded-xl transition-all ${profileThemeMode === option.id ? 'motion-choice--active bg-primary shadow-md text-white' : 'bg-surface-variant/20 text-on-surface-variant hover:bg-surface-variant/50 hover:text-on-surface dark:bg-[#17112B] dark:text-[#BDB4DD] dark:hover:bg-[#2d264a] dark:hover:text-[#F2EEFF]'}`}
+                  className={`motion-choice flex flex-col items-center gap-2 py-4 rounded-xl transition-all ${profileThemeMode === option.id ? 'motion-choice--active bg-primary shadow-md text-white' : 'bg-surface-variant/20 text-on-surface-variant hover:bg-surface-variant/50 hover:text-on-surface dark:bg-[#1b1e1c] dark:text-[#aeb6b2] dark:hover:bg-[#303532] dark:hover:text-white'}`}
                 >
                   <ThemeModeIcon themeMode={option.id} />
                   <span className="text-label-md">{option.label}</span>
@@ -163,7 +163,7 @@ export function SettingsView({
                 >
                   <div 
                     className={`w-12 h-12 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 ${profileColorPalette === option.id ? 'ring-4 ring-offset-2 ring-primary shadow-lg bg-primary' : 'shadow-md'}`}
-                    style={{ backgroundColor: paletteColors[option.id] || '#7858f5' }}
+                    style={{ backgroundColor: paletteColors[option.id] || '#287a5b' }}
                   >
                     {profileColorPalette === option.id && (
                       <Check size={18} className="text-white" />
