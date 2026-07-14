@@ -9,10 +9,10 @@
   --primary-glow: rgba(40, 122, 91, 0.20);
   --primary-rgb: 40, 122, 91;
   --auth-on-primary: #ffffff;
-  --ink: #173c2f;
-  --ink-2: #456457;
-  --ink-3: #718c7f;
-  --surface-muted: #e6f1eb;
+  --ink: #1d211f;
+  --ink-2: #505652;
+  --ink-3: #7c8580;
+  --surface-muted: #eef0ef;
 
   display: grid;
   place-items: center;
@@ -20,22 +20,22 @@
   overflow-y: auto;
   padding: 18px 16px;
   background:
-    linear-gradient(rgba(40, 122, 91, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(40, 122, 91, 0.05) 1px, transparent 1px),
-    radial-gradient(circle at 50% 8%, rgba(40, 122, 91, 0.14), transparent 26rem),
-    linear-gradient(135deg, #fbfcfa 0%, #f2f7f4 52%, #e3f0e9 100%);
+    linear-gradient(rgba(28, 32, 30, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(28, 32, 30, 0.035) 1px, transparent 1px),
+    radial-gradient(circle at 50% 8%, rgba(40, 122, 91, 0.07), transparent 25rem),
+    linear-gradient(135deg, #fafbfa 0%, #f3f4f3 54%, #eceeed 100%);
   background-size: 22px 22px, 22px 22px, auto, auto;
   color: var(--ink);
 }
 
 .auth-panel {
   width: min(100%, 420px);
-  border: 1px solid rgba(40, 122, 91, 0.13);
+  border: 1px solid rgba(28, 33, 30, 0.10);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.80);
+  background: rgba(255, 255, 255, 0.90);
   box-shadow:
-    0 24px 70px rgba(20, 72, 51, 0.12),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.58);
+    0 24px 70px rgba(18, 24, 21, 0.11),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.64);
   padding: 24px;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -64,7 +64,7 @@
 
 .auth-heading h1 {
   margin: 0;
-  color: var(--primary);
+  color: var(--ink);
   font-size: 34px;
   font-weight: 900;
   letter-spacing: 0;
@@ -162,7 +162,7 @@
 
 .auth-page .auth-form .auth-input-wrap > input:not([type='checkbox']):not([type='radio']):not([type='range']) {
   height: 40px;
-  border: 1.5px solid rgba(91, 120, 106, 0.50);
+  border: 1.5px solid rgba(80, 88, 83, 0.34);
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.62);
   color: var(--ink);
@@ -184,7 +184,7 @@
 }
 
 .auth-page .auth-form .auth-input-wrap > input::placeholder {
-  color: rgba(91, 120, 106, 0.72);
+  color: rgba(101, 109, 104, 0.72);
 }
 
 .auth-field-hint {
@@ -231,7 +231,7 @@
 .auth-form .checkbox-row input[type='checkbox'] {
   width: 16px;
   height: 16px;
-  border-color: rgba(91, 120, 106, 0.52);
+  border-color: rgba(80, 88, 83, 0.44);
   border-radius: 4px;
   background-color: transparent;
   color: var(--primary);
@@ -310,7 +310,7 @@
   content: "";
   flex: 1;
   height: 1px;
-  background: rgba(91, 120, 106, 0.26);
+  background: rgba(80, 88, 83, 0.22);
 }
 
 .button--google {
@@ -320,14 +320,14 @@
   gap: 10px;
   width: 100%;
   height: 40px;
-  border: 1.5px solid rgba(91, 120, 106, 0.34);
+  border: 1.5px solid rgba(80, 88, 83, 0.26);
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.72);
   color: var(--ink-2);
   cursor: pointer;
   font-size: 14px;
   font-weight: 800;
-  box-shadow: 0 8px 24px rgba(20, 72, 51, 0.06);
+  box-shadow: 0 8px 24px rgba(18, 24, 21, 0.05);
   transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
 }
 
@@ -335,7 +335,7 @@
   border-color: var(--primary);
   background: #ffffff;
   color: var(--ink);
-  box-shadow: 0 12px 28px rgba(20, 72, 51, 0.10);
+  box-shadow: 0 12px 28px rgba(18, 24, 21, 0.09);
   transform: translateY(-1px);
 }
 
@@ -371,7 +371,7 @@
   border: 1px solid rgba(var(--primary-rgb), 0.24);
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 18px 48px rgba(20, 72, 51, 0.16);
+  box-shadow: 0 18px 48px rgba(18, 24, 21, 0.14);
   color: var(--ink);
   padding: 14px 16px;
   font-size: 13.5px;
@@ -405,43 +405,43 @@
 }
 
 :root[data-theme='dark'] .auth-page {
-  --primary: #66c69b;
-  --primary-dark: #8bdab5;
-  --primary-light: #153c2b;
-  --primary-glow: rgba(102, 198, 155, 0.24);
-  --primary-rgb: 102, 198, 155;
-  --auth-on-primary: #082017;
-  --ink: #edf8f2;
-  --ink-2: #c3d9ce;
-  --ink-3: #87aa99;
-  --surface-muted: rgba(102, 198, 155, 0.12);
+  --primary: #59b98b;
+  --primary-dark: #6ec99d;
+  --primary-light: rgba(89, 185, 139, 0.12);
+  --primary-glow: rgba(89, 185, 139, 0.20);
+  --primary-rgb: 89, 185, 139;
+  --auth-on-primary: #0c1712;
+  --ink: #f4f6f5;
+  --ink-2: #c5cbc8;
+  --ink-3: #8d9691;
+  --surface-muted: #252927;
 
   background:
-    linear-gradient(rgba(102, 198, 155, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(102, 198, 155, 0.045) 1px, transparent 1px),
-    radial-gradient(circle at 50% 8%, rgba(40, 122, 91, 0.28), transparent 26rem),
-    linear-gradient(135deg, #07130e 0%, #0b1d15 58%, #103324 100%);
+    linear-gradient(rgba(255, 255, 255, 0.024) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.024) 1px, transparent 1px),
+    radial-gradient(circle at 50% 8%, rgba(89, 185, 139, 0.055), transparent 25rem),
+    linear-gradient(135deg, #101211 0%, #161817 58%, #111312 100%);
   background-size: 22px 22px, 22px 22px, auto, auto;
 }
 
 :root[data-theme='dark'] .auth-panel {
-  border-color: rgba(102, 198, 155, 0.14);
-  background: rgba(9, 31, 22, 0.84);
+  border-color: rgba(255, 255, 255, 0.10);
+  background: rgba(27, 30, 28, 0.92);
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.48);
 }
 
 :root[data-theme='dark'] .auth-heading__logo {
-  filter: brightness(1.38) saturate(0.92);
+  filter: brightness(1.16) saturate(0.88);
 }
 
 :root[data-theme='dark'] .auth-page .auth-form .auth-input-wrap > input:not([type='checkbox']):not([type='radio']):not([type='range']),
 :root[data-theme='dark'] .button--google {
-  border-color: rgba(145, 201, 174, 0.18);
-  background: rgba(4, 20, 14, 0.62);
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(8, 10, 9, 0.58);
 }
 
 :root[data-theme='dark'] .auth-page .auth-form .auth-input-wrap > input:not([type='checkbox']):not([type='radio']):not([type='range']):focus {
-  background: rgba(10, 40, 28, 0.96);
+  background: #171a18;
 }
 
 :root[data-theme='dark'] .notice {
@@ -449,8 +449,8 @@
 }
 
 :root[data-theme='dark'] .auth-toast {
-  border-color: rgba(102, 198, 155, 0.15);
-  background: rgba(9, 31, 22, 0.94);
+  border-color: rgba(255, 255, 255, 0.11);
+  background: rgba(27, 30, 28, 0.96);
   color: var(--ink);
   box-shadow: 0 22px 54px rgba(0, 0, 0, 0.45);
 }

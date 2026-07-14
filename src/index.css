@@ -39,35 +39,35 @@
   --radius-full: 9999px;
 
   /* --- Background --- */
-  --bg: #FAF8FF;
-  --bg-warm: #F0EFF8;
+  --bg: #f7f8f7;
+  --bg-warm: #f1f3f2;
   --surface: #FFFFFF;
-  --surface-soft: #f4f3fc;
-  --surface-muted: #eeedf6;
-  --surface-container: #eeedf6;
-  --surface-variant: #e2e1ea;
+  --surface-soft: #f6f7f6;
+  --surface-muted: #ecefed;
+  --surface-container: #ecefed;
+  --surface-variant: #dfe3e0;
   --on-surface-variant: var(--ink-2);
   --surface-glass: rgba(255, 255, 255, 0.72);
   --glass-bg: rgba(255, 255, 255, 0.4);
   --glass-border: rgba(255, 255, 255, 0.45);
-  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  --glass-shadow: 0 8px 32px 0 rgba(21, 27, 24, 0.07);
   --card-hover-lift: translateY(-4px);
 
   /* --- Borders --- */
-  --border: #C9C4D7;
-  --border-strong: #797586;
+  --border: #d2d7d4;
+  --border-strong: #858d89;
 
   /* --- Ink --- */
-  --ink: #1a1b22;
-  --ink-2: #484555;
-  --ink-3: #797586;
+  --ink: #1b1e1c;
+  --ink-2: #4c524f;
+  --ink-3: #7a827e;
 
-  /* --- Primary — Violet (user-swappable) --- */
-  --primary: #5E3BDB;
-  --primary-dark: #481bc6;
-  --primary-light: #e6deff;
-  --primary-glow: rgba(94, 59, 219, 0.22);
-  --primary-rgb: 94, 59, 219;
+  /* --- Primary — GrowT green (user-swappable) --- */
+  --primary: #287a5b;
+  --primary-dark: #1d5d45;
+  --primary-light: #e3f0ea;
+  --primary-glow: rgba(40, 122, 91, 0.20);
+  --primary-rgb: 40, 122, 91;
 
   /* --- Accent aliases for Stitch spec --- */
   --accent: var(--primary);
@@ -105,12 +105,12 @@
   --folder-tone-4-tab: #fde047;
 
   /* --- Shadows --- */
-  --shadow-xs: 0 1px 3px rgba(22, 19, 42, 0.06);
-  --shadow-sm: 0 2px 8px rgba(22, 19, 42, 0.08);
-  --shadow-md: 0 6px 20px rgba(22, 19, 42, 0.10);
-  --shadow-lg: 0 16px 48px rgba(22, 19, 42, 0.14);
-  --shadow-xl: 0 24px 64px rgba(22, 19, 42, 0.18);
-  --shadow-primary: 0 8px 24px rgba(94, 59, 219, 0.30);
+  --shadow-xs: 0 1px 3px rgba(18, 24, 21, 0.06);
+  --shadow-sm: 0 2px 8px rgba(18, 24, 21, 0.08);
+  --shadow-md: 0 6px 20px rgba(18, 24, 21, 0.10);
+  --shadow-lg: 0 16px 48px rgba(18, 24, 21, 0.14);
+  --shadow-xl: 0 24px 64px rgba(18, 24, 21, 0.18);
+  --shadow-primary: 0 8px 24px rgba(40, 122, 91, 0.26);
 
   /* --- Typography --- */
   font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -169,27 +169,27 @@
 :root[data-theme='dark'] {
   color-scheme: dark;
 
-  --bg: #0F0A20;
-  --bg-warm: #120c24;
-  --surface: #17112B;
-  --surface-soft: #1c1533;
-  --surface-muted: #241b40;
-  --surface-container: #211a37;
-  --surface-variant: #2d264a;
-  --on-surface-variant: #e2e1ea;
-  --surface-glass: rgba(20, 15, 38, 0.75);
-  --glass-bg: rgba(20, 15, 38, 0.45);
+  --bg: #111312;
+  --bg-warm: #151716;
+  --surface: #1b1e1c;
+  --surface-soft: #202321;
+  --surface-muted: #272b29;
+  --surface-container: #222624;
+  --surface-variant: #303532;
+  --on-surface-variant: #e4e7e5;
+  --surface-glass: rgba(24, 27, 25, 0.78);
+  --glass-bg: rgba(24, 27, 25, 0.52);
   --glass-border: rgba(255, 255, 255, 0.08);
 
   --border: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.15);
 
-  --ink: #CBCAD4;
-  --ink-2: #c4b8f0;
-  --ink-3: #8070b8;
+  --ink: #f4f6f5;
+  --ink-2: #c7cdca;
+  --ink-3: #8e9893;
 
-  --primary-light: #1c0062;
-  --primary-glow: rgba(94, 59, 219, 0.28);
+  --primary-light: #20352c;
+  --primary-glow: rgba(40, 122, 91, 0.28);
 
   /* --- Accent aliases for Stitch spec --- */
   --accent: var(--primary);
@@ -230,7 +230,7 @@
   --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.40);
   --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.50);
   --shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.60);
-  --shadow-primary: 0 8px 24px rgba(94, 59, 219, 0.40);
+  --shadow-primary: 0 8px 24px rgba(40, 122, 91, 0.32);
 }
 
 /* Dark mode specific palette overrides */

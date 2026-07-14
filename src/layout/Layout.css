@@ -293,7 +293,7 @@ html, body, #root {
 }
 
 :root[data-theme='dark'] .topbar {
-  background: rgba(14, 11, 26, 0.88);
+  background: rgba(20, 23, 21, 0.90);
 }
 
 /* Brand — shown only on mobile when sidebar is hidden */

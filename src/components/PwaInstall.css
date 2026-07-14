@@ -9,10 +9,10 @@
   justify-content: center;
   gap: 7px;
   min-height: 36px;
-  border: 1px solid rgba(var(--pwa-primary-rgb), 0.28);
+  border: 1px solid rgba(80, 88, 83, 0.24);
   border-radius: 999px;
-  background: var(--pwa-primary-light);
-  color: var(--pwa-primary-dark);
+  background: rgba(255, 255, 255, 0.76);
+  color: #303532;
   padding: 0 13px;
   font: inherit;
   font-size: 12px;
@@ -24,9 +24,13 @@
 
 .pwa-install-button:hover {
   border-color: var(--pwa-primary);
-  background: rgba(var(--pwa-primary-rgb), 0.16);
+  background: #ffffff;
   box-shadow: 0 8px 22px rgba(var(--pwa-primary-rgb), 0.14);
   transform: translateY(-1px);
+}
+
+.pwa-install-button svg {
+  color: var(--pwa-primary);
 }
 
 .pwa-install-button:focus-visible {
@@ -50,14 +54,14 @@
 }
 
 :root[data-theme='dark'] .pwa-install-button {
-  --pwa-primary: #66c69b;
-  --pwa-primary-dark: #8bdab5;
-  --pwa-primary-light: #153c2b;
-  --pwa-primary-rgb: 102, 198, 155;
+  --pwa-primary: #59b98b;
+  --pwa-primary-dark: #6ec99d;
+  --pwa-primary-light: rgba(89, 185, 139, 0.12);
+  --pwa-primary-rgb: 89, 185, 139;
 
-  border-color: rgba(var(--pwa-primary-rgb), 0.30);
-  background: rgba(var(--pwa-primary-rgb), 0.13);
-  color: var(--pwa-primary);
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.055);
+  color: #e7ebe9;
 }
 
 .pwa-install-overlay {
@@ -66,11 +70,11 @@
   --pwa-primary-rgb: 40, 122, 91;
   --pwa-on-primary: #ffffff;
   --pwa-surface: #ffffff;
-  --pwa-surface-muted: #edf5f0;
-  --pwa-ink: #173c2f;
-  --pwa-ink-2: #456457;
-  --pwa-ink-3: #718c7f;
-  --pwa-border: rgba(40, 122, 91, 0.16);
+  --pwa-surface-muted: #f1f3f2;
+  --pwa-ink: #1d211f;
+  --pwa-ink-2: #505652;
+  --pwa-ink-3: #7c8580;
+  --pwa-border: rgba(80, 88, 83, 0.16);
 
   position: fixed;
   inset: 0;
@@ -78,7 +82,7 @@
   display: grid;
   place-items: center;
   padding: 18px;
-  background: rgba(6, 24, 17, 0.54);
+  background: rgba(16, 18, 17, 0.54);
   backdrop-filter: blur(7px);
   -webkit-backdrop-filter: blur(7px);
   animation: pwa-install-fade-in 160ms ease both;
@@ -91,11 +95,11 @@
   width: min(100%, 420px);
   max-height: calc(100dvh - 36px);
   overflow-y: auto;
-  border: 1px solid rgba(var(--pwa-primary-rgb), 0.18);
+  border: 1px solid var(--pwa-border);
   border-radius: 20px;
   background: var(--pwa-surface);
   color: var(--pwa-ink);
-  box-shadow: 0 28px 90px rgba(5, 32, 22, 0.28);
+  box-shadow: 0 28px 90px rgba(10, 13, 11, 0.28);
   padding: 28px;
   text-align: center;
   animation: pwa-install-rise 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -206,8 +210,9 @@
   width: 100%;
   margin-top: 12px;
   border-radius: 10px;
-  background: rgba(var(--pwa-primary-rgb), 0.10);
-  color: var(--pwa-primary-dark);
+  border-left: 3px solid var(--pwa-primary);
+  background: var(--pwa-surface-muted);
+  color: var(--pwa-ink-2);
   padding: 10px 12px;
   font-size: 12px;
   font-weight: 700;
@@ -229,16 +234,16 @@
 }
 
 :root[data-theme='dark'] .pwa-install-overlay {
-  --pwa-primary: #66c69b;
-  --pwa-primary-dark: #8bdab5;
-  --pwa-primary-rgb: 102, 198, 155;
-  --pwa-on-primary: #082017;
-  --pwa-surface: #092016;
-  --pwa-surface-muted: #102e21;
-  --pwa-ink: #edf8f2;
-  --pwa-ink-2: #c3d9ce;
-  --pwa-ink-3: #87aa99;
-  --pwa-border: rgba(102, 198, 155, 0.16);
+  --pwa-primary: #59b98b;
+  --pwa-primary-dark: #6ec99d;
+  --pwa-primary-rgb: 89, 185, 139;
+  --pwa-on-primary: #0c1712;
+  --pwa-surface: #1b1e1c;
+  --pwa-surface-muted: #252927;
+  --pwa-ink: #f4f6f5;
+  --pwa-ink-2: #c5cbc8;
+  --pwa-ink-3: #8d9691;
+  --pwa-border: rgba(255, 255, 255, 0.10);
 }
 
 @keyframes pwa-install-fade-in {

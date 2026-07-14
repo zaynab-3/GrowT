@@ -125,7 +125,7 @@
   border: 2px solid rgba(0,0,0,0.08);
 }
 
-.palette-option--violet::before { background: #5E3BDB; }
+.palette-option--sage::before { background: #287a5b; }
 .palette-option--duck::before   { background: #c08a24; }
 .palette-option--penguin::before { background: #2563eb; }
 .palette-option--sprout::before { background: #16a34a; }

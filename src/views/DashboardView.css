@@ -97,7 +97,7 @@
 
 /* Stat card themes */
 .stat-card--folders .stat-card-icon-wrapper {
-  background: rgba(94, 59, 219, 0.1);
+  background: rgba(var(--primary-rgb), 0.1);
   color: var(--primary);
 }
 .stat-card--folders .stat-card-badge {
@@ -106,7 +106,7 @@
 }
 
 .stat-card--tasks .stat-card-icon-wrapper {
-  background: rgba(120, 88, 245, 0.15);
+  background: rgba(var(--primary-rgb), 0.15);
   color: var(--primary);
 }
 .stat-card--tasks .stat-card-badge {
