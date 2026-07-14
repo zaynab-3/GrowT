@@ -225,10 +225,21 @@ function App() {
   const [realtimeStatus, setRealtimeStatus] = useState('Idle')
 
   const user = session?.user ?? null
-  const sessionKey = session?.access_token ?? null
+  const userId = user?.id ?? null
+  const emailUsername = user?.email?.split('@')[0]
+  const authDisplayName = user?.user_metadata?.display_name
+    || user?.user_metadata?.full_name
+    || user?.user_metadata?.name
+    || emailUsername
+    || 'User'
+  const authUsername = user?.user_metadata?.username || emailUsername || 'user'
+  // Access tokens rotate when a tab or PWA resumes. Use the stable user id for
+  // request ownership so a background token refresh is not treated as a new login.
+  const sessionKey = userId
   const activeSessionKeyRef = useRef<string | null>(null)
   const liveScopeKeyRef = useRef<string>('all-active-folders')
   const previousUserIdRef = useRef<string | null>(null)
+  const initialDataUserIdRef = useRef<string | null>(null)
   const profilesByIdRef = useRef<Record<string, ProfileSummary>>({})
   const taskIdsRef = useRef<Set<string>>(new Set())
   const standaloneTaskIdsRef = useRef<Set<string>>(new Set())
@@ -409,7 +420,7 @@ function App() {
     taskLevels,
     taskMembers,
     tasks,
-    userId: user?.id ?? null,
+    userId,
   })
 
   const sharedFolders = useMemo(
@@ -503,7 +514,7 @@ function App() {
       return
     }
 
-    const nextUserId = user?.id ?? null
+    const nextUserId = userId
     const previousUserId = previousUserIdRef.current
 
     if (previousUserId && !nextUserId) {
@@ -527,10 +538,11 @@ function App() {
       setSaving(false)
       setPendingAction(null)
       setRealtimeStatus('Idle')
+      initialDataUserIdRef.current = null
     }
 
     previousUserIdRef.current = nextUserId
-  }, [authReady, user?.id])
+  }, [authReady, userId])
 
   useEffect(() => {
     activeSessionKeyRef.current = sessionKey
@@ -595,7 +607,7 @@ function App() {
   }, [isCurrentSession, sessionKey])
 
   const refreshFolders = useCallback(async () => {
-    if (!authReady || !isSupabaseConfigured || !user || !sessionKey) {
+    if (!authReady || !isSupabaseConfigured || !userId || !sessionKey) {
       return
     }
 
@@ -621,14 +633,14 @@ function App() {
         throw error
       }
     }
-  }, [authReady, isCurrentSession, sessionKey, user])
+  }, [authReady, isCurrentSession, sessionKey, userId])
 
   useEffect(() => {
     refreshFoldersRef.current = refreshFolders
   }, [refreshFolders])
 
   const refreshStandaloneTasks = useCallback(async () => {
-    if (!authReady || !isSupabaseConfigured || !user || !sessionKey) {
+    if (!authReady || !isSupabaseConfigured || !userId || !sessionKey) {
       return
     }
 
@@ -671,10 +683,10 @@ function App() {
         setMessage('Unable to load standalone tasks.')
       }
     }
-  }, [authReady, isCurrentSession, loadProfilesForIds, sessionKey, user])
+  }, [authReady, isCurrentSession, loadProfilesForIds, sessionKey, userId])
 
   const refreshArchive = useCallback(async () => {
-    if (!authReady || !isSupabaseConfigured || !user || !sessionKey) {
+    if (!authReady || !isSupabaseConfigured || !userId || !sessionKey) {
       return
     }
 
@@ -698,14 +710,15 @@ function App() {
         setMessage('Unable to load deleted items.')
       }
     }
-  }, [authReady, isCurrentSession, sessionKey, user])
+  }, [authReady, isCurrentSession, sessionKey, userId])
 
   const loadUserData = useCallback(async () => {
     if (!authReady) {
       return
     }
 
-    if (!isSupabaseConfigured || !user || !sessionKey) {
+    if (!isSupabaseConfigured || !userId || !sessionKey) {
+      initialDataUserIdRef.current = null
       setCurrentProfile(null)
       setFolders([])
       setStandaloneTasks([])
@@ -719,16 +732,16 @@ function App() {
     }
 
     const requestSessionKey = sessionKey
+    const isInitialLoadForUser = initialDataUserIdRef.current !== userId
 
     setDataLoading(true)
-    setInitialDataReady(false)
+    if (isInitialLoadForUser) {
+      setInitialDataReady(false)
+    }
     setMessage('')
 
     try {
-      const meta = user.user_metadata || {}
-      const fallbackDisplayName = meta.display_name || meta.full_name || meta.name || user.email?.split('@')[0] || 'User'
-      const fallbackUsername = meta.username || user.email?.split('@')[0] || 'user'
-      const nextProfile = await ensureProfile(user.id, fallbackDisplayName, fallbackUsername)
+      const nextProfile = await ensureProfile(userId, authDisplayName, authUsername)
 
       if (!isCurrentSession(requestSessionKey)) {
         return
@@ -754,18 +767,19 @@ function App() {
       }
     } finally {
       if (isCurrentSession(requestSessionKey)) {
+        initialDataUserIdRef.current = userId
         setDataLoading(false)
         setInitialDataReady(true)
       }
     }
-  }, [authReady, isCurrentSession, refreshArchive, refreshFolders, refreshStandaloneTasks, sessionKey, user])
+  }, [authDisplayName, authReady, authUsername, isCurrentSession, refreshArchive, refreshFolders, refreshStandaloneTasks, sessionKey, userId])
 
   useEffect(() => {
     void loadUserData()
   }, [loadUserData])
 
   useEffect(() => {
-    if (!authReady || !user) {
+    if (!authReady || !userId) {
       return
     }
 
@@ -791,7 +805,7 @@ function App() {
       window.removeEventListener('online', refreshVisibleData)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [authReady, refreshArchive, refreshStandaloneTasks, user])
+  }, [authReady, refreshArchive, refreshStandaloneTasks, userId])
 
   const refreshLiveSession = useCallback(async () => {
     if (!authReady) {
@@ -890,7 +904,7 @@ function App() {
     setTasks,
     standaloneTaskIdsRef,
     taskIdsRef,
-    userId: user?.id ?? null,
+    userId,
   })
 
   async function handleRegister(event: FormEvent<HTMLFormElement>) {
@@ -1981,7 +1995,7 @@ function App() {
     )
   }
 
-  const userId = session.user.id
+  const currentUserId = session.user.id
   
   let contextLabel = appViewItems.find((v) => v.id === activeView)?.label
   if (route.name === 'folder-detail' || route.name === 'folder-edit') {
@@ -2009,7 +2023,7 @@ function App() {
       onNavigate={navigateToView}
       onSignOut={() => void handleSignOut()}
       searchQuery={searchQuery}
-      userId={userId}
+      userId={currentUserId}
       sidebar={
         <Sidebar
           activeView={activeView}
@@ -2035,7 +2049,7 @@ function App() {
         activeView={activeView}
         assignableMembers={assignableMembers}
         contributionsByTask={contributionsByTask}
-        currentUserId={userId}
+        currentUserId={currentUserId}
         dataLoading={dataLoading}
         deletedFolders={deletedFolders}
         deletedTasks={deletedTasks}
