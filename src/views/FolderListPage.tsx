@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { ChevronDown, ChevronUp, FolderPlus, Trash2, Plus, Info, Edit2, ReceiptText } from 'lucide-react'
+import { Check, ChevronDown, ChevronUp, FolderPlus, Trash2, Plus, Info, Edit2, ReceiptText } from 'lucide-react'
 import { getCategoryLabel, isSharedFolder } from '../lib/growtDisplay'
 import type { Folder as FolderType, Task, TaskStatusAction } from '../lib/growtData'
 import {
@@ -402,17 +402,38 @@ export function FolderListPage({
                 <div className="flex min-w-0 items-center gap-2">
                   {recipientReviewMode ? (
                     <label
-                      className={`recipient-card-select ${
-                        isSelectedForRecipients ? 'recipient-card-select--selected' : ''
+                      aria-label={isSelectedForRecipients ? 'Remove folder from selection' : 'Select folder'}
+                      className={`relative inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border-2 outline-none transition-all duration-300 ease-out focus-within:ring-4 focus-within:ring-primary/15 ${
+                        isSelectedForRecipients
+                          ? 'scale-105 border-primary bg-primary text-on-primary shadow-[0_6px_18px_rgba(34,139,94,0.28)]'
+                          : 'border-white/90 bg-white/80 text-transparent shadow-[0_4px_14px_rgba(15,23,42,0.10)] backdrop-blur-sm hover:scale-105 hover:border-primary/45 hover:bg-white dark:border-white/20 dark:bg-white/10'
                       }`}
                       onClick={(event) => event.stopPropagation()}
                     >
                       <input
                         checked={isSelectedForRecipients}
+                        className="peer sr-only"
                         onChange={() => toggleRecipientFolder(folder.id)}
                         type="checkbox"
                       />
-                      {isSelectedForRecipients ? 'Selected' : 'Select'}
+
+                      <span
+                        aria-hidden="true"
+                        className={`pointer-events-none absolute -inset-1.5 rounded-full border-2 border-primary/25 transition-all duration-500 ease-out ${
+                          isSelectedForRecipients ? 'scale-100 opacity-100' : 'scale-75 opacity-0'
+                        }`}
+                      />
+
+                      <Check
+                        aria-hidden="true"
+                        className={`relative z-10 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+                          isSelectedForRecipients
+                            ? 'rotate-0 scale-100 opacity-100'
+                            : '-rotate-45 scale-50 opacity-0'
+                        }`}
+                        size={18}
+                        strokeWidth={3}
+                      />
                     </label>
                   ) : null}
                 </div>
