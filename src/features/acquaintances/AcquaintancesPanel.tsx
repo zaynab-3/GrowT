@@ -326,18 +326,18 @@ export function AcquaintancesPanel() {
   }
 
   return (
-    <div className="flex flex-col gap-8 w-full max-w-7xl">
+    <div className="flex flex-col gap-4 sm:gap-8 w-full max-w-7xl">
       {message && (
         <div className="bg-surface-variant text-on-surface p-4 rounded-xl border border-outline-variant/30 text-sm font-medium">
           {message}
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Left Panel: Search and Requests */}
-        <div className="lg:col-span-2 flex flex-col gap-6">
+        <div className="lg:col-span-2 flex flex-col gap-4 sm:gap-6">
           
-          <div className="bg-light-card dark:bg-dark-card rounded-[18px] p-6 shadow-[0_4px_16px_0_rgba(31,38,135,0.03)] border border-surface-variant/50">
+          <div className="bg-light-card dark:bg-dark-card rounded-[16px] sm:rounded-[18px] p-4 sm:p-6 shadow-[0_4px_16px_0_rgba(31,38,135,0.03)] border border-surface-variant/50">
             <div className="mb-4">
               <h3 className="font-title-lg text-title-lg text-on-surface flex items-center gap-2">
                 <Search size={18} className="text-primary" />
@@ -358,8 +358,8 @@ export function AcquaintancesPanel() {
             </div>
           </div>
 
-          <div className="bg-light-card dark:bg-dark-card rounded-[18px] p-6 shadow-[0_4px_16px_0_rgba(31,38,135,0.03)] border border-surface-variant/50">
-            <div className="flex items-center gap-4 mb-6 border-b border-surface-variant/50">
+          <div className="bg-light-card dark:bg-dark-card rounded-[16px] sm:rounded-[18px] p-4 sm:p-6 shadow-[0_4px_16px_0_rgba(31,38,135,0.03)] border border-surface-variant/50">
+            <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6 border-b border-surface-variant/50 overflow-x-auto">
               <button
                 className={`pb-3 font-title-lg text-body-lg font-semibold transition-colors border-b-2 ${activeTab === 'incoming' ? 'border-primary text-primary' : 'border-transparent text-on-surface-variant hover:text-on-surface'}`}
                 onClick={() => setActiveTab('incoming')}
@@ -399,8 +399,8 @@ export function AcquaintancesPanel() {
 
         {/* Right Panel: Current Acquaintances */}
         <div className="lg:col-span-1">
-          <div className="bg-light-card dark:bg-dark-card rounded-[18px] p-6 shadow-[0_4px_16px_0_rgba(31,38,135,0.03)] border border-surface-variant/50">
-            <div className="flex items-center justify-between mb-6">
+          <div className="bg-light-card dark:bg-dark-card rounded-[16px] sm:rounded-[18px] p-4 sm:p-6 shadow-[0_4px_16px_0_rgba(31,38,135,0.03)] border border-surface-variant/50">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h3 className="font-title-lg text-title-lg text-on-surface flex items-center gap-2">
                 <Users size={18} className="text-primary" />
                 Connections

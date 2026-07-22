@@ -18,5 +18,6 @@ export {
   softDeleteTask,
   syncTaskLevels,
   undoLatestTaskProgress,
+  undoTaskStatusAction,
   updateTask,
 } from '../../services/taskService'

@@ -18,6 +18,7 @@ import {
   softDeleteTask as softDeleteTaskWithClient,
   syncTaskLevels as syncTaskLevelsWithClient,
   undoLatestTaskProgress as undoLatestTaskProgressWithClient,
+  undoTaskStatusAction as undoTaskStatusActionWithClient,
   updateTask as updateTaskWithClient,
 } from '../lib/growtData'
 import type { FolderCategory, ReorderDirection, TaskProgressStatus } from '../lib/database.types'
@@ -126,4 +127,8 @@ export function setTaskExported(taskId: string, isExported = true) {
 
 export function undoLatestTaskProgress(taskId: string, taskLevelId: string | null) {
   return undoLatestTaskProgressWithClient(getSupabaseClient(), taskId, taskLevelId)
+}
+
+export function undoTaskStatusAction(actionId: string) {
+  return undoTaskStatusActionWithClient(getSupabaseClient(), actionId)
 }

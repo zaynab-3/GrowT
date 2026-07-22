@@ -10,7 +10,6 @@ import { TaskDescriptionFields } from '../features/tasks/TaskDescriptionFields'
 import {
   getInitialChecklistItems,
   normalizeChecklistItems,
-  type TaskDescriptionMode,
 } from '../features/tasks/taskDescriptionUtils'
 import type { MemberPickerProfile } from '../features/members/memberPickerApi'
 import { CategoryPillToggle } from '../components/CategoryPillToggle'
@@ -57,7 +56,6 @@ export function TaskFormPage({
   // Create mode
   const [createTitle, setCreateTitle] = useState('')
   const [createDesc, setCreateDesc] = useState('')
-  const [createDescMode, setCreateDescMode] = useState<TaskDescriptionMode>('description')
   const [createChecklistItems, setCreateChecklistItems] = useState<string[]>([''])
   const [createCategory, setCreateCategory] = useState<FolderCategory>(defaultCategory)
   const [createHasExportButton, setCreateHasExportButton] = useState(false)
@@ -66,7 +64,6 @@ export function TaskFormPage({
   // Edit mode
   const [editTitle, setEditTitle] = useState(task?.title ?? '')
   const [editDesc, setEditDesc] = useState(task?.description ?? '')
-  const [editDescMode, setEditDescMode] = useState<TaskDescriptionMode>(taskLevels.length ? 'checklist' : 'description')
   const [editChecklistItems, setEditChecklistItems] = useState<string[]>(
     getInitialChecklistItems(taskLevels.map((level) => level.title ?? level.description ?? '')),
   )
@@ -93,7 +90,6 @@ export function TaskFormPage({
 
     setEditTitle(task.title)
     setEditDesc(task.description ?? '')
-    setEditDescMode(taskLevels.length ? 'checklist' : 'description')
     setEditChecklistItems(getInitialChecklistItems(taskLevels.map((level) => level.title ?? level.description ?? '')))
     setEditCategory(task.category)
     setEditDueDate(formatDateInputValue(task.due_date))
@@ -108,9 +104,8 @@ export function TaskFormPage({
     if (!createTitle.trim() || !onCreateTask) return
     onCreateTask({
       category: createCategory,
-      checklistItems: createDescMode === 'checklist' ? normalizeChecklistItems(createChecklistItems) : [],
-      description: createDescMode === 'description' ? createDesc.trim() || null : null,
-      descriptionMode: createDescMode,
+      checklistItems: normalizeChecklistItems(createChecklistItems),
+      description: createDesc.trim() || null,
       hasExportButton: createHasExportButton,
       recipientAmount: parseRecipientAmount(createRecipientAmount),
       title: createTitle.trim(),
@@ -118,7 +113,6 @@ export function TaskFormPage({
     })
     setCreateTitle('')
     setCreateDesc('')
-    setCreateDescMode('description')
     setCreateChecklistItems([''])
     setCreateHasExportButton(false)
     setCreateRecipientAmount(String(defaultRecipientAmount))
@@ -132,9 +126,8 @@ export function TaskFormPage({
     onUpdateTask({
       assignedUserId: editAssignedUserId || null,
       category: editCategory,
-      checklistItems: editDescMode === 'checklist' ? normalizeChecklistItems(editChecklistItems) : [],
-      description: editDescMode === 'description' ? editDesc.trim() || null : null,
-      descriptionMode: editDescMode,
+      checklistItems: normalizeChecklistItems(editChecklistItems),
+      description: editDesc.trim() || null,
       dueDate: editDueDate || null,
       hasExportButton: editHasExportButton,
       isActive: editIsActive,
@@ -211,7 +204,7 @@ export function TaskFormPage({
         <span className="breadcrumb__current">{isEdit ? 'Edit Task' : 'New Task'}</span>
       </nav>
 
-      <div className="workspace-layout-cols mt-4">
+      <div className="workspace-layout-cols mt-2 sm:mt-4">
         {/* Left Column: Form Card */}
         <div className="workspace-main-col">
           <div className="form-card">
@@ -243,10 +236,8 @@ export function TaskFormPage({
                       checklistItems={editChecklistItems}
                       description={editDesc}
                       idPrefix="edit-task-page"
-                      mode={editDescMode}
                       onChecklistItemsChange={setEditChecklistItems}
                       onDescriptionChange={setEditDesc}
-                      onModeChange={setEditDescMode}
                     />
                     <div className="text-xs text-on-surface-variant mt-1.5 flex flex-wrap gap-1 items-center">
                       Want to transfer files for this task? Upload them at <a href="https://www.swisstransfer.com/en" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">SwissTransfer</a> and paste the link here.
@@ -381,10 +372,8 @@ export function TaskFormPage({
                       description={createDesc}
                       descriptionPlaceholder="Optional details..."
                       idPrefix="new-task-page"
-                      mode={createDescMode}
                       onChecklistItemsChange={setCreateChecklistItems}
                       onDescriptionChange={setCreateDesc}
-                      onModeChange={setCreateDescMode}
                     />
                     <div className="text-xs text-on-surface-variant mt-1.5 flex flex-wrap gap-1 items-center">
                       Want to transfer files for this task? Upload them at{' '}
@@ -490,7 +479,12 @@ export function TaskFormPage({
                 <h4 style={{ margin: '4px 0 0', fontSize: '15px', fontWeight: 700, color: 'var(--ink)' }}>
                   {isEdit ? (editTitle || 'Untitled Task') : (createTitle || 'Untitled Task')}
                 </h4>
-                {(isEdit ? editDescMode : createDescMode) === 'checklist' ? (
+                {(isEdit ? editDesc : createDesc) ? (
+                  <p style={{ fontSize: '12.5px', color: 'var(--ink-2)', margin: '4px 0 0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.4 }}>
+                    {isEdit ? editDesc : createDesc}
+                  </p>
+                ) : null}
+                {normalizeChecklistItems(isEdit ? editChecklistItems : createChecklistItems).length ? (
                   <ol className="task-preview-checklist">
                     {(isEdit ? editChecklistItems : createChecklistItems)
                       .map((item) => item.trim())
@@ -499,15 +493,11 @@ export function TaskFormPage({
                       .map((item, index) => (
                         <li key={`${item}-${index}`}>{item}</li>
                       ))}
-                    {!normalizeChecklistItems(isEdit ? editChecklistItems : createChecklistItems).length ? (
-                      <li>No checklist items yet.</li>
-                    ) : null}
                   </ol>
-                ) : (
-                  <p style={{ fontSize: '12.5px', color: 'var(--ink-2)', margin: '4px 0 0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', height: '36px', lineHeight: 1.4 }}>
-                    {isEdit ? (editDesc || 'No details provided yet.') : (createDesc || 'No details provided yet.')}
-                  </p>
-                )}
+                ) : null}
+                {!(isEdit ? editDesc : createDesc) && !normalizeChecklistItems(isEdit ? editChecklistItems : createChecklistItems).length ? (
+                  <p style={{ fontSize: '12.5px', color: 'var(--ink-3)', margin: '4px 0 0' }}>No details provided yet.</p>
+                ) : null}
                 
                 {isEdit && editDueDate && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--danger-color)', marginTop: '4px', fontWeight: 600 }}>

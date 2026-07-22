@@ -559,3 +559,345 @@
 }
 
 .portfolio-task-panel { display: grid; gap: 16px; }
+
+.folder-card-mobile-menu {
+  display: none;
+  position: relative;
+}
+
+.folder-card-mobile-menu__trigger {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  box-shadow: var(--shadow-xs);
+}
+
+.folder-card-mobile-menu__panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 80;
+  display: grid;
+  width: 142px;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  padding: 5px;
+}
+
+.folder-card-mobile-menu__panel button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-2);
+  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: 800;
+  text-align: left;
+}
+
+.folder-card-mobile-menu__panel button:hover:not(:disabled) {
+  background: var(--surface-muted);
+  color: var(--primary);
+}
+
+.folder-card-mobile-menu__panel button:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+}
+
+.folder-card-mobile-menu__panel .folder-card-mobile-menu__danger {
+  color: var(--danger-color);
+}
+
+.folder-scope-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.folder-task-list {
+  margin-top: 18px;
+}
+
+/* Compact responsive rhythm shared by folder detail, forms, and cards. */
+@media (max-width: 900px) {
+  .folders-page,
+  .portfolio-screen {
+    gap: 20px;
+  }
+
+  .stitch-board {
+    gap: 16px;
+  }
+
+  .stitch-panel {
+    margin-bottom: 16px;
+    border-radius: 14px;
+  }
+
+  .stitch-panel__header {
+    padding: 14px 16px;
+  }
+
+  .stitch-panel__body {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .folders-page,
+  .portfolio-screen {
+    gap: 16px;
+  }
+
+  .stitch-grid,
+  .stitch-board {
+    gap: 12px;
+  }
+
+  .stitch-grid--cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .folder-scope-filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .folder-scope-filters button {
+    width: 100%;
+    min-width: 0;
+    padding-inline: 8px !important;
+  }
+
+  .folder-task-list {
+    margin-top: 12px;
+  }
+
+  .stitch-card {
+    min-height: 164px;
+    border-radius: 16px;
+  }
+
+  .stitch-panel {
+    margin-bottom: 12px;
+  }
+
+  .stitch-panel__header {
+    padding: 12px 14px;
+  }
+
+  .stitch-panel__body {
+    padding: 14px;
+  }
+
+  .folder-detail-hero {
+    margin-bottom: 12px !important;
+    border-radius: 16px !important;
+  }
+
+  .folder-detail-hero__body {
+    padding: 12px !important;
+  }
+
+  .folder-detail-hero__body > button:first-child {
+    margin-bottom: 9px !important;
+    font-size: 12px !important;
+  }
+
+  .folder-detail-hero h1 {
+    font-size: 22px !important;
+  }
+
+  .folder-detail-actions {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .folder-detail-actions .btn {
+    min-width: 0;
+    min-height: 42px;
+    flex-direction: column;
+    gap: 2px;
+    justify-content: center;
+    padding: 5px 3px;
+  }
+
+  .folder-detail-actions .btn span {
+    overflow: hidden;
+    max-width: 100%;
+    font-size: 9px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .folder-detail-description {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .folder-detail-meta {
+    gap: 5px !important;
+    margin-top: 8px !important;
+  }
+
+  .folder-detail-meta > span {
+    padding: 3px 8px !important;
+    font-size: 10px !important;
+  }
+
+  .folder-detail-meta > span:nth-child(3) {
+    display: none;
+  }
+
+  .folder-progress {
+    margin-top: 9px !important;
+    border-radius: 13px !important;
+    padding: 10px !important;
+  }
+
+  .folder-progress > div:first-child {
+    margin-bottom: 6px !important;
+  }
+
+  .folder-progress__hint {
+    display: none;
+  }
+
+  .folder-progress__stats {
+    gap: 6px !important;
+    margin-top: 9px !important;
+  }
+
+  .folder-progress__stat {
+    min-width: 0;
+    border-radius: 10px !important;
+    padding: 7px !important;
+  }
+
+  .folder-progress__stat > span {
+    display: block;
+    overflow: hidden;
+    font-size: 8.5px !important;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .folder-progress__stat > div {
+    margin-top: 1px !important;
+    font-size: 17px !important;
+  }
+
+  .stitch-status-overview {
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .stitch-status-card {
+    padding: 10px;
+  }
+
+  .stitch-status-card__label {
+    font-size: 9.5px;
+  }
+
+  .stitch-status-card__value {
+    font-size: 20px;
+  }
+
+  .stitch-detail-item {
+    gap: 12px;
+    padding: 11px 14px;
+  }
+
+  .stitch-detail-label,
+  .stitch-detail-value {
+    font-size: 12px;
+  }
+
+  .stitch-member-row {
+    padding: 9px 10px;
+  }
+
+  .stitch-invite-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .stitch-invite-form .btn {
+    width: 100%;
+  }
+
+  .folder-workspace-card {
+    min-width: 0;
+  }
+
+  .folder-workspace-card__toolbar {
+    min-height: 28px;
+  }
+
+  .folder-workspace-card .folder-card-actions--desktop {
+    display: none;
+  }
+
+  .folder-card-mobile-menu {
+    display: block;
+  }
+
+  .folder-workspace-card__toolbar > div {
+    max-width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .folder-workspace-card__toolbar > .folder-card-mobile-menu > .folder-card-mobile-menu__trigger {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    padding: 5px;
+  }
+
+  .folder-workspace-card .folder-workspace-card__description {
+    display: none;
+  }
+
+  .folder-workspace-card__status .inline-flex {
+    display: none;
+  }
+
+  .folder-card-meta-pills {
+    max-width: 58%;
+    gap: 4px;
+  }
+
+  .folder-card-meta-pill {
+    max-width: 100%;
+    overflow: hidden;
+    padding: 4px 6px;
+    font-size: 9px;
+    text-overflow: ellipsis;
+  }
+
+  .folder-card-meta-pill--date {
+    display: none;
+  }
+}

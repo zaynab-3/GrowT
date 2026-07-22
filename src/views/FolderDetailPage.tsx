@@ -143,12 +143,12 @@ export function FolderDetailPage({
 
   return (
     <div className="stitch-page">
-      <div className="mb-8 overflow-hidden rounded-[30px] border border-slate-200/80 bg-white/90 shadow-sm backdrop-blur dark:border-white/15 dark:bg-[#171126]/95">
+      <div className="folder-detail-hero mb-4 sm:mb-8 overflow-hidden rounded-[20px] sm:rounded-[30px] border border-slate-200/80 bg-white/90 shadow-sm backdrop-blur dark:border-white/15 dark:bg-[#171126]/95">
         <div className="h-1.5 bg-gradient-to-r from-primary via-fuchsia-400 to-emerald-400" />
 
-        <div className="p-5 md:p-6">
+        <div className="folder-detail-hero__body p-4 sm:p-5 md:p-6">
           <button
-            className="mb-5 inline-flex items-center gap-2 text-sm font-bold text-primary transition-colors hover:text-primary-container"
+            className="mb-3 sm:mb-5 inline-flex items-center gap-2 text-sm font-bold text-primary transition-colors hover:text-primary-container"
             onClick={onBack}
             type="button"
           >
@@ -156,10 +156,10 @@ export function FolderDetailPage({
             Back to Workspaces
           </button>
 
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div className="flex flex-col gap-4 sm:gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-3">
-                <h1 className="m-0 break-words text-[30px] font-black leading-tight text-slate-950 dark:text-slate-50 md:text-[34px]">
+                <h1 className="m-0 break-words text-[24px] sm:text-[30px] font-black leading-tight text-slate-950 dark:text-slate-50 md:text-[34px]">
                   {folder.title}
                 </h1>
 
@@ -174,15 +174,13 @@ export function FolderDetailPage({
                 )}
               </div>
 
-              <div className="mt-3 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">
-                {folder.description ? (
+              {folder.description ? (
+                <div className="folder-detail-description mt-2 sm:mt-3 max-w-3xl text-[13px] sm:text-sm leading-5 sm:leading-6 text-slate-600 dark:text-slate-300">
                   <LinkifiedText text={folder.description} />
-                ) : (
-                  <span className="italic opacity-70">No description yet.</span>
-                )}
-              </div>
+                </div>
+              ) : null}
 
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="folder-detail-meta mt-3 sm:mt-4 flex flex-wrap gap-2">
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 dark:bg-white/10 dark:text-slate-300">
                   {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
                 </span>
@@ -203,7 +201,7 @@ export function FolderDetailPage({
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2 lg:justify-end">
+            <div className="folder-detail-actions flex flex-wrap gap-2 lg:justify-end">
               {recipientReport && (
                 <button
                   className="btn btn--secondary"
@@ -211,7 +209,7 @@ export function FolderDetailPage({
                   type="button"
                 >
                   <ReceiptText size={14} />
-                  Recipients
+                  <span>Recipients</span>
                 </button>
               )}
 
@@ -224,7 +222,7 @@ export function FolderDetailPage({
                   disabled={isSaving}
                 >
                   <Link size={14} />
-                  Share Link
+                  <span>Share</span>
                 </button>
 
                 <button
@@ -234,7 +232,7 @@ export function FolderDetailPage({
                   id="edit-folder-btn"
                 >
                   <Edit2 size={14} />
-                  Edit
+                  <span>Edit</span>
                 </button>
 
                 <button
@@ -245,7 +243,7 @@ export function FolderDetailPage({
                   id="delete-folder-btn"
                 >
                   <Trash2 size={14} />
-                  Delete
+                  <span>Delete</span>
                 </button>
                 </>
               )}
@@ -265,7 +263,7 @@ export function FolderDetailPage({
             />
           )}
 
-          <div className="mt-6 rounded-2xl border border-slate-200/80 bg-slate-50/90 p-4 dark:border-white/10 dark:bg-white/[0.045]">
+          <div className="folder-progress mt-4 sm:mt-6 rounded-2xl border border-slate-200/80 bg-slate-50/90 p-3 sm:p-4 dark:border-white/10 dark:bg-white/[0.045]">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2">
@@ -283,7 +281,7 @@ export function FolderDetailPage({
                   </button>
                 </div>
 
-                <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                <p className="folder-progress__hint mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
                   Completion is based on completed tasks only.
                 </p>
               </div>
@@ -300,16 +298,16 @@ export function FolderDetailPage({
               />
             </div>
 
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="folder-progress__stats mt-3 sm:mt-4 grid grid-cols-3 gap-2 sm:gap-3">
               {statusCards.map((card) => (
                 <div
-                  className={`rounded-xl border px-4 py-3 ${card.wrapper}`}
+                  className={`folder-progress__stat rounded-xl border px-2 sm:px-4 py-2.5 sm:py-3 ${card.wrapper}`}
                   key={card.key}
                 >
                   <span className="text-[11px] font-black uppercase tracking-wide">
                     {card.label}
                   </span>
-                  <div className="mt-1 text-2xl font-black">
+                  <div className="mt-1 text-lg sm:text-2xl font-black">
                     {folderStatusTotals[card.key]}
                   </div>
                 </div>
@@ -325,7 +323,7 @@ export function FolderDetailPage({
           onClick={() => setShowBreakdown(false)}
         >
           <div
-            className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-white/10 dark:bg-[#171126]"
+            className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xl dark:border-white/10 dark:bg-[#171126]"
             onClick={(event) => event.stopPropagation()}
           >
             <button
@@ -429,20 +427,7 @@ export function FolderDetailPage({
                 onCreate={onCreateFolderTask}
               />
 
-              <p className="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
-                Want to transfer files for this task? Upload them at{' '}
-                <a
-                  href="https://www.swisstransfer.com/en"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold text-primary hover:underline"
-                >
-                  SwissTransfer
-                </a>{' '}
-                and paste the link here.
-              </p>
-
-              <div style={{ marginTop: 24 }}>
+              <div className="folder-task-list">
                 <TaskList
                   assignableMembers={assignableMembers}
                   contributionsByTask={contributionsByTask}

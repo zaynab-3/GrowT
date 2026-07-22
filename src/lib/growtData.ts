@@ -21,6 +21,19 @@ export type TaskMember = Database['public']['Tables']['task_members']['Row']
 export type TaskProgress = Database['public']['Tables']['task_progress']['Row']
 export type TaskStatusAction = Database['public']['Tables']['task_status_actions']['Row']
 export type Invite = Database['public']['Tables']['invites']['Row']
+export type PublicTaskShare = {
+  checklist: Array<{ id: string; position: number; title: string }>
+  shared_by: { display_name: string | null; username: string }
+  task: {
+    category: FolderCategory
+    created_at: string
+    description: string | null
+    due_date: string | null
+    id: string
+    is_active: boolean
+    title: string
+  }
+}
 
 export const PROFILE_SUMMARY_SELECT = 'id, username, display_name, avatar_url, avatar_choice'
 
@@ -978,7 +991,7 @@ export async function undoTaskStatusAction(client: GrowTClient, actionId: string
     throw error
   }
 
-  return data
+  return data as unknown as TaskStatusAction
 }
 
 export async function createInviteWithUser(
@@ -1021,4 +1034,19 @@ export async function acceptInvite(
   }
 
   return data
+}
+
+export async function getPublicTaskShare(
+  client: GrowTClient,
+  shareId: string,
+): Promise<PublicTaskShare> {
+  const { data, error } = await client.rpc('get_public_task_share', {
+    p_share_id: shareId,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return data as unknown as PublicTaskShare
 }

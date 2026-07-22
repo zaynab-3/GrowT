@@ -9,7 +9,7 @@ type ViewHeaderProps = {
 
 export function ViewHeader({ actions, description, label, title }: ViewHeaderProps) {
   return (
-    <header className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <header className="mb-4 sm:mb-6 flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
       <div>
         <p className="font-label-md text-label-md text-primary font-bold uppercase tracking-wider mb-1">{label}</p>
         <h1 className="font-headline-md text-headline-md font-bold text-on-surface">{title}</h1>

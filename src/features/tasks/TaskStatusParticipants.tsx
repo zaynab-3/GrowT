@@ -23,7 +23,7 @@ export function TaskStatusParticipants({
   }
 
   return (
-    <span className="flex min-w-0 flex-wrap items-center gap-1.5">
+    <span className="task-status-participants flex min-w-0 flex-wrap items-center gap-1.5">
       {rows.map((row) => {
         const label = getProfileLabel(row.userId)
 

@@ -26,6 +26,19 @@ export function sortByPositionAndCreatedAt<T extends { position: number; created
   })
 }
 
+export function sortStandaloneTasks<T extends { id: string; position: number; created_at: string }>(
+  items: T[],
+) {
+  return [...items].sort((first, second) => {
+    if (first.position !== second.position) {
+      return first.position - second.position
+    }
+
+    const createdAtDifference = Date.parse(second.created_at) - Date.parse(first.created_at)
+    return createdAtDifference || first.id.localeCompare(second.id)
+  })
+}
+
 export function sortFolders(folders: Folder[]) {
   return [...folders].sort((first, second) => {
     if (first.position !== second.position) {

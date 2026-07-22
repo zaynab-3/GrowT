@@ -1,5 +1,6 @@
 import { formatDateTime, formatRestoreWindow, getCategoryLabel } from '../../lib/growtDisplay'
 import type { Folder } from '../../lib/growtData'
+import { RotateCcw, Trash2 } from 'lucide-react'
 
 type FolderRestorePanelProps = {
   folders: Folder[]
@@ -14,40 +15,43 @@ export function FolderRestorePanel({ folders, isSaving, onRestore, onHardDelete 
   }
 
   return (
-    <div className="stitch-panel">
-      <div className="stitch-panel__header">
+    <section className="stitch-panel restore-panel">
+      <div className="stitch-panel__header restore-panel__header">
         <h3 className="stitch-panel__title">Deleted Folders</h3>
         <span className="stitch-count-badge">{folders.length}</span>
       </div>
-      <div className="stitch-panel__body" style={{ padding: 0 }}>
-        <div className="stitch-member-list" style={{ gap: 0 }}>
+      <div className="stitch-panel__body restore-panel__body">
+        <div className="restore-list">
           {folders.map((folder) => (
-            <div className="stitch-member-row" key={folder.id} style={{ borderRadius: 0, borderLeft: 'none', borderRight: 'none', borderTop: 'none', borderBottom: '1px solid var(--border)', padding: '16px 20px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, minWidth: 0 }}>
-                <span className="stitch-member-name">{folder.title}</span>
-                <span style={{ fontSize: '13px', color: 'var(--ink-2)' }}>
+            <div className="restore-row" key={folder.id}>
+              <div className="restore-row__content">
+                <strong className="restore-row__title">{folder.title}</strong>
+                <span className="restore-row__meta">
                   {getCategoryLabel(folder.category)} · Deleted {formatDateTime(folder.deleted_at)}
                 </span>
-                <span style={{ fontSize: '11px', color: 'var(--danger)' }}>{formatRestoreWindow(folder.deleted_at)}</span>
+                <span className="restore-row__window">{formatRestoreWindow(folder.deleted_at)}</span>
               </div>
-              <div style={{ display: 'flex', gap: '8px', marginLeft: '16px' }}>
+              <div className="restore-row__actions">
                 <button
-                  className="btn btn--secondary btn--sm"
+                  aria-label={`Restore ${folder.title}`}
+                  className="restore-row__button restore-row__button--restore"
                   disabled={isSaving}
                   onClick={() => onRestore(folder)}
+                  title="Restore folder"
                   type="button"
                 >
-                  Restore
+                  <RotateCcw size={15} />
                 </button>
                 {onHardDelete && (
                   <button
-                    className="btn btn--secondary btn--sm"
+                    aria-label={`Delete ${folder.title} permanently`}
+                    className="restore-row__button restore-row__button--delete"
                     disabled={isSaving}
                     onClick={() => onHardDelete(folder)}
+                    title="Delete permanently"
                     type="button"
-                    style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }}
                   >
-                    Delete
+                    <Trash2 size={15} />
                   </button>
                 )}
               </div>
@@ -55,6 +59,6 @@ export function FolderRestorePanel({ folders, isSaving, onRestore, onHardDelete 
           ))}
         </div>
       </div>
-    </div>
+    </section>
   )
 }

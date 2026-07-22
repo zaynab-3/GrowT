@@ -76,6 +76,7 @@ type AppViewRouterProps = {
   onFolderRecipientTaskAmountChange: (amount: string) => void
   onFolderTitleChange: (title: string) => void
   onInviteMember: (event: FormEvent<HTMLFormElement>) => void
+  onInviteAccepted: (resourceType: 'folder' | 'task', resourceId: string) => Promise<void> | void
   onMemberUsernameChange: (username: string) => void
   onMoveFolder: (folder: Folder, direction: ReorderDirection, scopedFolderIds?: string[]) => void
   onMoveTask: (task: Task, direction: ReorderDirection, scopedTaskIds?: string[]) => void
@@ -212,6 +213,7 @@ export function AppViewRouter({
   onFolderRecipientTaskAmountChange,
   onFolderTitleChange,
   onInviteMember,
+  onInviteAccepted,
   onMemberUsernameChange,
   onMoveFolder,
   onMoveTask,
@@ -261,8 +263,7 @@ export function AppViewRouter({
       return (
         <InvitePage
           inviteId={route.inviteId}
-          onNavigateToFolder={(id) => onOpenFolder(id)}
-          onNavigateToTask={(id) => onOpenTask(tasks.find(t => t.id === id) || standaloneTasks.find(t => t.id === id) || { id, folder_id: null } as unknown as Task)}
+          onInviteAccepted={onInviteAccepted}
           onNavigateToHome={() => onNavigate('folders')}
         />
       )
@@ -328,13 +329,13 @@ export function AppViewRouter({
           tasks={filteredTasks}
         />
       ) : dataLoading ? (
-        <div className="flex-1 flex flex-col items-center justify-center p-8 text-on-surface-variant font-body-md min-h-[400px]">
+        <div className="flex-1 flex flex-col items-center justify-center p-5 sm:p-8 text-on-surface-variant font-body-md min-h-[260px] sm:min-h-[400px]">
           <RefreshCw className="animate-spin text-primary mb-4" size={48} />
           <p className="font-semibold text-on-surface text-lg">Loading Workspace...</p>
           <p className="text-on-surface-variant text-sm mt-1">Retrieving tasks and members.</p>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col items-center justify-center p-8 text-on-surface-variant font-body-md text-center max-w-md mx-auto min-h-[400px]">
+        <div className="flex-1 flex flex-col items-center justify-center p-5 sm:p-8 text-on-surface-variant font-body-md text-center max-w-md mx-auto min-h-[260px] sm:min-h-[400px]">
           <FolderX className="text-primary/40 mb-4" size={64} />
           <h2 className="font-headline-md text-headline-md text-on-surface mb-2">Workspace not found</h2>
           <p className="font-body-md mb-6 text-on-surface-variant">This workspace may have been deleted, or you may not have permission to view it.</p>
@@ -354,12 +355,12 @@ export function AppViewRouter({
           onUpdateFolder={onUpdateFolder}
         />
       ) : dataLoading ? (
-        <div className="flex-1 flex flex-col items-center justify-center p-8 text-on-surface-variant font-body-md min-h-[400px]">
+        <div className="flex-1 flex flex-col items-center justify-center p-5 sm:p-8 text-on-surface-variant font-body-md min-h-[260px] sm:min-h-[400px]">
           <RefreshCw className="animate-spin text-primary mb-4" size={48} />
           <p className="font-semibold text-on-surface text-lg">Loading Details...</p>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col items-center justify-center p-8 text-on-surface-variant font-body-md text-center max-w-md mx-auto min-h-[400px]">
+        <div className="flex-1 flex flex-col items-center justify-center p-5 sm:p-8 text-on-surface-variant font-body-md text-center max-w-md mx-auto min-h-[260px] sm:min-h-[400px]">
           <FolderX className="text-primary/40 mb-4" size={64} />
           <h2 className="font-headline-md text-headline-md text-on-surface mb-2">Workspace not found</h2>
           <button onClick={() => onNavigate('folders')} className="bg-primary text-white font-label-md text-label-md px-6 py-2.5 rounded-xl hover:bg-primary-dark transition-all">
@@ -398,12 +399,12 @@ export function AppViewRouter({
           taskMembers={taskMembersByTask.get(taskToView.id)}
         />
       ) : dataLoading ? (
-        <div className="flex-1 flex flex-col items-center justify-center p-8 text-on-surface-variant font-body-md min-h-[400px]">
+        <div className="flex-1 flex flex-col items-center justify-center p-5 sm:p-8 text-on-surface-variant font-body-md min-h-[260px] sm:min-h-[400px]">
           <RefreshCw className="animate-spin text-primary mb-4" size={48} />
           <p className="font-semibold text-on-surface text-lg">Loading Task...</p>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col items-center justify-center p-8 text-on-surface-variant font-body-md text-center max-w-md mx-auto min-h-[400px]">
+        <div className="flex-1 flex flex-col items-center justify-center p-5 sm:p-8 text-on-surface-variant font-body-md text-center max-w-md mx-auto min-h-[260px] sm:min-h-[400px]">
           <CheckSquare className="text-primary/40 mb-4" size={64} />
           <h2 className="font-headline-md text-headline-md text-on-surface mb-2">Task not found</h2>
           <p className="font-body-md mb-6 text-on-surface-variant">The task details could not be retrieved.</p>
@@ -465,12 +466,12 @@ export function AppViewRouter({
           taskLevels={taskLevelsByTask.get(taskToEdit.id) ?? []}
         />
       ) : dataLoading ? (
-        <div className="flex-1 flex flex-col items-center justify-center p-8 text-on-surface-variant font-body-md min-h-[400px]">
+        <div className="flex-1 flex flex-col items-center justify-center p-5 sm:p-8 text-on-surface-variant font-body-md min-h-[260px] sm:min-h-[400px]">
           <RefreshCw className="animate-spin text-primary mb-4" size={48} />
           <p className="font-semibold text-on-surface text-lg">Loading Details...</p>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col items-center justify-center p-8 text-on-surface-variant font-body-md text-center max-w-md mx-auto min-h-[400px]">
+        <div className="flex-1 flex flex-col items-center justify-center p-5 sm:p-8 text-on-surface-variant font-body-md text-center max-w-md mx-auto min-h-[260px] sm:min-h-[400px]">
           <CheckSquare className="text-primary/40 mb-4" size={64} />
           <h2 className="font-headline-md text-headline-md text-on-surface mb-2">Task not found</h2>
           <button onClick={() => onNavigate('folders')} className="bg-primary text-white font-label-md text-label-md px-6 py-2.5 rounded-xl hover:bg-primary-dark transition-all">
@@ -542,6 +543,7 @@ export function AppViewRouter({
           onAddTask={() => onAddTask()}
           onAddTaskMember={onAddTaskMember}
           onCloseTaskEdit={onCloseTaskEdit}
+          onCopyShareLink={onCopyShareLink}
           onDeleteTask={onDeleteTask}
           onEditTask={onEditTask}
           onMoveTask={onMoveTask}

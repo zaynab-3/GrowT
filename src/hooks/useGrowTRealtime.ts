@@ -14,6 +14,7 @@ import {
   sortActions,
   sortByPositionAndCreatedAt,
   sortFolders,
+  sortStandaloneTasks,
   sortTaskMembers,
   upsertById,
   type RealtimePayload,
@@ -226,7 +227,7 @@ export function useGrowTRealtime({
         return
       }
 
-      setStandaloneTasks((current) => sortByPositionAndCreatedAt(upsertById(current, changedTask)))
+      setStandaloneTasks((current) => sortStandaloneTasks(upsertById(current, changedTask)))
       void loadProfilesForIds([changedTask.owner_id, changedTask.assigned_user_id ?? ''])
       void refreshStandaloneTasks()
     }

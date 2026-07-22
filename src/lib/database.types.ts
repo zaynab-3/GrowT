@@ -680,6 +680,7 @@ export type Database = {
         }
       }
       accept_invite: { Args: { p_invite_id: string }; Returns: Json }
+      get_public_task_share: { Args: { p_share_id: string }; Returns: Json }
       add_folder_member: {
         Args: { folder_id: string; username: string }
         Returns: {

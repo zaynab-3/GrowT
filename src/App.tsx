@@ -40,11 +40,13 @@ import {
   softDeleteTask,
   syncTaskLevels,
   undoLatestTaskProgress,
+  undoTaskStatusAction,
   updateTask,
 } from './features/tasks/taskApi'
 import { AppShell } from './layout/AppShell'
 import { Sidebar } from './layout/Sidebar'
 import { AppViewRouter } from './views/AppViewRouter'
+import { PublicTaskSharePage } from './views/PublicTaskSharePage'
 import { getRouteView, parseAppRoute, routeForView, routeToPath, routeFolderId, type AppRoute, type AppView, type AppViewNavItem } from './views/viewTypes'
 import { useGrowTData } from './hooks/useGrowTData'
 import { useAuthSession } from './hooks/useAuthSession'
@@ -61,6 +63,7 @@ import {
   sortActions,
   sortByPositionAndCreatedAt,
   sortFolders,
+  sortStandaloneTasks,
   sortTaskMembers,
   upsertById,
 } from './lib/growtState'
@@ -97,6 +100,7 @@ type ConfirmRequest = {
 
 const SKIP_LANDING_STORAGE_KEY = 'growt:skipLanding'
 const THEME_MODE_STORAGE_KEY = 'growt:themeMode'
+const PENDING_INVITE_PATH_KEY = 'growt:pendingInvitePath'
 
 const authPathByView: Record<Exclude<AuthView, 'reset'>, string> = {
   forgot: '/forgot',
@@ -139,6 +143,28 @@ function setStoredThemeMode(themeMode: ThemeMode) {
     window.localStorage.setItem(THEME_MODE_STORAGE_KEY, themeMode)
   } catch {
     // Storage can be unavailable in private or embedded browsers.
+  }
+}
+
+function getPendingInvitePath() {
+  try {
+    const path = window.sessionStorage.getItem(PENDING_INVITE_PATH_KEY)
+    return path && /^\/invite\/[^/]+$/.test(path) ? path : null
+  } catch {
+    return null
+  }
+}
+
+function setPendingInvitePath(path: string | null) {
+  try {
+    if (path) {
+      window.sessionStorage.setItem(PENDING_INVITE_PATH_KEY, path)
+      return
+    }
+
+    window.sessionStorage.removeItem(PENDING_INVITE_PATH_KEY)
+  } catch {
+    // Keep authentication usable when session storage is unavailable.
   }
 }
 
@@ -275,6 +301,26 @@ function App() {
     })
   }, [])
 
+  const restorePendingInviteRoute = useCallback(() => {
+    const pendingPath = getPendingInvitePath()
+    if (!pendingPath) return false
+
+    const pendingRoute = parseAppRoute(pendingPath)
+    if (pendingRoute.name !== 'invite') {
+      setPendingInvitePath(null)
+      return false
+    }
+
+    runViewTransition(() => {
+      setRoute(pendingRoute)
+      setActiveView(getRouteView(pendingRoute))
+      window.history.replaceState({}, '', pendingPath)
+      setPublicPath(pendingPath)
+    })
+    setPendingInvitePath(null)
+    return true
+  }, [])
+
   useEffect(() => {
     const timer = window.setTimeout(() => setIntroLoading(false), 1200)
     return () => window.clearTimeout(timer)
@@ -359,15 +405,25 @@ function App() {
   }, [authReady, authView, navigateToAuthView, session, setAuthView, shouldSkipLanding])
 
   useEffect(() => {
+    if (authReady && !session && route.name === 'invite' && route.inviteId) {
+      setPendingInvitePath(routeToPath(route))
+    }
+  }, [authReady, route, session])
+
+  useEffect(() => {
     if (!authReady || !session) {
       return
     }
 
     const pathname = getCurrentPath()
+    if (restorePendingInviteRoute()) {
+      return
+    }
+
     if (pathname === '/' || pathname === '/login' || pathname === '/register' || pathname === '/forgot') {
       navigateToDashboard()
     }
-  }, [authReady, navigateToDashboard, session])
+  }, [authReady, navigateToDashboard, restorePendingInviteRoute, session])
 
   useEffect(() => {
     const folderId = routeFolderId(route)
@@ -471,7 +527,7 @@ function App() {
       {
         description: 'Profile',
         id: 'settings',
-        label: 'Settings',
+        label: 'Profile',
       },
     ],
     [
@@ -664,7 +720,7 @@ function App() {
         return
       }
 
-      setStandaloneTasks(sortByPositionAndCreatedAt(nextTasks))
+      setStandaloneTasks(sortStandaloneTasks(nextTasks))
       setTaskLevels((current) => replaceRowsForTasks(current, taskIds, nextLevels))
       setTaskMembers(sortTaskMembers(nextTaskMembers))
       setProgress((current) => replaceRowsForTasks(current, taskIds, nextProgress))
@@ -988,7 +1044,9 @@ function App() {
       setStoredSkipLanding(rememberMe)
       setShouldSkipLanding(rememberMe)
       setLoginPassword('')
-      navigateToDashboard()
+      if (!restorePendingInviteRoute()) {
+        navigateToDashboard()
+      }
     } catch (error) {
       console.error('Login failed', error)
       setMessage('Invalid username/email or password')
@@ -1005,6 +1063,11 @@ function App() {
 
     try {
       const shouldRememberGoogleLogin = authView === 'login' && rememberMe
+      const currentRoute = parseAppRoute(window.location.pathname)
+      if (currentRoute.name === 'invite' && currentRoute.inviteId) {
+        setPendingInvitePath(routeToPath(currentRoute))
+      }
+
       const { error } = await authService.signInWithGoogle(`${window.location.origin}/dashboard`)
 
       if (error) {
@@ -1240,9 +1303,13 @@ function App() {
     try {
       setSaving(true)
       const invite = await createInviteWithUser(resourceType, resourceId, user.id)
-      const inviteUrl = `${window.location.origin}/invite/${invite.id}`
+      const isStandaloneTask = resourceType === 'task'
+        && standaloneTasks.some((task) => task.id === resourceId && task.owner_id === user.id)
+      const inviteUrl = isStandaloneTask
+        ? `${window.location.origin}/share/tasks/${invite.id}`
+        : `${window.location.origin}/invite/${invite.id}`
       await navigator.clipboard.writeText(inviteUrl)
-      setMessage('Share link copied to clipboard!')
+      setMessage(isStandaloneTask ? 'View-only task link copied.' : 'Invite link copied.')
     } catch (error) {
       console.error('Failed to create share link', error)
       setMessage('Unable to create share link. Please try again.')
@@ -1418,7 +1485,7 @@ function App() {
           setTasks([restoredTask])
         }
       } else {
-        setStandaloneTasks((current) => sortByPositionAndCreatedAt(upsertById(current, restoredTask)))
+        setStandaloneTasks((current) => sortStandaloneTasks(upsertById(current, restoredTask)))
       }
 
       setMessage('Task restored.')
@@ -1450,7 +1517,7 @@ function App() {
         setTasks(sortByPositionAndCreatedAt(nextTasks))
         await refreshLiveSessionRef.current()
       } else {
-        setStandaloneTasks(sortByPositionAndCreatedAt(nextTasks))
+        setStandaloneTasks(sortStandaloneTasks(nextTasks))
         await refreshStandaloneTasks()
       }
 
@@ -1533,7 +1600,7 @@ function App() {
       })
       const nextTaskLevels = await syncTaskLevels(
         task.id,
-        values.descriptionMode === 'checklist' ? values.checklistItems : [],
+        values.checklistItems,
       )
 
       setTasks((current) => sortByPositionAndCreatedAt(upsertById(current, task)))
@@ -1587,10 +1654,10 @@ function App() {
       })
       const nextTaskLevels = await syncTaskLevels(
         task.id,
-        values.descriptionMode === 'checklist' ? values.checklistItems : [],
+        values.checklistItems,
       )
 
-      setStandaloneTasks((current) => sortByPositionAndCreatedAt(upsertById(current, task)))
+      setStandaloneTasks((current) => sortStandaloneTasks(upsertById(current, task)))
       setTaskLevels((current) => replaceRowsForTasks(current, [task.id], nextTaskLevels))
       if (route.name === 'task-new') {
         navigateToRoute({ name: 'tasks' })
@@ -1722,13 +1789,13 @@ function App() {
       })
       const nextTaskLevels = await syncTaskLevels(
         task.id,
-        values.descriptionMode === 'checklist' ? values.checklistItems : [],
+        values.checklistItems,
       )
 
       if (task.folder_id) {
         setTasks((current) => sortByPositionAndCreatedAt(upsertById(current, task)))
       } else {
-        setStandaloneTasks((current) => sortByPositionAndCreatedAt(upsertById(current, task)))
+        setStandaloneTasks((current) => sortStandaloneTasks(upsertById(current, task)))
       }
       setTaskLevels((current) => replaceRowsForTasks(current, [task.id], nextTaskLevels))
       setEditingTaskId(null)
@@ -1804,6 +1871,17 @@ function App() {
     }
   }
 
+  const handleInviteAccepted = useCallback(async (resourceType: 'folder' | 'task', resourceId: string) => {
+    if (resourceType === 'folder') {
+      await refreshFolders()
+      navigateToRoute({ name: 'folder-detail', folderId: resourceId })
+      return
+    }
+
+    await refreshStandaloneTasks()
+    navigateToRoute({ name: 'task-detail', taskId: resourceId })
+  }, [navigateToRoute, refreshFolders, refreshStandaloneTasks])
+
   async function handleSetTaskExported(taskId: string, isExported = true) {
     if (!isSupabaseConfigured) {
       return
@@ -1818,7 +1896,7 @@ function App() {
       if (task.folder_id) {
         setTasks((current) => sortByPositionAndCreatedAt(upsertById(current, task)))
       } else {
-        setStandaloneTasks((current) => sortByPositionAndCreatedAt(upsertById(current, task)))
+        setStandaloneTasks((current) => sortStandaloneTasks(upsertById(current, task)))
       }
 
       await Promise.all([refreshLiveSessionRef.current(), refreshStandaloneTasks()])
@@ -1907,7 +1985,7 @@ function App() {
     setMessage('')
 
     try {
-      const undoneAction = await undoLatestTaskProgress(action.task_id, action.task_level_id)
+      const undoneAction = await undoTaskStatusAction(action.id)
       setActions((current) => sortActions(upsertById(current, undoneAction)))
       await Promise.all([refreshLiveSessionRef.current(), refreshStandaloneTasks()])
     } catch (error) {
@@ -1933,6 +2011,10 @@ function App() {
 
   if (!authReady) {
     return <LoadingState message="Checking your session." title="Opening GrowT" />
+  }
+
+  if (route.name === 'task-share') {
+    return <PublicTaskSharePage shareId={route.shareId} />
   }
 
   const authPanel = (
@@ -2095,6 +2177,7 @@ function App() {
         onHardDeleteFolder={handleHardDeleteFolder}
         onHardDeleteTask={handleHardDeleteTask}
         onInviteMember={handleInviteMember}
+        onInviteAccepted={handleInviteAccepted}
         onMemberUsernameChange={setMemberUsername}
         onMoveFolder={(folder, direction, scopedFolderIds) => void handleMoveFolder(folder, direction, scopedFolderIds)}
         onMoveTask={(task, direction, scopedTaskIds) => void handleMoveTask(task, direction, scopedTaskIds)}

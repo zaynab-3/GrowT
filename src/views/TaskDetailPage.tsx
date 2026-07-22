@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowLeft, Edit2, Trash2, CheckCircle, Undo2, Link, Upload, ReceiptText } from 'lucide-react'
+import { ArrowLeft, Edit2, Trash2, CheckCircle, Link, Upload, ReceiptText } from 'lucide-react'
 import { formatDateTime } from '../lib/growtDisplay'
 import type { TaskProgressStatus } from '../lib/database.types'
 import type { Task, TaskLevel, TaskMember, TaskStatusAction } from '../lib/growtData'
@@ -87,30 +87,31 @@ export function TaskDetailPage({
     completed: 'bg-[#dcfce7] text-[#15803d] border-[#bbf7d0] hover:bg-[#bbf7d0]',
   }
 
-  const handleStatusChange = (status: TaskProgressStatus) => {
-    onSetTaskStatus(task.id, status)
-  }
+  const currentUserStatusAction = contributions
+    ? Object.values(contributions)
+        .flat()
+        .find((row) => row.userId === currentUserId)?.action ?? null
+    : null
 
-  let lastActionToUndo: TaskStatusAction | null = null
-  if (contributions) {
-    const allActions = Object.values(contributions).flat()
-    const undoableActions = allActions.filter(c => c.userId === currentUserId || canManageTask)
-    if (undoableActions.length > 0) {
-      undoableActions.sort((a, b) => new Date(b.action.created_at).getTime() - new Date(a.action.created_at).getTime())
-      lastActionToUndo = undoableActions[0].action
+  const handleStatusChange = (status: TaskProgressStatus) => {
+    if (currentUserStatusAction?.new_status === status) {
+      onUndoAction(currentUserStatusAction)
+      return
     }
+
+    onSetTaskStatus(task.id, status)
   }
 
   return (
     <div className="stitch-page">
-      <div className="workspace-header-compact" style={{ marginBottom: 24 }}>
+      <div className="task-detail-header workspace-header-compact mb-4 sm:mb-6">
         <div className="page-header__copy">
           <button className="btn btn--ghost" onClick={onBack} type="button" style={{ padding: '0', marginBottom: '12px', display: 'flex', gap: '6px', fontSize: '13px', fontWeight: '600', color: 'var(--primary)' }}>
             <ArrowLeft size={14} /> Back to Folder
           </button>
           
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
-            <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 800, textDecoration: isCompleted ? 'line-through' : 'none', opacity: isCompleted ? 0.7 : 1 }}>{task.title}</h1>
+            <h1 className="task-detail-header__title" style={{ margin: 0, fontWeight: 800, textDecoration: isCompleted ? 'line-through' : 'none', opacity: isCompleted ? 0.7 : 1 }}>{task.title}</h1>
             <div style={{ display: 'flex', gap: '6px' }}>
               <span className="stitch-badge">{getCategoryLabel(task.category)}</span>
               {showExportButton && (
@@ -134,6 +135,11 @@ export function TaskDetailPage({
               {isCompleted && <span className="stitch-badge stitch-badge--inactive">Inactive</span>}
             </div>
           </div>
+          {task.description ? (
+            <div className="page-header__desc" style={{ margin: '6px 0 0', color: 'var(--ink-2)' }}>
+              <LinkifiedText text={task.description} />
+            </div>
+          ) : null}
           {taskLevels.length > 0 ? (
             <div style={{ marginTop: '14px', maxWidth: 680 }}>
               <TaskChecklist
@@ -143,10 +149,6 @@ export function TaskDetailPage({
                 onToggle={(taskLevelId, checked) => onToggleTaskLevel(task.id, taskLevelId, checked)}
                 pendingAction={pendingAction}
               />
-            </div>
-          ) : task.description ? (
-            <div className="page-header__desc" style={{ margin: '4px 0 0', color: 'var(--ink-2)' }}>
-              <LinkifiedText text={task.description} />
             </div>
           ) : null}
         </div>
@@ -226,7 +228,6 @@ export function TaskDetailPage({
             </div>
             <div className="stitch-panel__body">
               <TaskStatusGrid
-                canManageTask={canManageTask}
                 contributions={statusHistory ?? contributions}
                 currentContributions={contributions}
                 currentUserId={currentUserId}
@@ -246,26 +247,21 @@ export function TaskDetailPage({
               <h3 className="stitch-panel__title">Your Status</h3>
             </div>
             <div className="stitch-panel__body">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-2">
                 {statusColumns.map((status) => (
                   <button
+                    aria-pressed={currentUserStatus === status.id}
                     key={status.id}
-                    disabled={pendingAction === `${task.id}:${status.id}`}
+                    disabled={pendingAction !== null}
                     onClick={() => handleStatusChange(status.id)}
-                    className={`flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-all duration-300 flex items-center justify-center gap-2 ${currentUserStatus === status.id ? statusStyles[status.id] : 'bg-transparent border-surface-variant text-on-surface hover:border-primary/50'}`}
+                    className={`min-w-0 px-1 py-2 rounded-xl text-xs font-semibold border-2 transition-all duration-300 flex items-center justify-center gap-1.5 ${currentUserStatus === status.id ? statusStyles[status.id] : 'bg-transparent border-surface-variant text-on-surface hover:border-primary/50'}`}
+                    title={currentUserStatus === status.id ? `Clear ${status.label.toLowerCase()} status` : `Mark as ${status.label.toLowerCase()}`}
+                    type="button"
                   >
-                    {currentUserStatus === status.id && <CheckCircle size={16} />}
+                    {currentUserStatus === status.id && <CheckCircle className="shrink-0" size={14} />}
                     {status.label}
                   </button>
                 ))}
-                <button
-                  disabled={!lastActionToUndo || pendingAction === `undo:${lastActionToUndo.id}`}
-                  onClick={() => lastActionToUndo && onUndoAction(lastActionToUndo)}
-                  className="w-full py-3 rounded-xl border-2 border-surface-variant text-on-surface-variant hover:bg-surface-variant hover:text-on-surface transition-all flex items-center justify-center gap-2 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Undo last action"
-                >
-                  <Undo2 size={16} /> Undo
-                </button>
               </div>
             </div>
           </div>

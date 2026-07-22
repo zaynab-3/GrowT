@@ -23,6 +23,7 @@ type TaskListPageProps = {
   normalizedSearchQuery: string
   onAddTask: () => void
   onCloseTaskEdit: () => void
+  onCopyShareLink: (type: 'task', id: string) => void
   onDeleteTask: (task: Task) => void
   onEditTask: (taskId: string) => void
   onMoveTask: (task: Task, direction: ReorderDirection, scopedTaskIds?: string[]) => void
@@ -54,6 +55,7 @@ export function TaskListPage({
   normalizedSearchQuery,
   onAddTask,
   onCloseTaskEdit,
+  onCopyShareLink,
   onDeleteTask,
   onEditTask,
   onMoveTask,
@@ -111,9 +113,9 @@ export function TaskListPage({
 
 
   return (
-    <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col gap-6">
+    <div className="task-list-page flex-1 w-full max-w-7xl mx-auto flex flex-col gap-5 sm:gap-6">
       <div className="workspace-header-compact">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
           <div>
             <span className="page-header__eyebrow" style={{ textTransform: 'uppercase', fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', color: 'var(--primary)' }}>
               Tasks
@@ -123,8 +125,8 @@ export function TaskListPage({
               All your standalone tasks — personal, work, and shared. For folder tasks, open a folder from the Workspaces page.
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <button className="bg-primary text-white font-label-md text-label-md px-6 py-2.5 rounded-xl flex items-center gap-2 hover:bg-primary-dark transition-all shadow-md shadow-primary/20 whitespace-nowrap" onClick={onAddTask} type="button" id="add-task-btn">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button className="bg-primary text-white font-label-md text-label-md px-4 sm:px-6 py-2.5 rounded-xl flex items-center gap-2 hover:bg-primary-dark transition-all shadow-md shadow-primary/20 whitespace-nowrap" onClick={onAddTask} type="button" id="add-task-btn">
               <Plus size={16} />
               New Task
             </button>
@@ -136,10 +138,10 @@ export function TaskListPage({
         {/* Left Column: Filters and Tasks List */}
         <div className="workspace-main-col">
           {/* Filters */}
-          <div className="flex items-center gap-2 flex-wrap pb-2">
+          <div className="task-scope-filters">
             {(['all', 'personal', 'work', 'shared'] as TaskScope[]).map((s) => (
               <button
-                className={`px-4 py-1.5 rounded-full font-label-md text-label-md transition-colors whitespace-nowrap ${scope === s ? 'bg-primary text-white font-bold' : 'bg-surface-container-high dark:bg-dark-card text-on-surface-variant hover:bg-surface-variant'}`}
+                className={`px-3 sm:px-4 py-1.5 rounded-full font-label-md text-label-md transition-colors whitespace-nowrap ${scope === s ? 'bg-primary text-white font-bold' : 'bg-surface-container-high dark:bg-dark-card text-on-surface-variant hover:bg-surface-variant'}`}
                 key={s}
                 onClick={() => setScope(s)}
                 type="button"
@@ -150,7 +152,7 @@ export function TaskListPage({
           </div>
 
           {/* Tasks Grid */}
-          <div className="task-list" style={{ display: 'grid', gap: '16px' }}>
+          <div className="task-list grid gap-3 sm:gap-4">
             {visibleTasks.length > 0 ? (
               visibleTasks.map((task) => (
                 <TaskCard
@@ -166,6 +168,7 @@ export function TaskListPage({
                   key={task.id}
                   onAddTaskMember={onAddTaskMember}
                   onCloseEdit={onCloseTaskEdit}
+                  onCopyShareLink={onCopyShareLink}
                   onDeleteTask={onDeleteTask}
                   onEditTask={onEditTask}
                   onMoveTask={onMoveTask}
@@ -187,7 +190,7 @@ export function TaskListPage({
                 />
               ))
             ) : (
-              <div className="flex flex-col items-center justify-center py-16 px-6 text-center bg-surface dark:bg-dark-card rounded-2xl border border-surface-variant/50">
+              <div className="flex flex-col items-center justify-center py-10 sm:py-16 px-5 sm:px-6 text-center bg-surface dark:bg-dark-card rounded-2xl border border-surface-variant/50">
                 <CheckSquare size={48} className="text-outline mb-4" />
                 <h4 className="font-title-lg text-title-lg text-on-surface mb-2">No tasks found</h4>
                 <p className="font-body-md text-body-md text-on-surface-variant max-w-sm">
@@ -203,7 +206,7 @@ export function TaskListPage({
         </div>
 
         {/* Right Column: Statistics & Guides */}
-        <div className="workspace-side-col">
+        <div className="task-list-page__side workspace-side-col">
           <div className="workspace-preview-panel">
             <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--ink)' }}>
               Tasks Overview

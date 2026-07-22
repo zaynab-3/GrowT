@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { LayoutDashboard, FolderOpen, CheckSquare, Users, Bell, RotateCcw, Settings, Menu, X, Link } from 'lucide-react'
+import { LayoutDashboard, FolderOpen, CheckSquare, Users, Bell, RotateCcw, UserRound, Menu, X, Link } from 'lucide-react'
 import { SproutIcon } from '../components/SproutIcon'
 import { useNotifications } from '../features/notifications/useNotifications'
 import { listAcquaintanceRequests } from '../features/acquaintances/acquaintanceApi'
@@ -21,7 +21,7 @@ const navIcons: Record<AppView, typeof LayoutDashboard> = {
   acquaintances: Users,
   notifications: Bell,
   restore: RotateCcw,
-  settings: Settings,
+  settings: UserRound,
   invite: Link,
 }
 

@@ -4,14 +4,13 @@ import { categoryOptions, formatDateInputValue } from '../../lib/growtDisplay'
 import type { Task, TaskLevel } from '../../lib/growtData'
 import { formatCurrency, parseRecipientAmount } from '../../lib/recipient'
 import { TaskDescriptionFields } from './TaskDescriptionFields'
-import { getInitialChecklistItems, normalizeChecklistItems, type TaskDescriptionMode } from './taskDescriptionUtils'
+import { getInitialChecklistItems, normalizeChecklistItems } from './taskDescriptionUtils'
 
 export type TaskEditValues = {
   assignedUserId: string | null
   category: FolderCategory
   checklistItems: string[]
   description: string | null
-  descriptionMode: TaskDescriptionMode
   dueDate: string | null
   hasExportButton: boolean
   isActive: boolean
@@ -47,9 +46,6 @@ export function TaskEditForm({
 }: TaskEditFormProps) {
   const [title, setTitle] = useState(task.title)
   const [description, setDescription] = useState(task.description ?? '')
-  const [descriptionMode, setDescriptionMode] = useState<TaskDescriptionMode>(
-    taskLevels.length ? 'checklist' : 'description',
-  )
   const [checklistItems, setChecklistItems] = useState<string[]>(
     getInitialChecklistItems(taskLevels.map((level) => level.title ?? level.description ?? '')),
   )
@@ -63,7 +59,6 @@ export function TaskEditForm({
   useEffect(() => {
     setTitle(task.title)
     setDescription(task.description ?? '')
-    setDescriptionMode(taskLevels.length ? 'checklist' : 'description')
     setChecklistItems(getInitialChecklistItems(taskLevels.map((level) => level.title ?? level.description ?? '')))
     setCategory(task.category)
     setDueDate(formatDateInputValue(task.due_date))
@@ -83,9 +78,8 @@ export function TaskEditForm({
     onSave({
       assignedUserId: assignedUserId || null,
       category,
-      checklistItems: descriptionMode === 'checklist' ? normalizeChecklistItems(checklistItems) : [],
-      description: descriptionMode === 'description' ? description.trim() || null : null,
-      descriptionMode,
+      checklistItems: normalizeChecklistItems(checklistItems),
+      description: description.trim() || null,
       dueDate: dueDate || null,
       hasExportButton,
       isActive,
@@ -110,10 +104,8 @@ export function TaskEditForm({
         checklistItems={checklistItems}
         description={description}
         idPrefix={`edit-task-${task.id}`}
-        mode={descriptionMode}
         onChecklistItemsChange={setChecklistItems}
         onDescriptionChange={setDescription}
-        onModeChange={setDescriptionMode}
       />
       <div className="text-xs text-on-surface-variant mt-1.5 mb-3 flex flex-wrap gap-1 items-center" style={{ lineHeight: 1.4 }}>
         Want to transfer files for this task? Upload them at <a href="https://www.swisstransfer.com/en" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">SwissTransfer</a> and paste the link here.

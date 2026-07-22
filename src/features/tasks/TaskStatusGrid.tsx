@@ -10,7 +10,6 @@ type TaskStatusGridProps = {
   getProfileLabel: (userId: string) => string
   isUndoPending: (action: TaskStatusAction) => boolean
   onUndo: (action: TaskStatusAction) => void
-  canManageTask?: boolean
 }
 
 export function TaskStatusGrid({
@@ -21,7 +20,6 @@ export function TaskStatusGrid({
   getProfileLabel,
   isUndoPending,
   onUndo,
-  canManageTask,
 }: TaskStatusGridProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -42,25 +40,34 @@ export function TaskStatusGrid({
             </span>
             <div className="flex flex-col gap-2">
               {rows.map((row) => {
-                const canUndo = currentActionIds.has(row.action.id) && (row.userId === currentUserId || canManageTask)
+                const canUndo = currentActionIds.has(row.action.id) && row.userId === currentUserId
+                const participant = (
+                  <TaskStatusParticipants
+                    rows={[row]}
+                    getProfileAvatar={getProfileAvatar}
+                    getProfileLabel={getProfileLabel}
+                  />
+                )
+
+                if (canUndo) {
+                  return (
+                    <button
+                      aria-label={`Clear ${getProfileLabel(row.userId)}'s ${status.label.toLowerCase()} status`}
+                      className="flex w-full items-center gap-3 rounded-lg border border-primary/30 bg-white/70 p-2 px-3 text-left transition-colors hover:bg-primary/5 disabled:opacity-50 dark:bg-white/5"
+                      disabled={isUndoPending(row.action)}
+                      key={row.action.id}
+                      onClick={() => onUndo(row.action)}
+                      title="Tap the active status again to clear it"
+                      type="button"
+                    >
+                      {participant}
+                    </button>
+                  )
+                }
 
                 return (
-                  <div className="flex items-center justify-between gap-3 bg-white/50 dark:bg-white/5 p-2 px-3 rounded-lg border border-outline-variant/20" key={row.action.id}>
-                    <TaskStatusParticipants
-                      rows={[row]}
-                      getProfileAvatar={getProfileAvatar}
-                      getProfileLabel={getProfileLabel}
-                    />
-                    {canUndo ? (
-                      <button
-                        disabled={isUndoPending(row.action)}
-                        onClick={() => onUndo(row.action)}
-                        className="text-xs font-bold text-on-surface-variant hover:text-primary transition-colors disabled:opacity-50"
-                        type="button"
-                      >
-                        Undo
-                      </button>
-                    ) : null}
+                  <div className="flex items-center gap-3 rounded-lg border border-outline-variant/20 bg-white/50 p-2 px-3 dark:bg-white/5" key={row.action.id}>
+                    {participant}
                   </div>
                 )
               })}

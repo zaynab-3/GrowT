@@ -1,5 +1,3 @@
-export type TaskDescriptionMode = 'description' | 'checklist'
-
 export function normalizeChecklistItems(items: string[]) {
   return items.map((item) => item.trim()).filter(Boolean)
 }

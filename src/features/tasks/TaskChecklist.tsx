@@ -2,6 +2,7 @@ import { Check } from 'lucide-react'
 import type { TaskLevel } from '../../lib/growtData'
 
 type TaskChecklistProps = {
+  compact?: boolean
   completedLevelIds: Set<string>
   disabled?: boolean
   levels: TaskLevel[]
@@ -10,6 +11,7 @@ type TaskChecklistProps = {
 }
 
 export function TaskChecklist({
+  compact = false,
   completedLevelIds,
   disabled = false,
   levels,
@@ -22,6 +24,8 @@ export function TaskChecklist({
 
   const completedCount = levels.filter((level) => completedLevelIds.has(level.id)).length
   const allCompleted = completedCount === levels.length
+  const visibleLevels = compact ? levels.slice(0, 3) : levels
+  const hiddenCount = levels.length - visibleLevels.length
 
   return (
     <div className={`task-checklist ${allCompleted ? 'task-checklist--complete' : ''}`}>
@@ -30,7 +34,7 @@ export function TaskChecklist({
       </div>
 
       <div className="task-checklist__items">
-        {levels.map((level, index) => {
+        {visibleLevels.map((level, index) => {
           const checked = completedLevelIds.has(level.id)
           const isPending = pendingAction === `level:${level.id}`
           const label = level.title?.trim() || level.description?.trim() || `Item ${index + 1}`
@@ -55,6 +59,9 @@ export function TaskChecklist({
             </label>
           )
         })}
+        {hiddenCount > 0 ? (
+          <span className="task-checklist__more">+{hiddenCount} more in task details</span>
+        ) : null}
       </div>
     </div>
   )

@@ -18,6 +18,7 @@ export type AppRoute =
   | { name: 'task-new'; folderId?: string }
   | { name: 'task-detail'; taskId: string; folderId?: string }
   | { name: 'task-edit'; taskId: string; folderId?: string }
+  | { name: 'task-share'; shareId: string }
   | { name: 'acquaintances' }
   | { name: 'notifications' }
   | { name: 'restore' }
@@ -63,6 +64,7 @@ export function getRouteView(route: AppRoute): AppView {
     case 'task-detail':
     case 'task-edit':
     case 'task-new':
+    case 'task-share':
       return 'tasks'
     case 'invite':
       return 'invite'
@@ -147,6 +149,10 @@ export function parseAppRoute(pathname = window.location.pathname): AppRoute {
     return { name: 'tasks' }
   }
 
+  if (segments[0] === 'share' && segments[1] === 'tasks') {
+    return { name: 'task-share', shareId: decodeSegment(segments[2]) }
+  }
+
   if (segments[0] === 'acquaintances') {
     return { name: 'acquaintances' }
   }
@@ -159,7 +165,7 @@ export function parseAppRoute(pathname = window.location.pathname): AppRoute {
     return { name: 'restore' }
   }
 
-  if (segments[0] === 'settings') {
+  if (segments[0] === 'profile' || segments[0] === 'settings') {
     return { name: 'settings' }
   }
 
@@ -194,6 +200,8 @@ export function routeToPath(route: AppRoute): string {
       return route.folderId
         ? `/folders/${encodeSegment(route.folderId)}/tasks/${encodeSegment(route.taskId)}/edit`
         : `/tasks/${encodeSegment(route.taskId)}/edit`
+    case 'task-share':
+      return `/share/tasks/${encodeSegment(route.shareId)}`
     case 'acquaintances':
       return '/acquaintances'
     case 'notifications':
@@ -201,7 +209,7 @@ export function routeToPath(route: AppRoute): string {
     case 'restore':
       return '/restore'
     case 'settings':
-      return '/settings'
+      return '/profile'
     case 'invite':
       return `/invite/${encodeSegment(route.inviteId)}`
   }

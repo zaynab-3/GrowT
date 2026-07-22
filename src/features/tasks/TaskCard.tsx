@@ -1,5 +1,5 @@
 import { useState, type MouseEvent } from 'react'
-import { CheckCircle2, ChevronDown, ChevronUp, Edit2, Trash2, Calendar, Archive, Upload, ReceiptText } from 'lucide-react'
+import { CheckCircle2, ChevronDown, ChevronUp, Edit2, Trash2, Calendar, Archive, Upload, ReceiptText, Share2 } from 'lucide-react'
 import type { ReorderDirection, TaskProgressStatus } from '../../lib/database.types'
 import { formatDateTime, getCategoryLabel } from '../../lib/growtDisplay'
 import type { Task, TaskLevel, TaskMember, TaskStatusAction } from '../../lib/growtData'
@@ -30,6 +30,7 @@ type TaskCardProps = {
   isLast: boolean
   onAddTaskMember?: (task: Task, username: string) => Promise<void> | void
   onCloseEdit: () => void
+  onCopyShareLink?: (type: 'task', id: string) => void
   onDeleteTask: (task: Task) => void
   onEditTask: (taskId: string) => void
   onMoveTask: (task: Task, direction: ReorderDirection, scopedTaskIds?: string[]) => void
@@ -63,6 +64,7 @@ export function TaskCard({
   isFirst,
   isLast,
   onCloseEdit,
+  onCopyShareLink,
   onDeleteTask,
   onEditTask,
   onMoveTask,
@@ -76,7 +78,6 @@ export function TaskCard({
   pendingAction,
   recipientReport,
   scopedTaskIds,
-  statusHistory,
   task,
   taskLevelCompletedIds,
   taskLevels = [],
@@ -98,30 +99,40 @@ export function TaskCard({
   const isCompleted = !task.is_active || currentUserStatus === 'completed'
   const completedLevelIds = taskLevelCompletedIds ?? EMPTY_TASK_LEVEL_SET
   const showExportButton = forceExportButton || task.has_export_button
-
-  let lastActionToUndo: TaskStatusAction | null = null
-  if (contributions) {
-    const allActions = Object.values(contributions).flat()
-    if (allActions.length > 0) {
-      allActions.sort((a, b) => new Date(b.action.created_at).getTime() - new Date(a.action.created_at).getTime())
-      const mostRecent = allActions[0]
-      if (mostRecent.userId === currentUserId || canManageTask) {
-        lastActionToUndo = mostRecent.action
-      }
-    }
-  }
-
   const canUpdateStatus = task.assigned_user_id ? task.assigned_user_id === currentUserId : true
+  const currentContributions = contributions
+    ? Object.values(contributions)
+        .flat()
+        .sort((first, second) => Date.parse(second.action.created_at) - Date.parse(first.action.created_at))
+    : []
+  const currentUserContribution = currentContributions.find((row) => row.userId === currentUserId)
+  const statusToggleAction = currentUserContribution?.action ?? null
+  const statusToggleStatus = statusToggleAction?.new_status ?? null
 
   const handleStatusChange = (e: MouseEvent, status: TaskProgressStatus) => {
     e.stopPropagation()
+
+    if (statusToggleAction?.new_status === status) {
+      onUndoAction(statusToggleAction)
+      return
+    }
+
     if (!canUpdateStatus) return
     onSetTaskStatus(task.id, status)
   }
 
+  const isStatusDisabled = (status: TaskProgressStatus) =>
+    pendingAction !== null || (!canUpdateStatus && statusToggleStatus !== status)
+
+  const getStatusTitle = (status: TaskProgressStatus, label: string) => {
+    if (statusToggleStatus === status) return `Clear ${label.toLowerCase()} status`
+    if (canUpdateStatus) return `Mark as ${label.toLowerCase()}`
+    return 'Only the assigned user can update status'
+  }
+
   if (isEditing) {
     return (
-      <div className="glass-panel rounded-[18px] p-6 hover:-translate-y-1 transition-all duration-300">
+      <div className="task-work-card glass-panel rounded-[14px] sm:rounded-[18px] p-4 sm:p-6 hover:-translate-y-1 transition-all duration-300">
         <TaskEditForm
           assignableMembers={assignableMembers}
           canEditRecipientAmount={canEditRecipientAmount}
@@ -158,11 +169,11 @@ export function TaskCard({
       }}
     >
       <div 
-        className={`glass-panel rounded-[18px] p-6 hover:-translate-y-1 transition-all duration-300 group relative z-10 ${isCompleted ? 'opacity-75' : ''}`}
+        className={`task-work-card glass-panel rounded-[14px] sm:rounded-[18px] p-4 sm:p-6 hover:-translate-y-1 transition-all duration-300 group relative z-10 ${isCompleted ? 'opacity-75' : ''}`}
         onClick={() => onOpenTask && onOpenTask(task)}
         style={{ cursor: onOpenTask ? 'pointer' : 'default' }}
       >
-        <div className="flex items-start gap-4">
+        <div className="task-work-card__layout flex items-start gap-3 sm:gap-4">
           {/* Reorder handle */}
           <div className="pt-1 flex flex-col items-center bg-surface-container-low dark:bg-black/20 rounded-full py-1.5 px-1 border border-outline-variant/30 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shadow-sm" onClick={e => e.stopPropagation()}>
             <button
@@ -186,13 +197,13 @@ export function TaskCard({
             </button>
           </div>
 
-        <div className="flex-1">
-          <div className="flex items-start justify-between mb-2">
-            <div className="flex items-center gap-3 flex-wrap">
-              <h3 className={`font-title-lg text-title-lg text-on-surface ${isCompleted ? 'line-through' : ''}`}>
+        <div className="task-work-card__content flex-1">
+          <div className="task-work-card__title-row flex items-start justify-between mb-2">
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+              <h3 className={`font-title-lg text-base sm:text-title-lg text-on-surface ${isCompleted ? 'line-through' : ''}`}>
                 {task.title}
               </h3>
-              <span className={`px-3 py-1 rounded-full font-label-md text-[10px] uppercase tracking-wider ${task.category === 'shared' ? 'bg-secondary-fixed text-on-secondary-fixed' : task.category === 'work' ? 'bg-tertiary-fixed text-on-tertiary-fixed' : 'bg-primary-fixed text-on-primary-fixed'}`}>
+              <span className={`px-2.5 sm:px-3 py-1 rounded-full font-label-md text-[9px] sm:text-[10px] uppercase tracking-wider ${task.category === 'shared' ? 'bg-secondary-fixed text-on-secondary-fixed' : task.category === 'work' ? 'bg-tertiary-fixed text-on-tertiary-fixed' : 'bg-primary-fixed text-on-primary-fixed'}`}>
                 {getCategoryLabel(task.category)}
               </span>
               {showExportButton && (
@@ -218,7 +229,7 @@ export function TaskCard({
               
             </div>
 
-            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+            <div className="task-work-card__actions flex items-center gap-1 sm:gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
               {recipientReport && (
                 <button
                   className="p-1.5 text-on-surface-variant hover:text-primary transition-colors rounded-md hover:bg-surface-container"
@@ -234,6 +245,20 @@ export function TaskCard({
               )}
               {canManageTask && (
                 <>
+                  {!task.folder_id && onCopyShareLink ? (
+                    <button
+                      aria-label="Copy view-only task link"
+                      className="p-1.5 text-on-surface-variant hover:text-primary transition-colors rounded-md hover:bg-surface-container"
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        onCopyShareLink('task', task.id)
+                      }}
+                      title="Copy view-only link"
+                      type="button"
+                    >
+                      <Share2 size={16} />
+                    </button>
+                  ) : null}
                   <button 
                     className="p-1.5 text-on-surface-variant hover:text-primary transition-colors rounded-md hover:bg-surface-container"
                     onClick={(e) => { e.stopPropagation(); onEditTask(task.id) }} 
@@ -266,80 +291,76 @@ export function TaskCard({
             />
           )}
 
+          {task.description ? (
+            <div className="task-work-card__description font-body-md text-on-surface-variant leading-relaxed text-[13px] mb-2">
+              <LinkifiedText text={task.description} />
+            </div>
+          ) : null}
+
           {taskLevels.length > 0 ? (
             <TaskChecklist
+              compact
               completedLevelIds={completedLevelIds}
               disabled={pendingAction !== null || !canUpdateStatus}
               levels={taskLevels}
               onToggle={(taskLevelId, checked) => onToggleTaskLevel(task.id, taskLevelId, checked)}
               pendingAction={pendingAction}
             />
-          ) : task.description ? (
-            <div className="font-body-md text-on-surface-variant leading-relaxed text-[13px] mb-4">
-              <LinkifiedText text={task.description} />
-            </div>
           ) : null}
 
-          <div className="flex items-center justify-between border-t border-surface-variant/50 pt-4 mt-2 flex-wrap" onClick={e => e.stopPropagation()}>
-            <div className="flex flex-wrap gap-2 mb-4 md:mb-0">
+          <div className="task-work-card__footer flex items-center justify-between border-t border-surface-variant/50 pt-4 mt-2 flex-wrap" onClick={e => e.stopPropagation()}>
+            <div className="task-status-controls flex flex-wrap gap-2 mb-0">
               <button 
-                className={`flex min-h-8 max-w-full items-center justify-start gap-2 rounded-full border px-3 py-1 text-left text-[10px] font-bold uppercase tracking-wider transition-colors ${currentUserStatus === 'ongoing' ? 'shadow-sm' : 'border-transparent hover:opacity-80'}`}
-                disabled={pendingAction !== null || !canUpdateStatus}
-                style={currentUserStatus === 'ongoing' ? { backgroundColor: 'var(--ongoing-bg)', color: 'var(--ongoing-color)', borderColor: 'var(--ongoing-color)' } : { backgroundColor: 'var(--surface-variant)', color: 'var(--on-surface-variant)' }}
+                aria-pressed={statusToggleStatus === 'ongoing'}
+                className={`task-status-button flex min-h-8 max-w-full items-center justify-start gap-2 rounded-full border px-2.5 sm:px-3 py-1 text-left text-[10px] font-bold uppercase tracking-wider transition-colors ${statusToggleStatus === 'ongoing' ? 'shadow-sm' : 'border-transparent hover:opacity-80'}`}
+                disabled={isStatusDisabled('ongoing')}
+                style={statusToggleStatus === 'ongoing' ? { backgroundColor: 'var(--ongoing-bg)', color: 'var(--ongoing-color)', borderColor: 'var(--ongoing-color)' } : { backgroundColor: 'var(--surface-variant)', color: 'var(--on-surface-variant)' }}
                 onClick={(e) => handleStatusChange(e, 'ongoing')}
                 type="button"
-                title={!canUpdateStatus ? 'Only the assigned user can update status' : ''}
+                title={getStatusTitle('ongoing', 'Ongoing')}
               >
                 <span className="shrink-0">Ongoing</span>
                 <TaskStatusParticipants
-                  rows={statusHistory?.ongoing ?? contributions?.ongoing ?? []}
+                  rows={contributions?.ongoing ?? []}
                   getProfileAvatar={getProfileAvatar}
                   getProfileLabel={getProfileLabel}
                 />
               </button>
               <button 
-                className={`flex min-h-8 max-w-full items-center justify-start gap-2 rounded-full border px-3 py-1 text-left text-[10px] font-bold uppercase tracking-wider transition-colors ${currentUserStatus === 'half_done' ? 'shadow-sm' : 'border-transparent hover:opacity-80'}`}
-                disabled={pendingAction !== null || !canUpdateStatus}
-                style={currentUserStatus === 'half_done' ? { backgroundColor: 'var(--halfdone-bg)', color: 'var(--halfdone-color)', borderColor: 'var(--halfdone-color)' } : { backgroundColor: 'var(--surface-variant)', color: 'var(--on-surface-variant)' }}
+                aria-pressed={statusToggleStatus === 'half_done'}
+                className={`task-status-button flex min-h-8 max-w-full items-center justify-start gap-2 rounded-full border px-2.5 sm:px-3 py-1 text-left text-[10px] font-bold uppercase tracking-wider transition-colors ${statusToggleStatus === 'half_done' ? 'shadow-sm' : 'border-transparent hover:opacity-80'}`}
+                disabled={isStatusDisabled('half_done')}
+                style={statusToggleStatus === 'half_done' ? { backgroundColor: 'var(--halfdone-bg)', color: 'var(--halfdone-color)', borderColor: 'var(--halfdone-color)' } : { backgroundColor: 'var(--surface-variant)', color: 'var(--on-surface-variant)' }}
                 onClick={(e) => handleStatusChange(e, 'half_done')}
                 type="button"
-                title={!canUpdateStatus ? 'Only the assigned user can update status' : ''}
+                title={getStatusTitle('half_done', 'Half done')}
               >
                 <span className="shrink-0">Half Done</span>
                 <TaskStatusParticipants
-                  rows={statusHistory?.half_done ?? contributions?.half_done ?? []}
+                  rows={contributions?.half_done ?? []}
                   getProfileAvatar={getProfileAvatar}
                   getProfileLabel={getProfileLabel}
                 />
               </button>
               <button 
-                className={`flex min-h-8 max-w-full items-center justify-start gap-2 rounded-full border px-3 py-1 text-left text-[10px] font-bold uppercase tracking-wider transition-colors ${currentUserStatus === 'completed' ? 'shadow-sm' : 'border-transparent hover:opacity-80'}`}
-                disabled={pendingAction !== null || !canUpdateStatus}
-                style={currentUserStatus === 'completed' ? { backgroundColor: 'var(--done-bg)', color: 'var(--done-color)', borderColor: 'var(--done-color)' } : { backgroundColor: 'var(--surface-variant)', color: 'var(--on-surface-variant)' }}
+                aria-pressed={statusToggleStatus === 'completed'}
+                className={`task-status-button flex min-h-8 max-w-full items-center justify-start gap-2 rounded-full border px-2.5 sm:px-3 py-1 text-left text-[10px] font-bold uppercase tracking-wider transition-colors ${statusToggleStatus === 'completed' ? 'shadow-sm' : 'border-transparent hover:opacity-80'}`}
+                disabled={isStatusDisabled('completed')}
+                style={statusToggleStatus === 'completed' ? { backgroundColor: 'var(--done-bg)', color: 'var(--done-color)', borderColor: 'var(--done-color)' } : { backgroundColor: 'var(--surface-variant)', color: 'var(--on-surface-variant)' }}
                 onClick={(e) => handleStatusChange(e, 'completed')}
                 type="button"
-                title={!canUpdateStatus ? 'Only the assigned user can update status' : ''}
+                title={getStatusTitle('completed', 'Completed')}
               >
                 <span className="shrink-0">Completed</span>
                 <TaskStatusParticipants
-                  rows={statusHistory?.completed ?? contributions?.completed ?? []}
+                  rows={contributions?.completed ?? []}
                   getProfileAvatar={getProfileAvatar}
                   getProfileLabel={getProfileLabel}
                 />
               </button>
-              {lastActionToUndo && (
-                <button
-                  className="px-2 py-1 ml-1 rounded-full text-on-surface-variant hover:bg-surface-variant hover:text-on-surface transition-colors border border-surface-variant flex items-center justify-center"
-                  disabled={pendingAction === `undo:${lastActionToUndo.id}`}
-                  onClick={(e) => { e.stopPropagation(); onUndoAction(lastActionToUndo!); }}
-                  title="Undo last action"
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>undo</span>
-                </button>
-              )}
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="task-work-card__meta flex w-full sm:w-auto items-center justify-between sm:justify-start gap-2 sm:gap-4">
               {task.due_date && (
                 <div className="flex items-center gap-2 text-on-surface-variant font-label-md text-label-md">
                   <Calendar size={14} className={new Date(task.due_date) < new Date() ? 'text-error' : ''} />

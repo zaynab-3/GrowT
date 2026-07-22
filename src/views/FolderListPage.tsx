@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Check, ChevronDown, ChevronUp, FolderPlus, Trash2, Plus, Info, Edit2, ReceiptText } from 'lucide-react'
+import { Check, ChevronDown, ChevronUp, FolderPlus, Trash2, Plus, Info, Edit2, MoreHorizontal, ReceiptText } from 'lucide-react'
 import { getCategoryLabel, isSharedFolder } from '../lib/growtDisplay'
 import type { Folder as FolderType, Task, TaskStatusAction } from '../lib/growtData'
 import {
@@ -97,6 +97,7 @@ export function FolderListPage({
   const [activePopupAnchor, setActivePopupAnchor] = useState<DOMRect | null>(null)
   const [activeRecipientFolderId, setActiveRecipientFolderId] = useState<string | null>(null)
   const [activeRecipientAnchor, setActiveRecipientAnchor] = useState<DOMRect | null>(null)
+  const [activeActionMenuFolderId, setActiveActionMenuFolderId] = useState<string | null>(null)
   const [recipientReviewMode, setRecipientReviewMode] = useState(false)
   const [isRecipientReviewOpen, setIsRecipientReviewOpen] = useState(false)
   const [selectedRecipientFolderIds, setSelectedRecipientFolderIds] = useState<string[]>([])
@@ -221,12 +222,12 @@ export function FolderListPage({
   }
 
   return (
-    <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col gap-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col gap-5 sm:gap-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="font-headline-lg text-headline-lg md:font-headline-lg md:text-headline-lg text-on-surface dark:text-on-surface flex items-center gap-3">
+          <h1 className="font-headline-lg text-2xl sm:text-headline-lg text-on-surface dark:text-on-surface flex items-center gap-2 sm:gap-3">
             Workspaces
-            <span className="bg-primary text-on-primary px-3 py-1 rounded-full font-label-md text-label-md">
+            <span className="bg-primary text-on-primary px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full font-label-md text-label-md">
               {folders.length}
             </span>
           </h1>
@@ -235,10 +236,12 @@ export function FolderListPage({
           </p>
         </div>
 
-        <div className="flex items-center gap-3 w-full md:w-auto">
+        <div className="flex items-center gap-2 sm:gap-3 w-full md:w-auto">
           <button
+            aria-label="Create folder"
             onClick={onAddFolder}
-            className="bg-primary text-on-primary font-label-md text-label-md px-6 py-2.5 rounded-xl flex items-center gap-2 hover:bg-surface-tint transition-all shadow-md shadow-primary/20 hover:shadow-lg whitespace-nowrap"
+            className="bg-primary text-on-primary font-label-md text-label-md px-3 sm:px-6 py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-surface-tint transition-all shadow-md shadow-primary/20 hover:shadow-lg whitespace-nowrap"
+            title="Create folder"
             type="button"
           >
             <FolderPlus size={18} />
@@ -248,10 +251,10 @@ export function FolderListPage({
       </div>
 
       <div>
-        <div className="flex w-full snap-x snap-proximity items-center gap-2 overflow-x-auto pb-2 touch-pan-x overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="folder-scope-filters">
           <button
             onClick={() => setScope('all')}
-            className={`snap-start px-4 py-1.5 rounded-full font-label-md text-label-md shadow-sm transition-colors whitespace-nowrap ${
+            className={`snap-start px-3 sm:px-4 py-1.5 rounded-full font-label-md text-label-md shadow-sm transition-colors whitespace-nowrap ${
               scope === 'all'
                 ? 'bg-primary text-on-primary'
                 : 'bg-surface-container-high dark:bg-dark-card text-on-surface-variant hover:bg-surface-variant'
@@ -263,7 +266,7 @@ export function FolderListPage({
 
           <button
             onClick={() => setScope('work')}
-            className={`snap-start px-4 py-1.5 rounded-full font-label-md text-label-md transition-colors whitespace-nowrap ${
+            className={`snap-start px-3 sm:px-4 py-1.5 rounded-full font-label-md text-label-md transition-colors whitespace-nowrap ${
               scope === 'work'
                 ? 'bg-primary text-on-primary'
                 : 'bg-surface-container-high dark:bg-dark-card text-on-surface-variant hover:bg-surface-variant'
@@ -275,7 +278,7 @@ export function FolderListPage({
 
           <button
             onClick={() => setScope('personal')}
-            className={`snap-start px-4 py-1.5 rounded-full font-label-md text-label-md transition-colors whitespace-nowrap ${
+            className={`snap-start px-3 sm:px-4 py-1.5 rounded-full font-label-md text-label-md transition-colors whitespace-nowrap ${
               scope === 'personal'
                 ? 'bg-primary text-on-primary'
                 : 'bg-surface-container-high dark:bg-dark-card text-on-surface-variant hover:bg-surface-variant'
@@ -287,7 +290,7 @@ export function FolderListPage({
 
           <button
             onClick={() => setScope('shared')}
-            className={`snap-start px-4 py-1.5 rounded-full font-label-md text-label-md transition-colors whitespace-nowrap ${
+            className={`snap-start px-3 sm:px-4 py-1.5 rounded-full font-label-md text-label-md transition-colors whitespace-nowrap ${
               scope === 'shared'
                 ? 'bg-primary text-on-primary'
                 : 'bg-surface-container-high dark:bg-dark-card text-on-surface-variant hover:bg-surface-variant'
@@ -302,7 +305,7 @@ export function FolderListPage({
           <button
             aria-controls="recipient-review-actions"
             aria-expanded={recipientReviewMode}
-            className={`inline-flex w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left font-label-md text-label-md transition-all duration-300 sm:w-auto sm:min-w-[220px] ${
+            className={`inline-flex w-full items-center justify-between gap-3 rounded-xl sm:rounded-2xl border px-3 sm:px-4 py-2.5 sm:py-3 text-left font-label-md text-label-md transition-all duration-300 sm:w-auto sm:min-w-[220px] ${
               recipientReviewMode
                 ? 'border-primary/30 bg-primary text-on-primary shadow-[0_8px_24px_rgba(34,139,94,0.20)]'
                 : 'border-black/[0.06] bg-surface-container-low text-on-surface hover:-translate-y-0.5 hover:border-primary/25 hover:bg-surface-container-high dark:border-white/10 dark:bg-dark-card'
@@ -390,7 +393,7 @@ export function FolderListPage({
         onClose={() => setIsRecipientReviewOpen(false)}
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter-md">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
         {visibleFolders.map((folder, index) => {
           const tone = cardTones[index % cardTones.length]
           const isShared = isSharedFolder(folder)
@@ -430,6 +433,7 @@ export function FolderListPage({
 
           return (
             <div
+              aria-label={`${recipientReviewMode ? 'Select' : 'Open'} ${folder.title}`}
               key={folder.id}
               onClick={() => {
                 if (recipientReviewMode) {
@@ -439,9 +443,24 @@ export function FolderListPage({
 
                 onOpenFolder(folder.id)
               }}
-              className={`${tone.bg} border-2 ${selectionBorder} rounded-[32px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.03)] hover:-translate-y-1 transition-all duration-300 relative group ${recipientReviewMode ? 'cursor-copy' : 'cursor-pointer'} flex flex-col gap-4 ${isPopupOpen || isRecipientPopupOpen ? 'z-50' : 'z-10'}`}
+              onKeyDown={(event) => {
+                if (event.target !== event.currentTarget || (event.key !== 'Enter' && event.key !== ' ')) {
+                  return
+                }
+
+                event.preventDefault()
+                if (recipientReviewMode) {
+                  toggleRecipientFolder(folder.id)
+                  return
+                }
+
+                onOpenFolder(folder.id)
+              }}
+              role="button"
+              tabIndex={0}
+              className={`folder-workspace-card ${tone.bg} border-2 ${selectionBorder} rounded-[18px] sm:rounded-[24px] lg:rounded-[32px] p-3 sm:p-5 lg:p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.03)] hover:-translate-y-1 transition-all duration-300 relative group ${recipientReviewMode ? 'cursor-copy' : 'cursor-pointer'} flex flex-col gap-2.5 sm:gap-4 ${isPopupOpen || isRecipientPopupOpen || activeActionMenuFolderId === folder.id ? 'z-50' : 'z-10'}`}
             >
-              <div className="flex justify-between items-center text-xs font-bold">
+              <div className="folder-workspace-card__toolbar flex justify-between items-center text-xs font-bold">
                 <div className="flex min-w-0 items-center gap-2">
                   {recipientReviewMode ? (
                     <label
@@ -482,7 +501,7 @@ export function FolderListPage({
                 </div>
 
                 {!recipientReviewMode ? (
-                  <div className="flex items-center gap-1.5" onClick={(event) => event.stopPropagation()}>
+                  <div className="folder-card-actions--desktop flex items-center gap-1.5" onClick={(event) => event.stopPropagation()}>
                     {canReorder && (
                       <div className="flex items-center rounded-full bg-white/60 p-0.5 shadow-sm dark:bg-white/10">
                         <button
@@ -616,22 +635,118 @@ export function FolderListPage({
                   </div>
                 ) : null}
 
+                {!recipientReviewMode ? (
+                  <div className="folder-card-mobile-menu" onClick={(event) => event.stopPropagation()}>
+                    <button
+                      aria-controls={`folder-actions-${folder.id}`}
+                      aria-expanded={activeActionMenuFolderId === folder.id}
+                      aria-label={`Actions for ${folder.title}`}
+                      className={`folder-card-mobile-menu__trigger ${tone.text}`}
+                      onClick={() => setActiveActionMenuFolderId((current) => current === folder.id ? null : folder.id)}
+                      type="button"
+                    >
+                      <MoreHorizontal size={17} />
+                    </button>
+
+                    {activeActionMenuFolderId === folder.id ? (
+                      <div className="folder-card-mobile-menu__panel" id={`folder-actions-${folder.id}`}>
+                        <button
+                          onClick={(event) => {
+                            setActiveRecipientFolderId(null)
+                            setActiveRecipientAnchor(null)
+                            setActivePopupFolderId(folder.id)
+                            setActivePopupAnchor(event.currentTarget.getBoundingClientRect())
+                            setActiveActionMenuFolderId(null)
+                          }}
+                          type="button"
+                        >
+                          <Info size={14} /> Progress
+                        </button>
+
+                        {recipientReport ? (
+                          <button
+                            onClick={(event) => {
+                              setActivePopupFolderId(null)
+                              setActivePopupAnchor(null)
+                              setActiveRecipientFolderId(folder.id)
+                              setActiveRecipientAnchor(event.currentTarget.getBoundingClientRect())
+                              setActiveActionMenuFolderId(null)
+                            }}
+                            type="button"
+                          >
+                            <ReceiptText size={14} /> Recipients
+                          </button>
+                        ) : null}
+
+                        {canReorder ? (
+                          <>
+                            <button
+                              disabled={isSaving || isFirst}
+                              onClick={() => {
+                                onMoveFolder(folder, 'up', reorderableFolderIds)
+                                setActiveActionMenuFolderId(null)
+                              }}
+                              type="button"
+                            >
+                              <ChevronUp size={14} /> Move up
+                            </button>
+                            <button
+                              disabled={isSaving || isLast}
+                              onClick={() => {
+                                onMoveFolder(folder, 'down', reorderableFolderIds)
+                                setActiveActionMenuFolderId(null)
+                              }}
+                              type="button"
+                            >
+                              <ChevronDown size={14} /> Move down
+                            </button>
+                          </>
+                        ) : null}
+
+                        {canManageFolder ? (
+                          <>
+                            <button
+                              onClick={() => {
+                                onEditFolder(folder.id)
+                                setActiveActionMenuFolderId(null)
+                              }}
+                              type="button"
+                            >
+                              <Edit2 size={14} /> Edit
+                            </button>
+                            <button
+                              className="folder-card-mobile-menu__danger"
+                              onClick={() => {
+                                onDeleteFolder(folder)
+                                setActiveActionMenuFolderId(null)
+                              }}
+                              type="button"
+                            >
+                              <Trash2 size={14} /> Delete
+                            </button>
+                          </>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+
               </div>
 
-              <div className="flex flex-col items-center text-center my-2">
-                <h3 className={`font-extrabold text-xl tracking-tight leading-snug break-words w-full ${tone.text}`}>
+              <div className="flex flex-col items-center text-center my-1 sm:my-2">
+                <h3 className={`font-extrabold text-sm sm:text-xl tracking-tight leading-snug break-words w-full ${tone.text}`}>
                   {folder.title}
                 </h3>
 
-                <span className={`text-[10px] font-bold mt-1 uppercase tracking-widest opacity-80 ${tone.subtext}`}>
+                <span className={`text-[9px] sm:text-[10px] font-bold mt-0.5 sm:mt-1 uppercase tracking-widest opacity-80 ${tone.subtext}`}>
                   {getCategoryLabel(folder.category)}
                 </span>
 
-                <p className={`text-xs mt-2.5 line-clamp-2 min-h-[32px] max-w-[90%] leading-relaxed ${tone.subtext}`}>
+                <p className={`folder-workspace-card__description text-xs mt-2.5 line-clamp-2 min-h-[32px] max-w-[90%] leading-relaxed ${tone.subtext}`}>
                   {folder.description ? <LinkifiedText text={folder.description} /> : 'No description'}
                 </p>
 
-                <div className={`mt-3 flex flex-wrap items-center justify-center gap-2 text-[10px] font-extrabold ${tone.subtext}`}>
+                <div className={`folder-workspace-card__status mt-2 sm:mt-3 flex flex-wrap items-center justify-center gap-2 text-[10px] font-extrabold ${tone.subtext}`}>
                   <span>{folderTaskCount} {folderTaskCount === 1 ? 'task' : 'tasks'}</span>
                   <span className="inline-flex items-center gap-1" title="Ongoing">
                     <i className="recipient-dot recipient-dot--ongoing" />
@@ -652,13 +767,13 @@ export function FolderListPage({
                 </div>
               </div>
 
-              <div className="w-full mt-2">
-                <div className="flex items-center justify-between font-bold text-xs mb-1.5">
+              <div className="w-full mt-1 sm:mt-2">
+                <div className="flex items-center justify-between font-bold text-[10px] sm:text-xs mb-1 sm:mb-1.5">
                   <span className={tone.text}>Progress</span>
                   <span className={tone.text}>{progressPercent}%</span>
                 </div>
 
-                <div className={`w-full h-2 rounded-full overflow-hidden ${tone.progressBg}`}>
+                <div className={`w-full h-1.5 sm:h-2 rounded-full overflow-hidden ${tone.progressBg}`}>
                   <div
                     className={`h-full rounded-full ${tone.progressFill}`}
                     style={{ width: `${progressPercent}%`, transition: 'width 0.3s ease' }}
@@ -666,7 +781,7 @@ export function FolderListPage({
                 </div>
               </div>
 
-              <div className="mt-auto pt-4 flex items-center justify-between border-t border-black/[0.04] dark:border-white/[0.04]">
+              <div className="mt-auto pt-2.5 sm:pt-4 flex items-center justify-between gap-1 border-t border-black/[0.04] dark:border-white/[0.04]">
                 <div className="flex items-center -space-x-1.5" onClick={(event) => event.stopPropagation()}>
                   {activeUserIds.slice(0, 3).map((userId) => (
                     <UserAvatar
@@ -699,10 +814,10 @@ export function FolderListPage({
                 </div>
 
                 <div className="folder-card-meta-pills">
-                  <div className={`folder-card-meta-pill ${tone.badge}`}>
+                  <div className={`folder-card-meta-pill folder-card-meta-pill--date ${tone.badge}`}>
                     {createdDateText}
                   </div>
-                  <div className={`folder-card-meta-pill capitalize ${tone.badge}`}>
+                  <div className={`folder-card-meta-pill folder-card-meta-pill--status capitalize ${tone.badge}`}>
                     {statusText}
                   </div>
                 </div>
@@ -711,15 +826,16 @@ export function FolderListPage({
           )
         })}
 
-        <div
+        <button
           onClick={onAddFolder}
-          className="bg-transparent rounded-3xl p-5 flex flex-col items-center justify-center gap-4 border-dashed border-2 border-outline-variant hover:border-primary/50 hover:bg-primary/5 transition-colors cursor-pointer min-h-[260px]"
+          className="bg-transparent rounded-[18px] sm:rounded-3xl p-3 sm:p-5 flex flex-col items-center justify-center gap-2 sm:gap-4 border-dashed border-2 border-outline-variant hover:border-primary/50 hover:bg-primary/5 transition-colors cursor-pointer min-h-[170px] sm:min-h-[240px]"
+          type="button"
         >
-          <div className="w-16 h-16 rounded-full bg-surface-container-low dark:bg-surface-variant flex items-center justify-center text-outline">
-            <Plus size={32} />
+          <div className="w-11 h-11 sm:w-16 sm:h-16 rounded-full bg-surface-container-low dark:bg-surface-variant flex items-center justify-center text-outline">
+            <Plus className="w-5 h-5 sm:w-8 sm:h-8" />
           </div>
-          <h3 className="font-title-lg text-title-lg text-on-surface-variant font-bold">New Folder</h3>
-        </div>
+          <h3 className="font-title-lg text-sm sm:text-title-lg text-on-surface-variant font-bold">New Folder</h3>
+        </button>
       </div>
     </div>
   )

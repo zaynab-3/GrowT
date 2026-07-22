@@ -1,20 +1,34 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CheckCircle, RefreshCw, XCircle } from 'lucide-react'
 import { isSupabaseConfigured } from '../services/clientService'
 import { acceptInvite } from '../services/inviteService'
 
 type InvitePageProps = {
   inviteId: string
-  onNavigateToFolder: (folderId: string) => void
-  onNavigateToTask: (taskId: string) => void
+  onInviteAccepted: (resourceType: 'folder' | 'task', resourceId: string) => Promise<void> | void
   onNavigateToHome: () => void
 }
 
-export function InvitePage({ inviteId, onNavigateToFolder, onNavigateToTask, onNavigateToHome }: InvitePageProps) {
+export function InvitePage({ inviteId, onInviteAccepted, onNavigateToHome }: InvitePageProps) {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [errorMessage, setErrorMessage] = useState('')
+  const processedInviteRef = useRef<string | null>(null)
+  const redirectTimerRef = useRef<number | null>(null)
 
   useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) {
+        window.clearTimeout(redirectTimerRef.current)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (processedInviteRef.current === inviteId) {
+      return
+    }
+    processedInviteRef.current = inviteId
+
     async function processInvite() {
       if (!isSupabaseConfigured) {
         setStatus('error')
@@ -27,13 +41,11 @@ export function InvitePage({ inviteId, onNavigateToFolder, onNavigateToTask, onN
         setStatus('success')
         
         // Wait a brief moment to show success state before redirecting
-        setTimeout(() => {
-          if (result && result.resource_type === 'folder') {
-            onNavigateToFolder(result.resource_id)
-          } else if (result && result.resource_type === 'task') {
-            onNavigateToTask(result.resource_id)
+        redirectTimerRef.current = window.setTimeout(() => {
+          if (result && (result.resource_type === 'folder' || result.resource_type === 'task')) {
+            void onInviteAccepted(result.resource_type, result.resource_id)
           }
-        }, 1500)
+        }, 700)
       } catch (error) {
         console.error('Failed to accept invite:', error)
         setStatus('error')
@@ -42,7 +54,7 @@ export function InvitePage({ inviteId, onNavigateToFolder, onNavigateToTask, onN
     }
 
     void processInvite()
-  }, [inviteId, onNavigateToFolder, onNavigateToTask])
+  }, [inviteId, onInviteAccepted])
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-8 text-center min-h-[60vh]">

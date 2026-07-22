@@ -57,21 +57,21 @@ export function SettingsView({
   }
 
   return (
-    <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col gap-6">
+    <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col gap-5 sm:gap-6">
       <div className="workspace-header-compact">
-        <h1>Settings &amp; Profile</h1>
+        <h1>Profile</h1>
         <p className="page-header__desc" style={{ margin: '4px 0 0', color: 'var(--ink-3)', fontSize: '14px' }}>
           Customize your display profile, app theme mode, and accent colors.
         </p>
       </div>
 
-      <form onSubmit={onSaveProfile} className="workspace-layout-cols" style={{ paddingBottom: '48px' }}>
+      <form onSubmit={onSaveProfile} className="workspace-layout-cols pb-6 sm:pb-12">
         {/* Left Column: Profile Card + Avatar Selection + Identity */}
         <div className="workspace-main-col">
           {/* Profile Header Area */}
-          <div className="glass-card rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-6 shadow-sm border border-surface-variant">
+          <div className="glass-card rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row items-center gap-4 sm:gap-6 shadow-sm border border-surface-variant">
             <div className="relative group">
-              <div className="w-24 h-24 rounded-full border-4 border-primary p-1 bg-surface shadow-md overflow-hidden">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-primary p-1 bg-surface shadow-md overflow-hidden">
                 <img alt="Current Avatar" className="w-full h-full rounded-full object-cover" src={getAvatarSrc(profileAvatarChoice)} />
               </div>
             </div>
@@ -86,7 +86,7 @@ export function SettingsView({
           </div>
 
           {/* Public Identity */}
-          <div className="glass-card rounded-2xl p-6 shadow-sm border border-surface-variant">
+          <div className="glass-card rounded-2xl p-4 sm:p-6 shadow-sm border border-surface-variant">
             <h4 className="font-title-lg text-title-lg text-on-surface mb-6 flex items-center gap-2" style={{ margin: '0 0 16px' }}>
               <CreditCard size={18} className="text-primary" />
               Public Identity
@@ -104,12 +104,12 @@ export function SettingsView({
           </div>
 
           {/* Choose Avatar */}
-          <div className="glass-card rounded-2xl p-6 shadow-sm border border-surface-variant">
+          <div className="glass-card rounded-2xl p-4 sm:p-6 shadow-sm border border-surface-variant">
             <h4 className="font-title-lg text-title-lg text-on-surface mb-6 flex items-center gap-2" style={{ margin: '0 0 16px' }}>
               <Smile size={18} className="text-primary" />
               Choose Avatar
             </h4>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-3 sm:gap-4">
               {avatarOptions.map((option) => (
                 <button 
                   key={option.id}
@@ -127,7 +127,7 @@ export function SettingsView({
         {/* Right Column: Theme selection + Color selection + Save Profile card */}
         <div className="workspace-side-col">
           {/* Theme Mode */}
-          <div className="glass-card rounded-2xl p-6 shadow-sm border border-surface-variant">
+          <div className="glass-card rounded-2xl p-4 sm:p-6 shadow-sm border border-surface-variant">
             <h4 className="font-title-lg text-title-lg text-on-surface mb-6 flex items-center gap-2" style={{ margin: '0 0 16px' }}>
               <Palette size={18} className="text-primary" />
               Theme Mode
@@ -138,7 +138,7 @@ export function SettingsView({
                   key={option.id}
                   type="button"
                   onClick={() => onProfileThemeModeChange(option.id)}
-                  className={`motion-choice flex flex-col items-center gap-2 py-4 rounded-xl transition-all ${profileThemeMode === option.id ? 'motion-choice--active bg-primary shadow-md text-white' : 'bg-surface-variant/20 text-on-surface-variant hover:bg-surface-variant/50 hover:text-on-surface dark:bg-[#1b1e1c] dark:text-[#aeb6b2] dark:hover:bg-[#303532] dark:hover:text-white'}`}
+                className={`motion-choice flex flex-col items-center gap-1.5 sm:gap-2 py-3 sm:py-4 rounded-xl transition-all ${profileThemeMode === option.id ? 'motion-choice--active bg-primary shadow-md text-white' : 'bg-surface-variant/20 text-on-surface-variant hover:bg-surface-variant/50 hover:text-on-surface dark:bg-[#1b1e1c] dark:text-[#aeb6b2] dark:hover:bg-[#303532] dark:hover:text-white'}`}
                 >
                   <ThemeModeIcon themeMode={option.id} />
                   <span className="text-label-md">{option.label}</span>
@@ -148,12 +148,12 @@ export function SettingsView({
           </div>
 
           {/* Web-app Color */}
-          <div className="glass-card rounded-2xl p-6 shadow-sm border border-surface-variant">
+          <div className="glass-card rounded-2xl p-4 sm:p-6 shadow-sm border border-surface-variant">
             <h4 className="font-title-lg text-title-lg text-on-surface mb-6 flex items-center gap-2" style={{ margin: '0 0 16px' }}>
               <Paintbrush size={18} className="text-primary" />
               Web-app Color
             </h4>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-3 sm:gap-4">
               {colorPaletteOptions.map((option) => (
                 <button 
                   key={option.id}
@@ -162,7 +162,7 @@ export function SettingsView({
                   className={`motion-choice group flex flex-col items-center gap-2 ${profileColorPalette === option.id ? 'motion-choice--active' : ''}`}
                 >
                   <div 
-                    className={`w-12 h-12 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 ${profileColorPalette === option.id ? 'ring-4 ring-offset-2 ring-primary shadow-lg bg-primary' : 'shadow-md'}`}
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 ${profileColorPalette === option.id ? 'ring-4 ring-offset-2 ring-primary shadow-lg bg-primary' : 'shadow-md'}`}
                     style={{ backgroundColor: paletteColors[option.id] || '#287a5b' }}
                   >
                     {profileColorPalette === option.id && (
@@ -178,7 +178,7 @@ export function SettingsView({
           </div>
 
           {/* Save Action Area */}
-          <div className="glass-card rounded-2xl p-6 shadow-sm border border-surface-variant">
+          <div className="glass-card rounded-2xl p-4 sm:p-6 shadow-sm border border-surface-variant">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div className="min-h-[48px] flex flex-col justify-center">
                 {hasUnsavedChanges ? (

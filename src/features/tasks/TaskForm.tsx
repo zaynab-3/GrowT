@@ -1,15 +1,15 @@
 import { type FormEvent, useEffect, useState } from 'react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import type { FolderCategory } from '../../lib/database.types'
 import { categoryOptions } from '../../lib/growtDisplay'
 import { formatCurrency, parseRecipientAmount } from '../../lib/recipient'
 import { TaskDescriptionFields } from './TaskDescriptionFields'
-import { getInitialChecklistItems, normalizeChecklistItems, type TaskDescriptionMode } from './taskDescriptionUtils'
+import { getInitialChecklistItems, normalizeChecklistItems } from './taskDescriptionUtils'
 
 export type TaskCreateValues = {
   category: FolderCategory
   checklistItems: string[]
   description: string | null
-  descriptionMode: TaskDescriptionMode
   hasExportButton: boolean
   recipientAmount: number
   title: string
@@ -39,8 +39,8 @@ export function TaskForm({
 }: TaskFormProps) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [descriptionMode, setDescriptionMode] = useState<TaskDescriptionMode>('description')
   const [checklistItems, setChecklistItems] = useState<string[]>([''])
+  const [showDetails, setShowDetails] = useState(false)
   const [category, setCategory] = useState<FolderCategory>(defaultCategory)
   const [hasExportButton, setHasExportButton] = useState(false)
   const [recipientAmount, setRecipientAmount] = useState(String(defaultRecipientAmount))
@@ -62,17 +62,16 @@ export function TaskForm({
 
     onCreate({
       category,
-      checklistItems: descriptionMode === 'checklist' ? normalizeChecklistItems(checklistItems) : [],
-      description: descriptionMode === 'description' ? description.trim() || null : null,
-      descriptionMode,
+      checklistItems: normalizeChecklistItems(checklistItems),
+      description: description.trim() || null,
       hasExportButton,
       recipientAmount: parseRecipientAmount(recipientAmount),
       title: title.trim(),
     })
     setTitle('')
     setDescription('')
-    setDescriptionMode('description')
     setChecklistItems(getInitialChecklistItems([]))
+    setShowDetails(false)
     setHasExportButton(false)
     setCategory(defaultCategory)
     setRecipientAmount(String(defaultRecipientAmount))
@@ -105,46 +104,58 @@ export function TaskForm({
         </button>
       </div>
 
-      <TaskDescriptionFields
-        checklistItems={checklistItems}
-        compact
-        description={description}
-        descriptionPlaceholder="Optional details..."
-        idPrefix="quick-task"
-        mode={descriptionMode}
-        onChecklistItemsChange={setChecklistItems}
-        onDescriptionChange={setDescription}
-        onModeChange={setDescriptionMode}
-      />
+      <button
+        aria-expanded={showDetails}
+        className="task-form__details-toggle"
+        onClick={() => setShowDetails((current) => !current)}
+        type="button"
+      >
+        {showDetails ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+        {showDetails ? 'Hide task details' : 'Add description, checklist or options'}
+      </button>
 
-      {canEditRecipientAmount && (
-        <label htmlFor="quick-task-recipient-amount">
-          Recipient amount
-          <input
-            id="quick-task-recipient-amount"
-            min="0"
-            onChange={(event) => setRecipientAmount(event.target.value)}
-            step="0.01"
-            type="number"
-            value={recipientAmount}
+      {showDetails ? (
+        <div className="task-form__details">
+          <TaskDescriptionFields
+            checklistItems={checklistItems}
+            compact
+            description={description}
+            descriptionPlaceholder="Optional details..."
+            idPrefix="quick-task"
+            onChecklistItemsChange={setChecklistItems}
+            onDescriptionChange={setDescription}
           />
-          <span className="form-helper">
-            Current task payout is {formatCurrency(parseRecipientAmount(recipientAmount))}.
-          </span>
-        </label>
-      )}
 
-      {!forceExportButton && (
-        <label className="checkbox-row" htmlFor="quick-task-export-button">
-          <input
-            checked={hasExportButton}
-            id="quick-task-export-button"
-            onChange={(event) => setHasExportButton(event.target.checked)}
-            type="checkbox"
-          />
-          Export video task
-        </label>
-      )}
+          {canEditRecipientAmount && (
+            <label htmlFor="quick-task-recipient-amount">
+              Recipient amount
+              <input
+                id="quick-task-recipient-amount"
+                min="0"
+                onChange={(event) => setRecipientAmount(event.target.value)}
+                step="0.01"
+                type="number"
+                value={recipientAmount}
+              />
+              <span className="form-helper">
+                Current task payout is {formatCurrency(parseRecipientAmount(recipientAmount))}.
+              </span>
+            </label>
+          )}
+
+          {!forceExportButton && (
+            <label className="checkbox-row" htmlFor="quick-task-export-button">
+              <input
+                checked={hasExportButton}
+                id="quick-task-export-button"
+                onChange={(event) => setHasExportButton(event.target.checked)}
+                type="checkbox"
+              />
+              Export video task
+            </label>
+          )}
+        </div>
+      ) : null}
     </form>
   )
 }

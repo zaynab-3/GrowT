@@ -187,3 +187,49 @@
   justify-content: flex-end;
   padding: 8px 0 16px;
 }
+
+@media (max-width: 900px) {
+  .settings-page {
+    gap: 16px;
+  }
+
+  .settings-form,
+  .settings-fields {
+    gap: 14px;
+  }
+
+  .palette-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .theme-mode-toggle {
+    width: 100%;
+  }
+
+  .theme-mode-btn {
+    flex: 1;
+    padding: 0 12px;
+    font-size: 12px;
+  }
+
+  .palette-option {
+    padding: 11px 12px;
+  }
+
+  .avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .avatar-choice {
+    padding: 8px;
+  }
+
+  .avatar-choice__img {
+    width: 48px;
+    height: 48px;
+  }
+}

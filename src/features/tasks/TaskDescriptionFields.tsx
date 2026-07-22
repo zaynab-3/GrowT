@@ -1,5 +1,4 @@
 import { AlignLeft, ListChecks, Plus, Trash2 } from 'lucide-react'
-import type { TaskDescriptionMode } from './taskDescriptionUtils'
 
 type TaskDescriptionFieldsProps = {
   checklistItems: string[]
@@ -7,10 +6,8 @@ type TaskDescriptionFieldsProps = {
   description: string
   descriptionPlaceholder?: string
   idPrefix: string
-  mode: TaskDescriptionMode
   onChecklistItemsChange: (items: string[]) => void
   onDescriptionChange: (description: string) => void
-  onModeChange: (mode: TaskDescriptionMode) => void
 }
 
 export function TaskDescriptionFields({
@@ -19,10 +16,8 @@ export function TaskDescriptionFields({
   description,
   descriptionPlaceholder = 'Describe what needs to be done...',
   idPrefix,
-  mode,
   onChecklistItemsChange,
   onDescriptionChange,
-  onModeChange,
 }: TaskDescriptionFieldsProps) {
   const visibleChecklistItems = checklistItems.length ? checklistItems : ['']
 
@@ -43,28 +38,12 @@ export function TaskDescriptionFields({
 
   return (
     <div className={`task-description-fields ${compact ? 'task-description-fields--compact' : ''}`}>
-      <div className="task-mode-toggle" aria-label="Task content type" role="group">
-        <button
-          aria-pressed={mode === 'description'}
-          className={`task-mode-toggle__button ${mode === 'description' ? 'task-mode-toggle__button--active' : ''}`}
-          onClick={() => onModeChange('description')}
-          type="button"
-        >
+      <div className="task-description-fields__section">
+        <div className="task-description-fields__heading">
           <AlignLeft size={15} />
           Description
-        </button>
-        <button
-          aria-pressed={mode === 'checklist'}
-          className={`task-mode-toggle__button ${mode === 'checklist' ? 'task-mode-toggle__button--active' : ''}`}
-          onClick={() => onModeChange('checklist')}
-          type="button"
-        >
-          <ListChecks size={15} />
-          Checklist
-        </button>
-      </div>
-
-      {mode === 'description' ? (
+          <span>Optional</span>
+        </div>
         <div className="task-description-fields__panel">
           <textarea
             id={`${idPrefix}-description`}
@@ -74,7 +53,14 @@ export function TaskDescriptionFields({
             value={description}
           />
         </div>
-      ) : (
+      </div>
+
+      <div className="task-description-fields__section">
+        <div className="task-description-fields__heading">
+          <ListChecks size={15} />
+          Checklist
+          <span>Optional</span>
+        </div>
         <div className="task-description-fields__panel task-checklist-editor">
           {visibleChecklistItems.map((item, index) => (
             <div className="task-checklist-editor__row" key={`${idPrefix}-item-${index}`}>
@@ -101,7 +87,7 @@ export function TaskDescriptionFields({
             Add item
           </button>
         </div>
-      )}
+      </div>
     </div>
   )
 }

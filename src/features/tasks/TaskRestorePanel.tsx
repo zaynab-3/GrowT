@@ -1,5 +1,6 @@
 import { formatDateTime, formatRestoreWindow, getCategoryLabel } from '../../lib/growtDisplay'
 import type { Task } from '../../lib/growtData'
+import { RotateCcw, Trash2 } from 'lucide-react'
 
 type TaskRestorePanelProps = {
   getFolderLabel: (folderId: string | null) => string
@@ -21,40 +22,43 @@ export function TaskRestorePanel({
   }
 
   return (
-    <div className="stitch-panel">
-      <div className="stitch-panel__header">
+    <section className="stitch-panel restore-panel">
+      <div className="stitch-panel__header restore-panel__header">
         <h3 className="stitch-panel__title">Deleted Tasks</h3>
         <span className="stitch-count-badge">{tasks.length}</span>
       </div>
-      <div className="stitch-panel__body" style={{ padding: 0 }}>
-        <div className="stitch-member-list" style={{ gap: 0 }}>
+      <div className="stitch-panel__body restore-panel__body">
+        <div className="restore-list">
           {tasks.map((task) => (
-            <div className="stitch-member-row" key={task.id} style={{ borderRadius: 0, borderLeft: 'none', borderRight: 'none', borderTop: 'none', borderBottom: '1px solid var(--border)', padding: '16px 20px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, minWidth: 0 }}>
-                <span className="stitch-member-name">{task.title}</span>
-                <span style={{ fontSize: '13px', color: 'var(--ink-2)' }}>
+            <div className="restore-row" key={task.id}>
+              <div className="restore-row__content">
+                <strong className="restore-row__title">{task.title}</strong>
+                <span className="restore-row__meta">
                   {getCategoryLabel(task.category)} · {getFolderLabel(task.folder_id)} · Deleted {formatDateTime(task.deleted_at)}
                 </span>
-                <span style={{ fontSize: '11px', color: 'var(--danger)' }}>{formatRestoreWindow(task.deleted_at)}</span>
+                <span className="restore-row__window">{formatRestoreWindow(task.deleted_at)}</span>
               </div>
-              <div style={{ display: 'flex', gap: '8px', marginLeft: '16px' }}>
+              <div className="restore-row__actions">
                 <button
-                  className="btn btn--secondary btn--sm"
+                  aria-label={`Restore ${task.title}`}
+                  className="restore-row__button restore-row__button--restore"
                   disabled={isSaving}
                   onClick={() => onRestore(task)}
+                  title="Restore task"
                   type="button"
                 >
-                  Restore
+                  <RotateCcw size={15} />
                 </button>
                 {onHardDelete && (
                   <button
-                    className="btn btn--secondary btn--sm"
+                    aria-label={`Delete ${task.title} permanently`}
+                    className="restore-row__button restore-row__button--delete"
                     disabled={isSaving}
                     onClick={() => onHardDelete(task)}
+                    title="Delete permanently"
                     type="button"
-                    style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }}
                   >
-                    Delete
+                    <Trash2 size={15} />
                   </button>
                 )}
               </div>
@@ -62,6 +66,6 @@ export function TaskRestorePanel({
           ))}
         </div>
       </div>
-    </div>
+    </section>
   )
 }

@@ -94,7 +94,7 @@ export function FolderFormPage({
         <span className="breadcrumb__current">{isEdit ? 'Edit Folder' : 'New Folder'}</span>
       </nav>
 
-      <div className="workspace-layout-cols mt-4">
+      <div className="workspace-layout-cols mt-2 sm:mt-4">
         {/* Left Column: Form Card */}
         <div className="workspace-main-col">
           <div className="form-card">
