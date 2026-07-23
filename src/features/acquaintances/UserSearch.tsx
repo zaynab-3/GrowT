@@ -24,33 +24,32 @@ export function UserSearch({
   results,
 }: UserSearchProps) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <form onSubmit={onSearch} style={{ display: 'flex', gap: '8px' }}>
+    <div className="people-search">
+      <form className="people-search__form" onSubmit={onSearch}>
         <input
           aria-label="Search username"
           onChange={(event) => onQueryChange(event.target.value)}
           placeholder="Invite by username"
           value={query}
-          className="stitch-input"
-          style={{ flex: 1, minWidth: 0 }}
+          className="stitch-input people-search__input"
         />
         <button className="btn btn--primary" disabled={isSearching} type="submit">
           Search
         </button>
       </form>
       {results.length ? (
-        <div className="stitch-member-list">
+        <div className="stitch-member-list people-search__results">
           {results.map((profile) => (
             <div className="stitch-member-row" key={profile.user_id}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div className="stitch-member-row__identity">
                 <UserAvatar label={profile.display_name ?? profile.username} avatarChoice={profile.avatar_choice} avatarUrl={profile.avatar_url} className="w-8 h-8 text-[12px]" />
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <div className="stitch-member-row__copy">
                   <span className="stitch-member-name">{profile.display_name ?? `@${profile.username}`}</span>
-                  <span style={{ fontSize: '11px', color: 'var(--ink-3)' }}>@{profile.username}</span>
+                  <span>@{profile.username}</span>
                 </div>
               </div>
               
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <div className="stitch-member-row__actions">
                 {profile.relationship_status === 'acquaintance' ? (
                   <span className="stitch-badge">Connected</span>
                 ) : null}

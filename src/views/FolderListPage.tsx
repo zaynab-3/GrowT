@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react'
-import { Check, ChevronDown, ChevronUp, FolderPlus, Trash2, Plus, Info, Edit2, MoreHorizontal, ReceiptText } from 'lucide-react'
+import { Check, ChevronDown, ChevronUp, FolderOpen, FolderPlus, Trash2, Plus, Info, Edit2, MoreHorizontal, ReceiptText, Sparkles } from 'lucide-react'
 import { getCategoryLabel, isSharedFolder } from '../lib/growtDisplay'
 import type { Folder as FolderType, Task, TaskStatusAction } from '../lib/growtData'
 import {
   combineRecipientReports,
-  formatCurrency,
   type RecipientFolderReview,
   type RecipientReport,
 } from '../lib/recipient'
@@ -15,48 +14,14 @@ import { RecipientFolderReviewPopup } from '../components/RecipientFolderReviewP
 import { RecipientReportPopup } from '../components/RecipientReportPopup'
 import { calculateFolderProgress } from '../lib/growtState'
 import { UserAvatar } from '../components/UserAvatar'
+import './FolderListPage.css'
 
 const cardTones = [
-  {
-    bg: 'bg-[#f0f4ff] dark:bg-sky-950/20',
-    text: 'text-sky-900 dark:text-sky-100',
-    subtext: 'text-sky-700/80 dark:text-sky-300/80',
-    progressFill: 'bg-sky-500',
-    progressBg: 'bg-sky-100 dark:bg-sky-900/40',
-    badge: 'bg-sky-200/50 text-sky-800 dark:bg-sky-900/50 dark:text-sky-200',
-  },
-  {
-    bg: 'bg-[#fff4eb] dark:bg-amber-950/20',
-    text: 'text-amber-900 dark:text-amber-100',
-    subtext: 'text-amber-700/80 dark:text-amber-300/80',
-    progressFill: 'bg-amber-500',
-    progressBg: 'bg-amber-100 dark:bg-amber-900/40',
-    badge: 'bg-amber-200/50 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200',
-  },
-  {
-    bg: 'bg-[#eefcf3] dark:bg-emerald-950/20',
-    text: 'text-emerald-900 dark:text-emerald-100',
-    subtext: 'text-emerald-700/80 dark:text-emerald-300/80',
-    progressFill: 'bg-emerald-500',
-    progressBg: 'bg-emerald-100 dark:bg-emerald-900/40',
-    badge: 'bg-emerald-200/50 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200',
-  },
-  {
-    bg: 'bg-[#fff0f5] dark:bg-rose-950/20',
-    text: 'text-rose-900 dark:text-rose-100',
-    subtext: 'text-rose-700/80 dark:text-rose-300/80',
-    progressFill: 'bg-rose-500',
-    progressBg: 'bg-rose-100 dark:bg-rose-900/40',
-    badge: 'bg-rose-200/50 text-rose-800 dark:bg-rose-900/50 dark:text-rose-200',
-  },
-  {
-    bg: 'bg-[#f5f0ff] dark:bg-purple-950/20',
-    text: 'text-purple-900 dark:text-purple-100',
-    subtext: 'text-purple-700/80 dark:text-purple-300/80',
-    progressFill: 'bg-purple-500',
-    progressBg: 'bg-purple-100 dark:bg-purple-900/40',
-    badge: 'bg-purple-200/50 text-purple-800 dark:bg-purple-900/50 dark:text-purple-200',
-  },
+  { bg: 'folder-card-tone-0', text: 'folder-card-tone-text', subtext: 'folder-card-tone-subtext', progressFill: 'folder-card-tone-fill', progressBg: 'folder-card-tone-track', badge: 'folder-card-tone-badge' },
+  { bg: 'folder-card-tone-1', text: 'folder-card-tone-text', subtext: 'folder-card-tone-subtext', progressFill: 'folder-card-tone-fill', progressBg: 'folder-card-tone-track', badge: 'folder-card-tone-badge' },
+  { bg: 'folder-card-tone-2', text: 'folder-card-tone-text', subtext: 'folder-card-tone-subtext', progressFill: 'folder-card-tone-fill', progressBg: 'folder-card-tone-track', badge: 'folder-card-tone-badge' },
+  { bg: 'folder-card-tone-3', text: 'folder-card-tone-text', subtext: 'folder-card-tone-subtext', progressFill: 'folder-card-tone-fill', progressBg: 'folder-card-tone-track', badge: 'folder-card-tone-badge' },
+  { bg: 'folder-card-tone-4', text: 'folder-card-tone-text', subtext: 'folder-card-tone-subtext', progressFill: 'folder-card-tone-fill', progressBg: 'folder-card-tone-track', badge: 'folder-card-tone-badge' },
 ]
 
 type FolderScope = 'all' | 'personal' | 'work' | 'shared'
@@ -222,94 +187,64 @@ export function FolderListPage({
   }
 
   return (
-    <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col gap-5 sm:gap-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+    <section className="folders-redesign" aria-labelledby="workspaces-heading">
+      <header className="folders-redesign__hero">
         <div>
-          <h1 className="font-headline-lg text-2xl sm:text-headline-lg text-on-surface dark:text-on-surface flex items-center gap-2 sm:gap-3">
-            Workspaces
-            <span className="bg-primary text-on-primary px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full font-label-md text-label-md">
-              {folders.length}
-            </span>
-          </h1>
-          <p className="font-body-md text-body-md text-on-surface-variant mt-1">
-            Organize and manage your workspaces efficiently.
-          </p>
+          <p className="folders-redesign__eyebrow"><Sparkles size={14} /> Workspaces</p>
+          <h1 id="workspaces-heading">Everything has a place.</h1>
+          <p>Keep related tasks, people, and progress together without the clutter.</p>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3 w-full md:w-auto">
-          <button
-            aria-label="Create folder"
-            onClick={onAddFolder}
-            className="bg-primary text-on-primary font-label-md text-label-md px-3 sm:px-6 py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-surface-tint transition-all shadow-md shadow-primary/20 hover:shadow-lg whitespace-nowrap"
-            title="Create folder"
-            type="button"
-          >
-            <FolderPlus size={18} />
-            <span className="hidden sm:inline">Create Folder</span>
-          </button>
-        </div>
-      </div>
+        <button className="folders-redesign__create" onClick={onAddFolder} type="button">
+          <FolderPlus size={18} />
+          <span>New workspace</span>
+        </button>
+      </header>
 
-      <div>
+      <div className="folders-redesign__controls">
         <div className="folder-scope-filters">
           <button
             onClick={() => setScope('all')}
-            className={`snap-start px-3 sm:px-4 py-1.5 rounded-full font-label-md text-label-md shadow-sm transition-colors whitespace-nowrap ${
-              scope === 'all'
-                ? 'bg-primary text-on-primary'
-                : 'bg-surface-container-high dark:bg-dark-card text-on-surface-variant hover:bg-surface-variant'
-            }`}
+            aria-pressed={scope === 'all'}
+            className={scope === 'all' ? 'folder-scope-filter folder-scope-filter--active' : 'folder-scope-filter'}
             type="button"
           >
-            All
+            All <span>{folders.length}</span>
           </button>
 
           <button
             onClick={() => setScope('work')}
-            className={`snap-start px-3 sm:px-4 py-1.5 rounded-full font-label-md text-label-md transition-colors whitespace-nowrap ${
-              scope === 'work'
-                ? 'bg-primary text-on-primary'
-                : 'bg-surface-container-high dark:bg-dark-card text-on-surface-variant hover:bg-surface-variant'
-            }`}
+            aria-pressed={scope === 'work'}
+            className={scope === 'work' ? 'folder-scope-filter folder-scope-filter--active' : 'folder-scope-filter'}
             type="button"
           >
-            Work ({workCount})
+            Work <span>{workCount}</span>
           </button>
 
           <button
             onClick={() => setScope('personal')}
-            className={`snap-start px-3 sm:px-4 py-1.5 rounded-full font-label-md text-label-md transition-colors whitespace-nowrap ${
-              scope === 'personal'
-                ? 'bg-primary text-on-primary'
-                : 'bg-surface-container-high dark:bg-dark-card text-on-surface-variant hover:bg-surface-variant'
-            }`}
+            aria-pressed={scope === 'personal'}
+            className={scope === 'personal' ? 'folder-scope-filter folder-scope-filter--active' : 'folder-scope-filter'}
             type="button"
           >
-            Personal ({personalCount})
+            Personal <span>{personalCount}</span>
           </button>
 
           <button
             onClick={() => setScope('shared')}
-            className={`snap-start px-3 sm:px-4 py-1.5 rounded-full font-label-md text-label-md transition-colors whitespace-nowrap ${
-              scope === 'shared'
-                ? 'bg-primary text-on-primary'
-                : 'bg-surface-container-high dark:bg-dark-card text-on-surface-variant hover:bg-surface-variant'
-            }`}
+            aria-pressed={scope === 'shared'}
+            className={scope === 'shared' ? 'folder-scope-filter folder-scope-filter--active' : 'folder-scope-filter'}
             type="button"
           >
-            Shared ({sharedCount})
+            Shared <span>{sharedCount}</span>
           </button>
         </div>
 
-        <div className="mt-2">
+        <div className="folders-redesign__recipient-control">
           <button
             aria-controls="recipient-review-actions"
             aria-expanded={recipientReviewMode}
-            className={`inline-flex w-full items-center justify-between gap-3 rounded-xl sm:rounded-2xl border px-3 sm:px-4 py-2.5 sm:py-3 text-left font-label-md text-label-md transition-all duration-300 sm:w-auto sm:min-w-[220px] ${
-              recipientReviewMode
-                ? 'border-primary/30 bg-primary text-on-primary shadow-[0_8px_24px_rgba(34,139,94,0.20)]'
-                : 'border-black/[0.06] bg-surface-container-low text-on-surface hover:-translate-y-0.5 hover:border-primary/25 hover:bg-surface-container-high dark:border-white/10 dark:bg-dark-card'
-            }`}
+            className={`folders-redesign__recipient-toggle${recipientReviewMode ? ' folders-redesign__recipient-toggle--active' : ''}`}
             onClick={handleRecipientReviewModeToggle}
             type="button"
           >
@@ -337,7 +272,7 @@ export function FolderListPage({
             id="recipient-review-actions"
           >
             <div className="min-h-0 overflow-hidden">
-              <div className="mt-3 flex flex-col gap-3 rounded-[24px] border border-primary/15 bg-primary/[0.06] p-3 shadow-[0_10px_30px_rgba(15,23,42,0.04)] dark:bg-primary/10 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+              <div className="folders-redesign__recipient-panel">
                 <div className="min-w-0 px-1">
                   <p className="font-label-md text-label-md font-bold text-on-surface">
                     Recipient review
@@ -393,7 +328,7 @@ export function FolderListPage({
         onClose={() => setIsRecipientReviewOpen(false)}
       />
 
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
+      <div className="folders-redesign__grid">
         {visibleFolders.map((folder, index) => {
           const tone = cardTones[index % cardTones.length]
           const isShared = isSharedFolder(folder)
@@ -458,7 +393,7 @@ export function FolderListPage({
               }}
               role="button"
               tabIndex={0}
-              className={`folder-workspace-card ${tone.bg} border-2 ${selectionBorder} rounded-[18px] sm:rounded-[24px] lg:rounded-[32px] p-3 sm:p-5 lg:p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.03)] hover:-translate-y-1 transition-all duration-300 relative group ${recipientReviewMode ? 'cursor-copy' : 'cursor-pointer'} flex flex-col gap-2.5 sm:gap-4 ${isPopupOpen || isRecipientPopupOpen || activeActionMenuFolderId === folder.id ? 'z-50' : 'z-10'}`}
+              className={`folder-workspace-card folder-collection-card ${tone.bg} ${selectionBorder} ${recipientReviewMode ? 'folder-collection-card--selecting' : ''} ${isPopupOpen || isRecipientPopupOpen || activeActionMenuFolderId === folder.id ? 'z-50' : 'z-10'}`}
             >
               <div className="folder-workspace-card__toolbar flex justify-between items-center text-xs font-bold">
                 <div className="flex min-w-0 items-center gap-2">
@@ -598,8 +533,8 @@ export function FolderListPage({
                               setActiveRecipientAnchor(null)
                             }}
                             report={recipientReport}
-                            subtitle={`"${folder.title}" · ${formatCurrency(recipientReport.paidAmount)}`}
-                            title="Folder Recipients"
+                            subtitle={`${folder.title} · ${recipientReport.taskCount} ${recipientReport.taskCount === 1 ? 'task' : 'tasks'}`}
+                            title="Folder recipients"
                           />
                         )}
                       </div>
@@ -733,20 +668,21 @@ export function FolderListPage({
 
               </div>
 
-              <div className="flex flex-col items-center text-center my-1 sm:my-2">
-                <h3 className={`font-extrabold text-sm sm:text-xl tracking-tight leading-snug break-words w-full ${tone.text}`}>
+              <div className="folder-collection-card__body">
+                <span className="folder-collection-card__icon"><FolderOpen size={22} /></span>
+                <h3 className={`folder-collection-card__title ${tone.text}`}>
                   {folder.title}
                 </h3>
 
-                <span className={`text-[9px] sm:text-[10px] font-bold mt-0.5 sm:mt-1 uppercase tracking-widest opacity-80 ${tone.subtext}`}>
+                <span className={`folder-collection-card__category ${tone.subtext}`}>
                   {getCategoryLabel(folder.category)}
                 </span>
 
-                <p className={`folder-workspace-card__description text-xs mt-2.5 line-clamp-2 min-h-[32px] max-w-[90%] leading-relaxed ${tone.subtext}`}>
+                <p className={`folder-workspace-card__description folder-collection-card__description ${tone.subtext}`}>
                   {folder.description ? <LinkifiedText text={folder.description} /> : 'No description'}
                 </p>
 
-                <div className={`folder-workspace-card__status mt-2 sm:mt-3 flex flex-wrap items-center justify-center gap-2 text-[10px] font-extrabold ${tone.subtext}`}>
+                <div className={`folder-workspace-card__status folder-collection-card__status ${tone.subtext}`}>
                   <span>{folderTaskCount} {folderTaskCount === 1 ? 'task' : 'tasks'}</span>
                   <span className="inline-flex items-center gap-1" title="Ongoing">
                     <i className="recipient-dot recipient-dot--ongoing" />
@@ -767,28 +703,28 @@ export function FolderListPage({
                 </div>
               </div>
 
-              <div className="w-full mt-1 sm:mt-2">
-                <div className="flex items-center justify-between font-bold text-[10px] sm:text-xs mb-1 sm:mb-1.5">
+              <div className="folder-collection-card__progress">
+                <div className="folder-collection-card__progress-label">
                   <span className={tone.text}>Progress</span>
                   <span className={tone.text}>{progressPercent}%</span>
                 </div>
 
-                <div className={`w-full h-1.5 sm:h-2 rounded-full overflow-hidden ${tone.progressBg}`}>
+                <div className={`folder-collection-card__track ${tone.progressBg}`}>
                   <div
-                    className={`h-full rounded-full ${tone.progressFill}`}
+                    className={`folder-collection-card__fill ${tone.progressFill}`}
                     style={{ width: `${progressPercent}%`, transition: 'width 0.3s ease' }}
                   />
                 </div>
               </div>
 
-              <div className="mt-auto pt-2.5 sm:pt-4 flex items-center justify-between gap-1 border-t border-black/[0.04] dark:border-white/[0.04]">
-                <div className="flex items-center -space-x-1.5" onClick={(event) => event.stopPropagation()}>
+              <div className="folder-collection-card__footer">
+                <div className="folder-collection-card__people" onClick={(event) => event.stopPropagation()}>
                   {activeUserIds.slice(0, 3).map((userId) => (
                     <UserAvatar
                       key={userId}
                       label={getProfileLabel(userId)}
                       avatarUrl={getProfileAvatar(userId)}
-                      className="w-6 h-6 border-2 border-white dark:border-surface ring-[1px] ring-black/[0.05]"
+                      className="folder-collection-card__avatar"
                     />
                   ))}
 
@@ -798,7 +734,7 @@ export function FolderListPage({
                         event.stopPropagation()
                         onOpenFolder(folder.id)
                       }}
-                      className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs border-2 border-white dark:border-surface shadow-sm ${tone.badge}`}
+                      className={`folder-collection-card__invite ${tone.badge}`}
                       title="Open folder to invite members"
                       type="button"
                     >
@@ -807,7 +743,7 @@ export function FolderListPage({
                   )}
 
                   {!isShared && activeUserIds.length === 0 && (
-                    <span className={`text-[10px] font-bold uppercase tracking-wider ${tone.subtext}`}>
+                    <span className={`folder-collection-card__private ${tone.subtext}`}>
                       Private
                     </span>
                   )}
@@ -828,15 +764,14 @@ export function FolderListPage({
 
         <button
           onClick={onAddFolder}
-          className="bg-transparent rounded-[18px] sm:rounded-3xl p-3 sm:p-5 flex flex-col items-center justify-center gap-2 sm:gap-4 border-dashed border-2 border-outline-variant hover:border-primary/50 hover:bg-primary/5 transition-colors cursor-pointer min-h-[170px] sm:min-h-[240px]"
+          className="folder-collection-card folder-collection-card--new"
           type="button"
         >
-          <div className="w-11 h-11 sm:w-16 sm:h-16 rounded-full bg-surface-container-low dark:bg-surface-variant flex items-center justify-center text-outline">
-            <Plus className="w-5 h-5 sm:w-8 sm:h-8" />
-          </div>
-          <h3 className="font-title-lg text-sm sm:text-title-lg text-on-surface-variant font-bold">New Folder</h3>
+          <span><Plus size={22} /></span>
+          <strong>New workspace</strong>
+          <small>Start somewhere fresh</small>
         </button>
       </div>
-    </div>
+    </section>
   )
 }

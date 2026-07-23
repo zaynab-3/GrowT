@@ -115,9 +115,8 @@ export function NotificationPanel({
                         <Check size={15} />
                       </button>
                     ) : (
-                      <span className="notification-row__read-state">
+                      <span aria-label="Read" className="notification-row__read-state" title="Read">
                         <CheckCheck size={13} />
-                        Read
                       </span>
                     )}
                   </div>

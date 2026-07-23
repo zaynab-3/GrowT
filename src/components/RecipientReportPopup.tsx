@@ -1,10 +1,21 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { ReceiptText, X } from 'lucide-react'
+import {
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  CircleCheckBig,
+  CircleDot,
+  CircleGauge,
+  ListChecks,
+  ReceiptText,
+  UsersRound,
+  X,
+} from 'lucide-react'
 import { UserAvatar } from './UserAvatar'
 import {
   formatCurrency,
-  recipientLegend,
+  type RecipientCredit,
   type RecipientReport,
   type RecipientUserSummary,
 } from '../lib/recipient'
@@ -20,12 +31,27 @@ type RecipientReportPopupProps = {
   title: string
 }
 
+type RecipientTab = 'people' | 'status'
+
+const statusItems = [
+  { Icon: CircleDot, key: 'ongoing', label: 'Ongoing' },
+  { Icon: CircleGauge, key: 'half_done', label: 'Half done' },
+  { Icon: CircleCheckBig, key: 'fully_completed', label: 'Completed' },
+  { Icon: CheckCircle2, key: 'completed_other_half', label: 'Other half' },
+] as const
+
 function getUserTotalCount(user: RecipientUserSummary) {
   return user.ongoing + user.halfDone + user.fullyCompleted + user.completedOtherHalf
 }
 
+function getCreditLabel(credit: RecipientCredit) {
+  if (credit.kind === 'ongoing') return 'Ongoing'
+  if (credit.kind === 'half_done') return 'Half done'
+  if (credit.kind === 'fully_completed') return 'Completed'
+  return 'Completed other half'
+}
+
 export function RecipientReportPopup({
-  anchorRect,
   getProfileAvatar,
   getProfileLabel,
   isOpen,
@@ -34,186 +60,254 @@ export function RecipientReportPopup({
   subtitle,
   title,
 }: RecipientReportPopupProps) {
-  const popupRef = useRef<HTMLDivElement>(null)
-  const [coords, setCoords] = useState({ left: 0, top: 0 })
+  const [activeTab, setActiveTab] = useState<RecipientTab>('people')
+  const [expandedUserId, setExpandedUserId] = useState<string | null>(null)
+  const [showTaskBreakdown, setShowTaskBreakdown] = useState(false)
+
+  const totalStatusCount = useMemo(
+    () =>
+      report.taskStates.ongoing +
+      report.taskStates.half_done +
+      report.taskStates.fully_completed +
+      report.taskStates.completed_other_half,
+    [report],
+  )
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
-        onClose()
-      }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') onClose()
     }
 
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-    }
+    if (!isOpen) return
 
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', handleKeyDown)
+    }
   }, [isOpen, onClose])
 
-  useEffect(() => {
-    if (!isOpen || !anchorRect) {
-      return
-    }
-
-    const margin = 16
-    const viewportWidth = window.innerWidth
-    const viewportHeight = window.innerHeight
-    const isMobile = viewportWidth <= 640
-    const popupWidth = isMobile ? viewportWidth - margin * 2 : 420
-    const minTop = isMobile ? 96 : margin
-    const bottomReserve = isMobile ? 72 : margin
-
-    if (isMobile) {
-      setCoords({ left: margin, top: minTop })
-      return
-    }
-
-    let top = anchorRect.bottom + 8
-    let left = anchorRect.left + anchorRect.width / 2 - popupWidth / 2
-
-    if (left < margin) {
-      left = margin
-    } else if (left + popupWidth > viewportWidth - margin) {
-      left = viewportWidth - popupWidth - margin
-    }
-
-    const popupHeight = popupRef.current?.offsetHeight || 360
-    if (top + popupHeight > viewportHeight - bottomReserve) {
-      top = Math.max(minTop, anchorRect.top - popupHeight - 8)
-    }
-
-    setCoords({
-      left,
-      top: Math.max(minTop, Math.min(top, viewportHeight - popupHeight - bottomReserve)),
-    })
-  }, [anchorRect, isOpen, report])
-
-  if (!isOpen) {
-    return null
-  }
+  if (!isOpen) return null
 
   return createPortal(
-    <div
-      className="recipient-popup fixed stitch-panel w-[420px] max-w-[calc(100vw-32px)] z-[220]"
-      onClick={(event) => event.stopPropagation()}
-      ref={popupRef}
-      style={{ left: `${coords.left}px`, top: `${coords.top}px` }}
-    >
-      <div className="stitch-panel__header recipient-popup__header">
-        <div className="min-w-0">
-          <h3 className="stitch-panel__title flex items-center gap-2">
-            <ReceiptText size={16} className="text-primary" />
-            {title}
-          </h3>
-          <p className="m-0 mt-0.5 truncate text-xs font-semibold text-on-surface-variant">
-            {subtitle}
-          </p>
-        </div>
-        <button
-          className="recipient-popup__close"
-          onClick={onClose}
-          title="Close recipient report"
-          type="button"
-        >
-          <X size={16} />
-        </button>
-      </div>
+    <div className="recipient-sheet-overlay" onClick={onClose}>
+      <section
+        aria-labelledby="recipient-sheet-title"
+        aria-modal="true"
+        className="recipient-sheet"
+        onClick={(event) => event.stopPropagation()}
+        role="dialog"
+      >
+        <div aria-hidden="true" className="recipient-sheet__handle" />
 
-      <div className="stitch-panel__body recipient-popup__body">
-        <div className="recipient-popup__summary">
-          <div>
-            <span>Total payout</span>
-            <strong>{formatCurrency(report.paidAmount)}</strong>
+        <header className="recipient-sheet__header">
+          <span className="recipient-sheet__header-icon">
+            <ReceiptText aria-hidden="true" size={22} />
+          </span>
+          <div className="recipient-sheet__header-copy">
+            <h2 id="recipient-sheet-title">{title}</h2>
+            <p>{subtitle}</p>
           </div>
-          <div>
-            <span>Tasks</span>
-            <strong>{report.taskCount}</strong>
-          </div>
-          <div>
-            <span>Completed</span>
-            <strong>{report.completedTaskCount}</strong>
-          </div>
-        </div>
+          <button
+            aria-label="Close recipient report"
+            className="recipient-sheet__close"
+            onClick={onClose}
+            type="button"
+          >
+            <X aria-hidden="true" size={22} />
+          </button>
+        </header>
 
-        <div className="recipient-legend" aria-label="Recipient color legend">
-          {recipientLegend.map((item) => (
-            <span key={item.key}>
-              <i className={`recipient-dot recipient-dot--${item.key}`} />
-              {item.label}
-            </span>
-          ))}
-        </div>
-
-        <div className="recipient-popup__task-counts">
-          <span>
-            <i className="recipient-dot recipient-dot--ongoing" />
-            {report.taskStates.ongoing} ongoing
-          </span>
-          <span>
-            <i className="recipient-dot recipient-dot--half_done" />
-            {report.taskStates.half_done} half done
-          </span>
-          <span>
-            <i className="recipient-dot recipient-dot--fully_completed" />
-            {report.taskStates.fully_completed} fully completed
-          </span>
-          <span>
-            <i className="recipient-dot recipient-dot--completed_other_half" />
-            {report.taskStates.completed_other_half} other half
-          </span>
-        </div>
-
-        <div className="recipient-user-list">
-          {report.users.map((user) => {
-            const label = getProfileLabel(user.userId)
-
-            return (
-              <div className="recipient-user-row" key={user.userId}>
-                <div className="recipient-user-row__main">
-                  <UserAvatar
-                    avatarUrl={getProfileAvatar(user.userId)}
-                    className="h-8 w-8 text-xs"
-                    label={label}
-                  />
-                  <div className="min-w-0">
-                    <strong>{label}</strong>
-                    <span>{getUserTotalCount(user)} credited task marks</span>
-                  </div>
-                </div>
-
-                <div className="recipient-user-row__amount">{formatCurrency(user.amount)}</div>
-
-                <div className="recipient-user-row__counts">
-                  <span title="Ongoing">
-                    <i className="recipient-dot recipient-dot--ongoing" />
-                    {user.ongoing}
-                  </span>
-                  <span title="Half Done">
-                    <i className="recipient-dot recipient-dot--half_done" />
-                    {user.halfDone}
-                  </span>
-                  <span title="Fully Completed">
-                    <i className="recipient-dot recipient-dot--fully_completed" />
-                    {user.fullyCompleted}
-                  </span>
-                  <span title="Completed Other Half">
-                    <i className="recipient-dot recipient-dot--completed_other_half" />
-                    {user.completedOtherHalf}
-                  </span>
-                </div>
+        <div className="recipient-sheet__scroll">
+          <section aria-label="Recipient payout summary" className="recipient-sheet__summary">
+            <div className="recipient-sheet__payout">
+              <span className="recipient-sheet__summary-icon">$</span>
+              <div>
+                <strong>{formatCurrency(report.paidAmount)}</strong>
+                <span>total payout</span>
               </div>
-            )
-          })}
-
-          {!report.users.length ? (
-            <div className="recipient-empty">
-              <ReceiptText size={32} />
-              No recipient activity yet.
+              <p>Based on completed task credit</p>
             </div>
-          ) : null}
+
+            <div className="recipient-sheet__summary-stats">
+              <div>
+                <span className="recipient-sheet__stat-icon">
+                  <CheckCircle2 aria-hidden="true" size={18} />
+                </span>
+                <strong>{report.completedTaskCount}</strong>
+                <span>completed</span>
+              </div>
+              <div>
+                <span className="recipient-sheet__stat-icon">
+                  <UsersRound aria-hidden="true" size={18} />
+                </span>
+                <strong>{report.users.length}</strong>
+                <span>recipients</span>
+              </div>
+            </div>
+          </section>
+
+          <section className="recipient-sheet__report">
+            <div aria-label="Recipient report views" className="recipient-sheet__tabs" role="tablist">
+              <button
+                aria-selected={activeTab === 'people'}
+                className={activeTab === 'people' ? 'is-active' : ''}
+                onClick={() => setActiveTab('people')}
+                role="tab"
+                type="button"
+              >
+                <UsersRound aria-hidden="true" size={18} />
+                People
+              </button>
+              <button
+                aria-selected={activeTab === 'status'}
+                className={activeTab === 'status' ? 'is-active' : ''}
+                onClick={() => setActiveTab('status')}
+                role="tab"
+                type="button"
+              >
+                <CircleGauge aria-hidden="true" size={18} />
+                Status breakdown
+              </button>
+            </div>
+
+            {activeTab === 'people' ? (
+              <div className="recipient-sheet__people" role="tabpanel">
+                {report.users.map((user) => {
+                  const label = getProfileLabel(user.userId)
+                  const isExpanded = expandedUserId === user.userId
+                  const completedCount = user.fullyCompleted + user.completedOtherHalf
+
+                  return (
+                    <article className="recipient-person" key={user.userId}>
+                      <button
+                        aria-expanded={isExpanded}
+                        className="recipient-person__main"
+                        onClick={() => setExpandedUserId(isExpanded ? null : user.userId)}
+                        type="button"
+                      >
+                        <UserAvatar
+                          avatarUrl={getProfileAvatar(user.userId)}
+                          className="recipient-person__avatar"
+                          label={label}
+                        />
+                        <span className="recipient-person__identity">
+                          <strong>{label}</strong>
+                          <small>{getUserTotalCount(user)} credited task marks</small>
+                        </span>
+                        <strong className="recipient-person__amount">{formatCurrency(user.amount)}</strong>
+                        <ChevronRight
+                          aria-hidden="true"
+                          className={isExpanded ? 'recipient-person__chevron is-open' : 'recipient-person__chevron'}
+                          size={20}
+                        />
+                      </button>
+
+                      <div className="recipient-person__status">
+                        <span className="recipient-person__status-item recipient-person__status-item--ongoing">
+                          <CircleDot aria-hidden="true" size={15} />
+                          <span>Ongoing</span>
+                          <strong>{user.ongoing}</strong>
+                        </span>
+                        <span className="recipient-person__status-item recipient-person__status-item--half_done">
+                          <CircleGauge aria-hidden="true" size={15} />
+                          <span>Half done</span>
+                          <strong>{user.halfDone}</strong>
+                        </span>
+                        <span className="recipient-person__status-item recipient-person__status-item--completed">
+                          <CheckCircle2 aria-hidden="true" size={15} />
+                          <span>Completed</span>
+                          <strong>{completedCount}</strong>
+                        </span>
+                      </div>
+
+                      {isExpanded ? (
+                        <div className="recipient-person__credits">
+                          {user.credits.map((credit) => (
+                            <div key={`${credit.taskId}:${credit.kind}:${credit.userId}`}>
+                              <span>
+                                <i className={`recipient-credit-dot recipient-credit-dot--${credit.kind}`} />
+                                {credit.taskTitle}
+                              </span>
+                              <small>{getCreditLabel(credit)}</small>
+                              <strong>{formatCurrency(credit.amount)}</strong>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+                    </article>
+                  )
+                })}
+
+                {!report.users.length ? (
+                  <div className="recipient-sheet__empty">
+                    <UsersRound aria-hidden="true" size={28} />
+                    <strong>No recipient activity yet</strong>
+                    <span>Status credit will appear here as tasks move forward.</span>
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <div className="recipient-sheet__status-breakdown" role="tabpanel">
+                {statusItems.map(({ Icon, key, label }) => {
+                  const count = report.taskStates[key]
+                  const percent = totalStatusCount > 0 ? Math.round((count / totalStatusCount) * 100) : 0
+
+                  return (
+                    <div className={`recipient-status-row recipient-status-row--${key}`} key={key}>
+                      <span className="recipient-status-row__icon">
+                        <Icon aria-hidden="true" size={18} />
+                      </span>
+                      <div>
+                        <strong>{label}</strong>
+                        <span>{count} {count === 1 ? 'task' : 'tasks'}</span>
+                      </div>
+                      <span className="recipient-status-row__bar">
+                        <i style={{ width: `${percent}%` }} />
+                      </span>
+                      <strong>{percent}%</strong>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            <button
+              aria-expanded={showTaskBreakdown}
+              className="recipient-sheet__breakdown-toggle"
+              onClick={() => setShowTaskBreakdown((current) => !current)}
+              type="button"
+            >
+              <span className="recipient-sheet__breakdown-icon">
+                <ListChecks aria-hidden="true" size={18} />
+              </span>
+              <span>View task breakdown</span>
+              <ChevronDown
+                aria-hidden="true"
+                className={showTaskBreakdown ? 'is-open' : ''}
+                size={19}
+              />
+            </button>
+
+            {showTaskBreakdown ? (
+              <div className="recipient-sheet__task-breakdown">
+                {report.users.flatMap((user) =>
+                  user.credits.map((credit) => (
+                    <div key={`${credit.taskId}:${credit.userId}:${credit.kind}:breakdown`}>
+                      <span>{credit.taskTitle}</span>
+                      <small>{getProfileLabel(user.userId)} · {getCreditLabel(credit)}</small>
+                      <strong>{formatCurrency(credit.amount)}</strong>
+                    </div>
+                  )),
+                )}
+              </div>
+            ) : null}
+          </section>
         </div>
-      </div>
+      </section>
     </div>,
     document.body,
   )

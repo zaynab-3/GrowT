@@ -57,7 +57,7 @@ export function SettingsView({
   }
 
   return (
-    <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col gap-5 sm:gap-6">
+    <div className="profile-page growt-page flex-1 w-full max-w-7xl mx-auto flex flex-col gap-5 sm:gap-6">
       <div className="workspace-header-compact">
         <h1>Profile</h1>
         <p className="page-header__desc" style={{ margin: '4px 0 0', color: 'var(--ink-3)', fontSize: '14px' }}>

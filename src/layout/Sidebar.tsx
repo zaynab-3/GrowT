@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { LayoutDashboard, FolderOpen, CheckSquare, Users, Bell, RotateCcw, UserRound, Menu, X, Link } from 'lucide-react'
+import { Bell, CheckSquare, FolderOpen, FolderPlus, LayoutDashboard, Link, ListPlus, Menu, Plus, RotateCcw, UserRound, Users, X } from 'lucide-react'
 import { SproutIcon } from '../components/SproutIcon'
 import { useNotifications } from '../features/notifications/useNotifications'
 import { listAcquaintanceRequests } from '../features/acquaintances/acquaintanceApi'
@@ -10,6 +10,8 @@ import type { AppView, AppViewNavItem } from '../views/viewTypes'
 
 type SidebarProps = {
   activeView: AppView
+  onAddFolder: () => void
+  onAddTask: () => void
   onViewChange: (view: AppView) => void
   viewItems: AppViewNavItem[]
 }
@@ -27,11 +29,14 @@ const navIcons: Record<AppView, typeof LayoutDashboard> = {
 
 export function Sidebar({
   activeView,
+  onAddFolder,
+  onAddTask,
   onViewChange,
   viewItems,
 }: SidebarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isMobileMenuClosing, setIsMobileMenuClosing] = useState(false)
+  const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false)
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0)
   const mobileMenuCloseTimerRef = useRef<number | null>(null)
   
@@ -100,6 +105,7 @@ export function Sidebar({
 
   function handleViewChange(view: AppView) {
     onViewChange(view)
+    setIsCreateMenuOpen(false)
     closeMobileMenu()
   }
 
@@ -159,7 +165,7 @@ export function Sidebar({
 
       {/* Mobile bottom nav */}
       <nav className="mobile-nav" aria-label="Primary GrowT navigation">
-        {primaryMobileItems.map((item) => {
+        {primaryMobileItems.filter((item) => item.id !== 'tasks').map((item) => {
           const Icon = navIcons[item.id] ?? LayoutDashboard
           return (
             <button
@@ -174,6 +180,30 @@ export function Sidebar({
           )
         })}
         <button
+          className="mobile-nav__item mobile-nav__item--create"
+          aria-expanded={isCreateMenuOpen}
+          aria-label="Create a folder or task"
+          onClick={() => setIsCreateMenuOpen((current) => !current)}
+          type="button"
+        >
+          <span className="mobile-nav__create-icon"><Plus size={25} /></span>
+          <span className="mobile-nav__label">New</span>
+        </button>
+        {primaryMobileItems.filter((item) => item.id === 'tasks').map((item) => {
+          const Icon = navIcons[item.id] ?? CheckSquare
+          return (
+            <button
+              className={`mobile-nav__item${item.id === activeView ? ' mobile-nav__item--active' : ''}`}
+              key={item.id}
+              onClick={() => handleViewChange(item.id)}
+              type="button"
+            >
+              <Icon size={20} />
+              <span className="mobile-nav__label">My Tasks</span>
+            </button>
+          )
+        })}
+        <button
           className={`mobile-nav__item${isMobileMenuOpen ? ' mobile-nav__item--active' : ''}`}
           onClick={openMobileMenu}
           type="button"
@@ -182,6 +212,55 @@ export function Sidebar({
           <span className="mobile-nav__label">Menu</span>
         </button>
       </nav>
+
+      {isCreateMenuOpen ? (
+        <div
+          aria-label="Create new"
+          aria-modal="true"
+          className="mobile-create-menu"
+          onClick={() => setIsCreateMenuOpen(false)}
+          role="dialog"
+        >
+          <div className="mobile-create-menu__panel" onClick={(event) => event.stopPropagation()}>
+            <div className="mobile-create-menu__heading">
+              <div>
+                <strong>Create new</strong>
+                <span>Choose one.</span>
+              </div>
+              <button
+                aria-label="Close create menu"
+                className="mobile-create-menu__close"
+                onClick={() => setIsCreateMenuOpen(false)}
+                type="button"
+              >
+                <X size={17} />
+              </button>
+            </div>
+            <div className="mobile-create-menu__actions">
+              <button
+                onClick={() => {
+                  setIsCreateMenuOpen(false)
+                  onAddFolder()
+                }}
+                type="button"
+              >
+                <span><FolderPlus size={25} /></span>
+                <span><strong>Folder</strong></span>
+              </button>
+              <button
+                onClick={() => {
+                  setIsCreateMenuOpen(false)
+                  onAddTask()
+                }}
+                type="button"
+              >
+                <span><ListPlus size={25} /></span>
+                <span><strong>Task</strong></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {isMobileMenuOpen ? (
         <div

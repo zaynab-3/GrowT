@@ -11,34 +11,36 @@ type TaskStatusParticipantsProps = {
   rows: StatusContribution[]
   getProfileAvatar: (userId: string) => string | null
   getProfileLabel: (userId: string) => string
+  showEmpty?: boolean
 }
 
 export function TaskStatusParticipants({
   rows,
   getProfileAvatar,
   getProfileLabel,
+  showEmpty = false,
 }: TaskStatusParticipantsProps) {
   if (!rows.length) {
-    return null
+    return showEmpty ? <span className="task-status-participants task-status-participants--empty">—</span> : null
   }
 
   return (
-    <span className="task-status-participants flex min-w-0 flex-wrap items-center gap-1.5">
+    <span className="task-status-participants">
       {rows.map((row) => {
         const label = getProfileLabel(row.userId)
 
         return (
           <span
-            className="inline-flex max-w-full items-center gap-1 rounded-full border border-outline-variant/40 bg-white/70 px-1.5 py-0.5 text-[11px] font-semibold normal-case tracking-normal text-on-surface shadow-sm dark:bg-white/10 dark:text-white"
+            className="task-status-person"
             key={`${row.action.id}:${row.userId}`}
             title={label}
           >
             <UserAvatar
               label={label}
               avatarUrl={getProfileAvatar(row.userId)}
-              className="h-4 w-4 shrink-0 text-[9px]"
+              className="task-status-person__avatar"
             />
-            <span className="max-w-[7rem] truncate">{label}</span>
+            <span className="task-status-person__name">{label}</span>
           </span>
         )
       })}

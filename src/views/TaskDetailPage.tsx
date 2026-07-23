@@ -103,7 +103,7 @@ export function TaskDetailPage({
   }
 
   return (
-    <div className="stitch-page">
+    <div className="stitch-page task-detail-page growt-page">
       <div className="task-detail-header workspace-header-compact mb-4 sm:mb-6">
         <div className="page-header__copy">
           <button className="btn btn--ghost" onClick={onBack} type="button" style={{ padding: '0', marginBottom: '12px', display: 'flex', gap: '6px', fontSize: '13px', fontWeight: '600', color: 'var(--primary)' }}>
@@ -198,8 +198,8 @@ export function TaskDetailPage({
           isOpen={recipientAnchor !== null}
           onClose={() => setRecipientAnchor(null)}
           report={recipientReport}
-          subtitle={`"${task.title}" · ${formatCurrency(recipientReport.paidAmount)}`}
-          title="Task Recipients"
+          subtitle={`${task.title} · ${recipientReport.taskCount} ${recipientReport.taskCount === 1 ? 'task' : 'tasks'}`}
+          title="Task recipients"
         />
       )}
 
@@ -229,12 +229,8 @@ export function TaskDetailPage({
             <div className="stitch-panel__body">
               <TaskStatusGrid
                 contributions={statusHistory ?? contributions}
-                currentContributions={contributions}
-                currentUserId={currentUserId}
                 getProfileAvatar={getProfileAvatar}
                 getProfileLabel={getProfileLabel}
-                isUndoPending={(action) => pendingAction === `undo:${action.id}`}
-                onUndo={onUndoAction}
               />
             </div>
           </div>

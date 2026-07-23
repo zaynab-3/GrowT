@@ -22,14 +22,14 @@ export function IncomingRequests({
         {isBusy && !requests.length ? <p className="stitch-empty-text">Loading requests...</p> : null}
         {requests.map((request) => (
           <div className="stitch-member-row" key={request.request_id}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div className="stitch-member-row__identity">
               <UserAvatar label={request.sender_display_name ?? request.sender_username} avatarChoice={request.sender_avatar_choice} avatarUrl={request.sender_avatar_url} className="w-8 h-8 text-[12px]" />
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div className="stitch-member-row__copy">
                 <span className="stitch-member-name">{request.sender_display_name ?? `@${request.sender_username}`}</span>
-                <span style={{ fontSize: '11px', color: 'var(--ink-3)' }}>@{request.sender_username}</span>
+                <span>@{request.sender_username}</span>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <div className="stitch-member-row__actions">
               <button
                 className="btn btn--secondary btn--sm"
                 disabled={isBusy || pendingAction === `accept:${request.request_id}`}

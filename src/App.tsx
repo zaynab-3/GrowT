@@ -1226,7 +1226,7 @@ function App() {
         folderContainsExportVideos,
         parseRecipientAmount(folderRecipientTaskAmount),
       )
-      setFolders((current) => sortFolders(upsertById(current, folder)))
+      setFolders((current) => [folder, ...current.filter((item) => item.id !== folder.id)])
       setSelectedFolderId(folder.id)
       setFolderTitle('')
       setFolderDescription('')
@@ -1251,9 +1251,8 @@ function App() {
             }
           }
           await refreshFoldersRef.current()
+          setFolders((current) => [folder, ...current.filter((item) => item.id !== folder.id)])
         })().catch((error) => logBackgroundError('Folder invite refresh failed', error))
-      } else {
-        void refreshFoldersRef.current().catch((error) => logBackgroundError('Folder refresh failed', error))
       }
     } catch (error) {
       console.error('Folder creation failed', error)
@@ -2097,7 +2096,9 @@ function App() {
       accountLabel={accountLabel}
       accountAvatarUrl={accountAvatarUrl}
       contextLabel={contextLabel}
+      dashboardMode={route.name === 'dashboard' || route.name === 'folders'}
       message={message}
+      navigationKey={routeToPath(route)}
       folders={folders}
       tasks={filteredTasks}
       onOpenFolder={(folderId) => navigateToRoute({ name: 'folder-detail', folderId })}
@@ -2109,6 +2110,8 @@ function App() {
       sidebar={
         <Sidebar
           activeView={activeView}
+          onAddFolder={addFolderPage}
+          onAddTask={() => addTaskPage()}
           onViewChange={navigateToView}
           viewItems={appViewItems}
         />

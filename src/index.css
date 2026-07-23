@@ -13,6 +13,7 @@
 @import './features/tasks/Tasks.css';
 @import './views/DashboardView.css';
 @import './views/SettingsView.css';
+@import './styles/redesign.css';
 
 @tailwind base;
 @tailwind components;

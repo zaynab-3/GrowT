@@ -12,6 +12,7 @@ type TopbarProps = {
   accountAvatarUrl?: string | null
   accountLabel: string
   contextLabel?: string
+  dashboardMode?: boolean
   folders: Folder[]
   tasks: Task[]
   onOpenFolder: (folderId: string) => void
@@ -21,9 +22,9 @@ type TopbarProps = {
   searchQuery: string
 }
 
-export function Topbar({ accountAvatarUrl, accountLabel, contextLabel, folders, tasks, onOpenFolder, onSearchChange, onNavigate, onSignOut, searchQuery }: TopbarProps) {
+export function Topbar({ accountAvatarUrl, accountLabel, contextLabel, dashboardMode = false, folders, tasks, onOpenFolder, onSearchChange, onNavigate, onSignOut, searchQuery }: TopbarProps) {
   return (
-    <header className="topbar">
+    <header className={`topbar${dashboardMode ? ' topbar--dashboard' : ''}`}>
       {/* Mobile brand (hidden on desktop via sidebar) */}
       <a className="topbar-brand" href="#main-content" aria-label="GrowT dashboard">
         <span className="brand-mark topbar-brand__mark">
@@ -53,10 +54,16 @@ export function Topbar({ accountAvatarUrl, accountLabel, contextLabel, folders, 
         <div className="account-cluster">
           <NotificationBell onNavigate={onNavigate} />
 
-          <span className="account-pill">
+          <button
+            aria-label="Open profile"
+            className="account-pill"
+            onClick={() => onNavigate('settings')}
+            title="Profile"
+            type="button"
+          >
             <UserAvatar label={accountLabel} avatarUrl={accountAvatarUrl} className="account-avatar" />
             <span className="account-pill__name">{accountLabel}</span>
-          </span>
+          </button>
 
           <button
             className="btn btn--ghost btn--icon topbar-signout"

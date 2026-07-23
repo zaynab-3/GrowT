@@ -1,4 +1,16 @@
-import { Plus, CheckSquare } from 'lucide-react'
+import {
+  BriefcaseBusiness,
+  CheckSquare,
+  CircleCheckBig,
+  CircleDot,
+  CircleGauge,
+  LayoutGrid,
+  Plus,
+  SlidersHorizontal,
+  UserRound,
+  UsersRound,
+  X,
+} from 'lucide-react'
 import { useMemo, useState } from 'react'
 import type { ReorderDirection, TaskProgressStatus } from '../lib/database.types'
 import type { Folder as _Folder, Task, TaskLevel, TaskMember, TaskStatusAction } from '../lib/growtData'
@@ -10,6 +22,7 @@ import type { TaskEditValues } from '../features/tasks/TaskEditForm'
 type AssignableMember = { id: string; label: string }
 type StatusContribution = { action: TaskStatusAction; userId: string }
 type TaskScope = 'all' | 'personal' | 'work' | 'shared'
+type ProgressFilter = 'all' | TaskProgressStatus
 
 type TaskListPageProps = {
   assignableMembers: AssignableMember[]
@@ -76,6 +89,8 @@ export function TaskListPage({
   taskMembersByTask,
 }: TaskListPageProps) {
   const [scope, setScope] = useState<TaskScope>('all')
+  const [progressFilter, setProgressFilter] = useState<ProgressFilter>('all')
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
 
   const personalCount = standaloneTasks.filter((t) => t.category === 'personal').length
   const workCount = standaloneTasks.filter((t) => t.category === 'work').length
@@ -83,13 +98,19 @@ export function TaskListPage({
 
   const visibleTasks = useMemo(
     () =>
-      standaloneTasks.filter((t) => {
-        if (scope === 'personal') return t.category === 'personal'
-        if (scope === 'work') return t.category === 'work'
-        if (scope === 'shared') return t.category === 'shared'
-        return true
+      standaloneTasks.filter((task) => {
+        const matchesScope =
+          scope === 'all' ||
+          (scope === 'personal' && task.category === 'personal') ||
+          (scope === 'work' && task.category === 'work') ||
+          (scope === 'shared' && task.category === 'shared')
+
+        if (!matchesScope) return false
+        if (progressFilter === 'all') return true
+
+        return (contributionsByTask.get(task.id)?.[progressFilter].length ?? 0) > 0
       }),
-    [standaloneTasks, scope],
+    [contributionsByTask, progressFilter, scope, standaloneTasks],
   )
 
   const reorderableIds = visibleTasks
@@ -97,7 +118,7 @@ export function TaskListPage({
     .map((t) => t.id)
 
   const taskTotals = useMemo(() => {
-    return visibleTasks.reduce(
+    return standaloneTasks.reduce(
       (totals, task) => {
         const tc = contributionsByTask.get(task.id)
         return {
@@ -108,50 +129,121 @@ export function TaskListPage({
       },
       { completed: 0, half_done: 0, ongoing: 0 }
     )
-  }, [visibleTasks, contributionsByTask])
+  }, [standaloneTasks, contributionsByTask])
 
+  const scopeOptions = [
+    { Icon: LayoutGrid, count: standaloneTasks.length, id: 'all' as const, label: 'All' },
+    { Icon: UserRound, count: personalCount, id: 'personal' as const, label: 'Personal' },
+    { Icon: BriefcaseBusiness, count: workCount, id: 'work' as const, label: 'Work' },
+    { Icon: UsersRound, count: sharedCount, id: 'shared' as const, label: 'Shared' },
+  ]
 
+  const progressOptions = [
+    { Icon: LayoutGrid, count: standaloneTasks.length, id: 'all' as const, label: 'All statuses' },
+    { Icon: CircleDot, count: taskTotals.ongoing, id: 'ongoing' as const, label: 'Ongoing' },
+    { Icon: CircleGauge, count: taskTotals.half_done, id: 'half_done' as const, label: 'Half done' },
+    { Icon: CircleCheckBig, count: taskTotals.completed, id: 'completed' as const, label: 'Completed' },
+  ]
 
   return (
-    <div className="task-list-page flex-1 w-full max-w-7xl mx-auto flex flex-col gap-5 sm:gap-6">
+    <div className="task-list-page growt-page flex-1 w-full max-w-7xl mx-auto flex flex-col gap-5 sm:gap-6">
       <div className="workspace-header-compact">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
           <div>
             <span className="page-header__eyebrow" style={{ textTransform: 'uppercase', fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', color: 'var(--primary)' }}>
               Tasks
             </span>
-            <h1>Standalone Tasks</h1>
+            <h1>Standalone tasks</h1>
             <p className="page-header__desc" style={{ margin: '4px 0 0', color: 'var(--ink-3)', fontSize: '14px' }}>
-              All your standalone tasks — personal, work, and shared. For folder tasks, open a folder from the Workspaces page.
+              Independent tasks outside your workspaces.
             </p>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <button className="bg-primary text-white font-label-md text-label-md px-4 sm:px-6 py-2.5 rounded-xl flex items-center gap-2 hover:bg-primary-dark transition-all shadow-md shadow-primary/20 whitespace-nowrap" onClick={onAddTask} type="button" id="add-task-btn">
               <Plus size={16} />
-              New Task
+              New task
             </button>
           </div>
         </div>
       </div>
 
-      <div className="workspace-layout-cols">
-        {/* Left Column: Filters and Tasks List */}
-        <div className="workspace-main-col">
-          {/* Filters */}
-          <div className="task-scope-filters">
-            {(['all', 'personal', 'work', 'shared'] as TaskScope[]).map((s) => (
+      <div className="task-list-page__content">
+        <div className="task-filter-region">
+          <div aria-label="Task categories" className="task-scope-filters" role="group">
+            {scopeOptions.map(({ Icon, count, id, label }) => (
               <button
-                className={`px-3 sm:px-4 py-1.5 rounded-full font-label-md text-label-md transition-colors whitespace-nowrap ${scope === s ? 'bg-primary text-white font-bold' : 'bg-surface-container-high dark:bg-dark-card text-on-surface-variant hover:bg-surface-variant'}`}
-                key={s}
-                onClick={() => setScope(s)}
+                aria-pressed={scope === id}
+                className={`task-scope-option task-scope-option--${id}${scope === id ? ' is-active' : ''}`}
+                key={id}
+                onClick={() => setScope(id)}
                 type="button"
               >
-                {s === 'all' ? `All (${standaloneTasks.length})` : s === 'personal' ? `Personal (${personalCount})` : s === 'work' ? `Work (${workCount})` : `Shared (${sharedCount})`}
+                <Icon aria-hidden="true" size={18} />
+                <span>{label}</span>
+                <small>{count}</small>
               </button>
             ))}
           </div>
 
-          {/* Tasks Grid */}
+          <div className="task-progress-filter">
+            <button
+              aria-expanded={isFilterOpen}
+              className={progressFilter === 'all' ? 'task-progress-filter__toggle' : 'task-progress-filter__toggle is-active'}
+              onClick={() => setIsFilterOpen((current) => !current)}
+              type="button"
+            >
+              <SlidersHorizontal aria-hidden="true" size={17} />
+              <span>{progressFilter === 'all' ? 'Filter' : progressOptions.find((option) => option.id === progressFilter)?.label}</span>
+            </button>
+
+            {isFilterOpen ? (
+              <div className="task-progress-filter__menu">
+                <div>
+                  <strong>Filter by progress</strong>
+                  <button aria-label="Close filter menu" onClick={() => setIsFilterOpen(false)} type="button">
+                    <X aria-hidden="true" size={16} />
+                  </button>
+                </div>
+                {progressOptions.map(({ Icon, count, id, label }) => (
+                  <button
+                    aria-pressed={progressFilter === id}
+                    className={progressFilter === id ? 'is-active' : ''}
+                    key={id}
+                    onClick={() => {
+                      setProgressFilter(id)
+                      setIsFilterOpen(false)
+                    }}
+                    type="button"
+                  >
+                    <Icon aria-hidden="true" size={17} />
+                    <span>{label}</span>
+                    <small>{count}</small>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        <section aria-label="Standalone task list" className="task-list-surface">
+          <div className="task-list-surface__heading">
+            <div>
+              <strong>{progressFilter === 'all' ? 'All tasks' : progressOptions.find((option) => option.id === progressFilter)?.label}</strong>
+              <span>{visibleTasks.length}</span>
+            </div>
+            {progressFilter !== 'all' || scope !== 'all' ? (
+              <button
+                onClick={() => {
+                  setProgressFilter('all')
+                  setScope('all')
+                }}
+                type="button"
+              >
+                Clear filters
+              </button>
+            ) : null}
+          </div>
+
           <div className="task-list grid gap-3 sm:gap-4">
             {visibleTasks.length > 0 ? (
               visibleTasks.map((task) => (
@@ -203,60 +295,8 @@ export function TaskListPage({
               </div>
             )}
           </div>
-        </div>
-
-        {/* Right Column: Statistics & Guides */}
-        <div className="task-list-page__side workspace-side-col">
-          <div className="workspace-preview-panel">
-            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--ink)' }}>
-              Tasks Overview
-            </h3>
-            <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--ink-3)', lineHeight: 1.4 }}>
-              Current progress and breakdown of your standalone tasks.
-            </p>
-
-            <div className="flex flex-col gap-3 mt-2">
-              <div className="flex items-center justify-between p-3 bg-surface-soft dark:bg-surface-container rounded-xl border border-surface-variant/30">
-                <span className="flex items-center gap-2 font-medium text-sm text-on-surface">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: 'var(--ongoing-color)' }} />
-                  Ongoing
-                </span>
-                <strong className="text-on-surface text-sm">{taskTotals.ongoing}</strong>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-surface-soft dark:bg-surface-container rounded-xl border border-surface-variant/30">
-                <span className="flex items-center gap-2 font-medium text-sm text-on-surface">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: 'var(--halfdone-color)' }} />
-                  Half Done
-                </span>
-                <strong className="text-on-surface text-sm">{taskTotals.half_done}</strong>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-surface-soft dark:bg-surface-container rounded-xl border border-surface-variant/30">
-                <span className="flex items-center gap-2 font-medium text-sm text-on-surface">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: 'var(--done-color)' }} />
-                  Completed
-                </span>
-                <strong className="text-on-surface text-sm">{taskTotals.completed}</strong>
-              </div>
-            </div>
-          </div>
-
-          <div className="workspace-preview-panel" style={{ background: 'var(--surface-soft)' }}>
-            <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--ink)' }}>Understanding Tasks</h3>
-            <ul style={{ margin: '8px 0 0', paddingLeft: '18px', fontSize: '12.5px', color: 'var(--ink-2)', display: 'flex', flexDirection: 'column', gap: '8px', lineHeight: 1.4 }}>
-              <li>
-                <strong>Standalone:</strong> These tasks exist outside of any workspace folder and are private unless shared.
-              </li>
-              <li>
-                <strong>Folder Tasks:</strong> To collaborate on folder-specific tasks, create them directly inside their respective folder page.
-              </li>
-              <li>
-                <strong>Categories:</strong> Filter tasks by Personal or Work scopes using the category pill selections.
-              </li>
-            </ul>
-          </div>
-        </div>
+        </section>
       </div>
-
     </div>
   )
 }

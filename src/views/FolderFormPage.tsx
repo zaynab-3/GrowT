@@ -82,7 +82,7 @@ export function FolderFormPage({
   const isEdit = mode === 'edit'
 
   return (
-    <div className="form-page">
+    <div className="form-page folder-form-page growt-page">
       <nav className="breadcrumb">
         <div className="breadcrumb__item">
           <button className="breadcrumb__link" onClick={onBack} type="button">

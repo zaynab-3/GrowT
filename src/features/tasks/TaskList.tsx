@@ -85,7 +85,7 @@ export function TaskList({
     .map((task) => task.id)
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="task-list task-list--folder">
       {tasks.map((task) => (
         <TaskCard
           assignableMembers={assignableMembers}

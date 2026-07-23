@@ -57,7 +57,7 @@ export function InvitePage({ inviteId, onInviteAccepted, onNavigateToHome }: Inv
   }, [inviteId, onInviteAccepted])
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center min-h-[60vh]">
+    <div className="invite-page growt-page flex-1 flex flex-col items-center justify-center p-8 text-center min-h-[60vh]">
       {status === 'loading' && (
         <>
           <RefreshCw className="animate-spin text-primary mb-6" size={64} />

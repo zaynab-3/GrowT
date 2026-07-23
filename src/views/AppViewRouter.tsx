@@ -121,53 +121,6 @@ type AppViewRouterProps = {
   tasks: Task[]
 }
 
-function calculateGrowthPercentage(items: { created_at: string }[]): number | null {
-  const now = new Date()
-  const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-  const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
-
-  let thisWeek = 0
-  let lastWeek = 0
-
-  for (const item of items) {
-    const d = new Date(item.created_at)
-    if (d > oneWeekAgo) {
-      thisWeek++
-    } else if (d > twoWeeksAgo && d <= oneWeekAgo) {
-      lastWeek++
-    }
-  }
-
-  if (lastWeek === 0) {
-    return null
-  }
-  return Math.round(((thisWeek - lastWeek) / lastWeek) * 100)
-}
-
-function calculateDeletedGrowthPercentage(items: { deleted_at: string | null }[]): number | null {
-  const now = new Date()
-  const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-  const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
-
-  let thisWeek = 0
-  let lastWeek = 0
-
-  for (const item of items) {
-    if (!item.deleted_at) continue
-    const d = new Date(item.deleted_at)
-    if (d > oneWeekAgo) {
-      thisWeek++
-    } else if (d > twoWeeksAgo && d <= oneWeekAgo) {
-      lastWeek++
-    }
-  }
-
-  if (lastWeek === 0) {
-    return null
-  }
-  return Math.round(((thisWeek - lastWeek) / lastWeek) * 100)
-}
-
 export function AppViewRouter({
   activeFolder,
   activeView,
@@ -241,12 +194,9 @@ export function AppViewRouter({
   profileDisplayName,
   profileThemeMode,
   profileUsername,
-  realtimeLabel,
   recipientReportsByFolder,
   recipientReportsByTask,
   route,
-  sharedFolders,
-  sharedStandaloneTasks,
   standaloneAssignableMembers,
   standaloneTasks,
   statusTotals,
@@ -490,22 +440,19 @@ export function AppViewRouter({
     case 'dashboard':
       return (
         <DashboardView
-          activeFolderDescription={
-            activeFolder?.description ?? 'Open a folder to see its details.'
-          }
-          activeFolderTitle={activeFolder?.title ?? 'No folder selected'}
-          deletedCount={deletedFolders.length + deletedTasks.length}
-          folderCount={folders.length}
+          contributionsByTask={contributionsByTask}
+          folders={folders}
+          getProfileAvatar={getProfileAvatar}
+          getProfileLabel={getProfileLabel}
           onNavigate={onNavigate}
-          realtimeLabel={activeFolder && dataLoading ? 'Syncing' : realtimeLabel}
-          sharedCount={sharedFolders.length + sharedStandaloneTasks.length}
+          onOpenFolder={onOpenFolder}
+          onOpenTask={onOpenTask}
+          profileDisplayName={profileDisplayName}
+          profileUsername={profileUsername}
+          standaloneTasks={standaloneTasks}
           statusTotals={statusTotals}
-          taskCount={standaloneTasks.length}
-          totalTasksCount={tasks.length + standaloneTasks.length}
-          folderGrowth={calculateGrowthPercentage(folders)}
-          taskGrowth={calculateGrowthPercentage(standaloneTasks)}
-          sharedGrowth={calculateGrowthPercentage([...sharedFolders, ...sharedStandaloneTasks])}
-          deletedGrowth={calculateDeletedGrowthPercentage([...deletedFolders, ...deletedTasks])}
+          taskMembersByTask={taskMembersByTask}
+          tasks={tasks}
         />
       )
 

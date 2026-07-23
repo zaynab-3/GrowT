@@ -3,12 +3,17 @@ import {
   ArrowLeft,
   BarChart2,
   CheckCircle,
+  CircleCheckBig,
+  CircleDot,
+  CircleGauge,
   Edit2,
   Info,
   Link,
+  LockKeyhole,
   ReceiptText,
   Trash2,
   Users,
+  Video,
   X,
 } from 'lucide-react'
 import { LinkifiedText } from '../components/LinkifiedText'
@@ -69,22 +74,19 @@ type FolderDetailPageProps = {
 
 const statusCards = [
   {
+    Icon: CircleDot,
     key: 'ongoing' as const,
     label: 'Ongoing',
-    wrapper:
-      'border-blue-200/80 bg-blue-50/90 text-blue-700 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-300',
   },
   {
+    Icon: CircleGauge,
     key: 'half_done' as const,
     label: 'Half Done',
-    wrapper:
-      'border-amber-200/80 bg-amber-50/90 text-amber-700 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-300',
   },
   {
+    Icon: CircleCheckBig,
     key: 'completed' as const,
     label: 'Completed',
-    wrapper:
-      'border-emerald-200/80 bg-emerald-50/90 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300',
   },
 ]
 
@@ -142,111 +144,90 @@ export function FolderDetailPage({
     : 0
 
   return (
-    <div className="stitch-page">
-      <div className="folder-detail-hero mb-4 sm:mb-8 overflow-hidden rounded-[20px] sm:rounded-[30px] border border-slate-200/80 bg-white/90 shadow-sm backdrop-blur dark:border-white/15 dark:bg-[#171126]/95">
-        <div className="h-1.5 bg-gradient-to-r from-primary via-fuchsia-400 to-emerald-400" />
+    <div className="stitch-page folder-detail-page growt-page">
+      <div className={`folder-detail-hero folder-detail-hero--${folder.category}`}>
+        <div className="folder-detail-hero__accent" />
 
-        <div className="folder-detail-hero__body p-4 sm:p-5 md:p-6">
-          <button
-            className="mb-3 sm:mb-5 inline-flex items-center gap-2 text-sm font-bold text-primary transition-colors hover:text-primary-container"
-            onClick={onBack}
-            type="button"
-          >
-            <ArrowLeft size={15} />
-            Back to Workspaces
-          </button>
+        <div className="folder-detail-hero__body">
+          <div className="folder-detail-toolbar">
+            <button className="folder-detail-back" onClick={onBack} type="button">
+              <ArrowLeft size={15} />
+              Workspaces
+            </button>
 
-          <div className="flex flex-col gap-4 sm:gap-5 lg:flex-row lg:items-start lg:justify-between">
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-3">
-                <h1 className="m-0 break-words text-[24px] sm:text-[30px] font-black leading-tight text-slate-950 dark:text-slate-50 md:text-[34px]">
-                  {folder.title}
-                </h1>
-
-                <span className={`stitch-badge ${shared ? 'stitch-badge--shared' : ''}`}>
-                  {getCategoryLabel(folder.category)}
-                </span>
-
-                {!folder.is_active && (
-                  <span className="stitch-badge stitch-badge--inactive">
-                    Inactive
-                  </span>
-                )}
-              </div>
-
-              {folder.description ? (
-                <div className="folder-detail-description mt-2 sm:mt-3 max-w-3xl text-[13px] sm:text-sm leading-5 sm:leading-6 text-slate-600 dark:text-slate-300">
-                  <LinkifiedText text={folder.description} />
-                </div>
+            <div className="folder-detail-actions">
+              {recipientReport ? (
+                <button
+                  aria-label="View recipients"
+                  className="folder-detail-action"
+                  onClick={(event) => setRecipientAnchor(event.currentTarget.getBoundingClientRect())}
+                  title="Recipients"
+                  type="button"
+                >
+                  <ReceiptText size={15} />
+                </button>
               ) : null}
 
-              <div className="folder-detail-meta mt-3 sm:mt-4 flex flex-wrap gap-2">
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 dark:bg-white/10 dark:text-slate-300">
-                  {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
-                </span>
+              {isOwner ? (
+                <>
+                  <button
+                    aria-label="Copy folder share link"
+                    className="folder-detail-action"
+                    disabled={isSaving}
+                    onClick={() => onCopyShareLink('folder', folder.id)}
+                    title="Share"
+                    type="button"
+                  >
+                    <Link size={15} />
+                  </button>
+                  <button
+                    aria-label="Edit folder"
+                    className="folder-detail-action"
+                    id="edit-folder-btn"
+                    onClick={onEditFolder}
+                    title="Edit"
+                    type="button"
+                  >
+                    <Edit2 size={15} />
+                  </button>
+                  <button
+                    aria-label="Delete folder"
+                    className="folder-detail-action folder-detail-action--danger"
+                    disabled={isSaving}
+                    id="delete-folder-btn"
+                    onClick={() => onDeleteFolder(folder)}
+                    title="Delete"
+                    type="button"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </>
+              ) : null}
+            </div>
+          </div>
 
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 dark:bg-white/10 dark:text-slate-300">
-                  {shared ? 'Shared workspace' : 'Private workspace'}
-                </span>
-
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 dark:bg-white/10 dark:text-slate-300">
-                  {folder.is_active ? 'Active' : 'Inactive'}
-                </span>
-
-                {folder.contains_export_videos && (
-                  <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-300">
-                    Export videos
-                  </span>
-                )}
-              </div>
+          <div className="folder-detail-summary">
+            <div className="folder-detail-title-row">
+              <span
+                aria-label={`${getCategoryLabel(folder.category)} folder`}
+                className={`folder-detail-category-dot folder-detail-category-dot--${folder.category}`}
+                role="img"
+                title={getCategoryLabel(folder.category)}
+              />
+              <h1>{folder.title}</h1>
             </div>
 
-            <div className="folder-detail-actions flex flex-wrap gap-2 lg:justify-end">
-              {recipientReport && (
-                <button
-                  className="btn btn--secondary"
-                  onClick={(event) => setRecipientAnchor(event.currentTarget.getBoundingClientRect())}
-                  type="button"
-                >
-                  <ReceiptText size={14} />
-                  <span>Recipients</span>
-                </button>
-              )}
+            {folder.description ? (
+              <div className="folder-detail-description">
+                <LinkifiedText text={folder.description} />
+              </div>
+            ) : null}
 
-              {isOwner && (
-                <>
-                <button
-                  className="btn btn--secondary"
-                  onClick={() => onCopyShareLink('folder', folder.id)}
-                  type="button"
-                  disabled={isSaving}
-                >
-                  <Link size={14} />
-                  <span>Share</span>
-                </button>
-
-                <button
-                  className="btn btn--secondary"
-                  onClick={onEditFolder}
-                  type="button"
-                  id="edit-folder-btn"
-                >
-                  <Edit2 size={14} />
-                  <span>Edit</span>
-                </button>
-
-                <button
-                  className="btn btn--danger"
-                  disabled={isSaving}
-                  onClick={() => onDeleteFolder(folder)}
-                  type="button"
-                  id="delete-folder-btn"
-                >
-                  <Trash2 size={14} />
-                  <span>Delete</span>
-                </button>
-                </>
-              )}
+            <div className="folder-detail-meta">
+              <span><CheckCircle size={13} /> {tasks.length}</span>
+              <span>{shared ? <Users size={13} /> : <LockKeyhole size={13} />} {shared ? 'Shared' : 'Private'}</span>
+              {folder.contains_export_videos ? <span><Video size={13} /> Export</span> : null}
+              {!folder.is_active ? <span>Inactive</span> : null}
             </div>
           </div>
 
@@ -258,58 +239,30 @@ export function FolderDetailPage({
               isOpen={recipientAnchor !== null}
               onClose={() => setRecipientAnchor(null)}
               report={recipientReport}
-              subtitle={`"${folder.title}" · ${formatCurrency(recipientReport.paidAmount)}`}
-              title="Folder Recipients"
+              subtitle={`${folder.title} · ${recipientReport.taskCount} ${recipientReport.taskCount === 1 ? 'task' : 'tasks'}`}
+              title="Folder recipients"
             />
           )}
 
-          <div className="folder-progress mt-4 sm:mt-6 rounded-2xl border border-slate-200/80 bg-slate-50/90 p-3 sm:p-4 dark:border-white/10 dark:bg-white/[0.045]">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-black text-slate-900 dark:text-slate-100">
-                    Workspace Progress
-                  </span>
-
-                  <button
-                    onClick={() => setShowBreakdown(true)}
-                    className="flex h-7 w-7 items-center justify-center rounded-full text-primary transition-colors hover:bg-primary/10 hover:text-primary-container"
-                    title="View user breakdown"
-                    type="button"
-                  >
-                    <Info size={15} />
-                  </button>
-                </div>
-
-                <p className="folder-progress__hint mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-                  Completion is based on completed tasks only.
-                </p>
-              </div>
-
-              <span className="rounded-full bg-primary px-3 py-1 text-xs font-black text-on-primary">
-                {progressPercent}% Completed
-              </span>
+          <div className="folder-progress">
+            <div className="folder-progress__header">
+              <span>Progress</span>
+              <button onClick={() => setShowBreakdown(true)} title="View member breakdown" type="button">
+                <Info size={14} />
+              </button>
+              <strong>{progressPercent}%</strong>
             </div>
 
-            <div className="h-3 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-primary to-fuchsia-500 transition-all duration-300"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
+            <span className="folder-progress__bar" aria-label={`${progressPercent}% completed`}>
+              <span style={{ width: `${progressPercent}%` }} />
+            </span>
 
-            <div className="folder-progress__stats mt-3 sm:mt-4 grid grid-cols-3 gap-2 sm:gap-3">
-              {statusCards.map((card) => (
-                <div
-                  className={`folder-progress__stat rounded-xl border px-2 sm:px-4 py-2.5 sm:py-3 ${card.wrapper}`}
-                  key={card.key}
-                >
-                  <span className="text-[11px] font-black uppercase tracking-wide">
-                    {card.label}
-                  </span>
-                  <div className="mt-1 text-lg sm:text-2xl font-black">
-                    {folderStatusTotals[card.key]}
-                  </div>
+            <div className="folder-progress__stats">
+              {statusCards.map(({ Icon, key, label }) => (
+                <div className={`folder-progress__stat folder-progress__stat--${key}`} key={key} title={label}>
+                  <Icon aria-hidden="true" size={15} />
+                  <strong>{folderStatusTotals[key]}</strong>
+                  <span>{label}</span>
                 </div>
               ))}
             </div>
@@ -319,11 +272,11 @@ export function FolderDetailPage({
 
       {showBreakdown && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+          className="member-progress-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
           onClick={() => setShowBreakdown(false)}
         >
           <div
-            className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xl dark:border-white/10 dark:bg-[#171126]"
+            className="member-progress-dialog relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xl dark:border-white/10 dark:bg-[#171126]"
             onClick={(event) => event.stopPropagation()}
           >
             <button
@@ -339,14 +292,14 @@ export function FolderDetailPage({
               Member Progress
             </h3>
 
-            <div className="flex max-h-[60vh] flex-col gap-4 overflow-y-auto pr-2">
+            <div className="member-progress-list flex max-h-[60vh] flex-col gap-4 overflow-y-auto pr-2">
               {userProgress.map(({ userId, totals }) => {
                 const total = totals.completed + totals.half_done + totals.ongoing
 
                 return (
                   <div
                     key={userId}
-                    className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/[0.045]"
+                    className="member-progress-card rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/[0.045]"
                   >
                     <div className="mb-3 flex items-center gap-3">
                       <UserAvatar

@@ -111,7 +111,7 @@ export function TaskForm({
         type="button"
       >
         {showDetails ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
-        {showDetails ? 'Hide task details' : 'Add description, checklist or options'}
+        {showDetails ? 'Hide details' : 'Add details'}
       </button>
 
       {showDetails ? (

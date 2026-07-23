@@ -388,16 +388,18 @@
 
 /* Public, account-free task share */
 .public-task-share {
-  min-height: 100dvh;
+  height: 100dvh;
   display: grid;
   align-content: start;
   justify-items: center;
   gap: 24px;
-  overflow-x: hidden;
+  overflow: hidden auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
   background:
     radial-gradient(circle at top, rgba(var(--primary-rgb), 0.12), transparent 36rem),
     var(--bg);
-  padding: 24px clamp(14px, 4vw, 32px) 48px;
+  padding: 24px clamp(14px, 4vw, 32px) calc(48px + env(safe-area-inset-bottom));
 }
 
 .public-task-share__brand {
