@@ -83,11 +83,14 @@ type AppViewRouterProps = {
   onNavigate: (view: AppView) => void
   onOpenFolder: (folderId: string) => void
   onOpenTask: (task: Task) => void
+  onChangeEmail: (email: string) => Promise<void>
+  onChangePassword: (currentPassword: string, nextPassword: string) => Promise<void>
   onProfileAvatarChoiceChange: (avatarChoice: AvatarChoice) => void
   onProfileColorPaletteChange: (colorPalette: ColorPalette) => void
   onProfileDisplayNameChange: (displayName: string) => void
   onProfileThemeModeChange: (themeMode: ThemeMode) => void
   onProfileUsernameChange: (username: string) => void
+  onRemoveFolderMember: (userId: string) => void
   onRemoveTaskMember: (task: Task, userId: string) => void
   onRestoreFolder: (folder: Folder) => void
   onRestoreTask: (task: Task) => void
@@ -103,6 +106,7 @@ type AppViewRouterProps = {
   profileAvatarChoice: AvatarChoice
   profileColorPalette: ColorPalette
   profileDisplayName: string
+  profileEmail: string
   profileThemeMode: ThemeMode
   profileUsername: string
   realtimeLabel: string
@@ -173,11 +177,14 @@ export function AppViewRouter({
   onNavigate,
   onOpenFolder,
   onOpenTask,
+  onChangeEmail,
+  onChangePassword,
   onProfileAvatarChoiceChange,
   onProfileColorPaletteChange,
   onProfileDisplayNameChange,
   onProfileThemeModeChange,
   onProfileUsernameChange,
+  onRemoveFolderMember,
   onRemoveTaskMember,
   onRestoreFolder,
   onRestoreTask,
@@ -192,6 +199,7 @@ export function AppViewRouter({
   profileAvatarChoice,
   profileColorPalette,
   profileDisplayName,
+  profileEmail,
   profileThemeMode,
   profileUsername,
   recipientReportsByFolder,
@@ -265,6 +273,7 @@ export function AppViewRouter({
           onInviteMember={onInviteMember}
           onMemberUsernameChange={onMemberUsernameChange}
           onMoveTask={onMoveTask}
+          onRemoveMember={onRemoveFolderMember}
           onSetTaskExported={onSetTaskExported}
           onSetTaskStatus={onSetTaskStatus}
           onToggleTaskLevel={onToggleTaskLevel}
@@ -330,7 +339,13 @@ export function AppViewRouter({
           getProfileLabel={getProfileLabel}
           isSaving={isSaving}
           onAddMember={onAddTaskMember}
-          onBack={() => onNavigate('folders')}
+          onBack={() => {
+            if (taskToView.folder_id) {
+              onOpenFolder(taskToView.folder_id)
+              return
+            }
+            onNavigate('tasks')
+          }}
           onCopyShareLink={onCopyShareLink}
           onDeleteTask={onDeleteTask}
           onEditTask={onEditTask}
@@ -548,6 +563,8 @@ export function AppViewRouter({
         <SettingsView
           hasUnsavedChanges={hasUnsavedChanges}
           isSaving={isSaving}
+          onChangeEmail={onChangeEmail}
+          onChangePassword={onChangePassword}
           onProfileAvatarChoiceChange={onProfileAvatarChoiceChange}
           onProfileColorPaletteChange={onProfileColorPaletteChange}
           onProfileDisplayNameChange={onProfileDisplayNameChange}
@@ -557,6 +574,7 @@ export function AppViewRouter({
           profileAvatarChoice={profileAvatarChoice}
           profileColorPalette={profileColorPalette}
           profileDisplayName={profileDisplayName}
+          profileEmail={profileEmail}
           profileThemeMode={profileThemeMode}
           profileUsername={profileUsername}
         />

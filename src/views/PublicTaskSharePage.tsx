@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { CalendarDays, CheckSquare2, Circle, ExternalLink, RefreshCw, XCircle } from 'lucide-react'
-import { LinkifiedText } from '../components/LinkifiedText'
+import { RichDescription } from '../components/RichDescription'
 import { SproutIcon } from '../components/SproutIcon'
 import { formatDateTime, getCategoryLabel } from '../lib/growtDisplay'
 import type { PublicTaskShare } from '../lib/growtData'
@@ -72,7 +72,7 @@ export function PublicTaskSharePage({ shareId }: PublicTaskSharePageProps) {
             <section className="public-task-share__section">
               <h2>Details</h2>
               <div className="public-task-share__description">
-                <LinkifiedText text={share.task.description} />
+                <RichDescription text={share.task.description} />
               </div>
             </section>
           ) : null}

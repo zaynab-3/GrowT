@@ -28,7 +28,11 @@ export function resolveThemeMode(themeMode: ThemeMode): ResolvedThemeMode {
   return themeMode === 'system' ? getSystemThemeMode() : themeMode
 }
 
-export const colorPaletteOptions: Array<{ id: ColorPalette; label: string; description: string }> = [
+export const coreColorPaletteOptions: Array<{
+  id: ColorPalette
+  label: string
+  description: string
+}> = [
   { id: 'sage', label: 'Sage', description: 'Clean green workspace' },
   { id: 'duck', label: 'Duck', description: 'Warm yellow focus' },
   { id: 'penguin', label: 'Penguin', description: 'Soft blue calm' },
@@ -37,11 +41,30 @@ export const colorPaletteOptions: Array<{ id: ColorPalette; label: string; descr
   { id: 'lavender', label: 'Lavender', description: 'Quiet purple tone' },
 ]
 
+export const additionalColorPaletteOptions: Array<{
+  id: ColorPalette
+  label: string
+  description: string
+}> = [
+  { id: 'watermelon', label: 'Watermelon', description: 'Fresh coral energy' },
+  { id: 'coffee', label: 'Coffee', description: 'Grounded warm brown' },
+  { id: 'wine', label: 'Wine', description: 'Deep berry focus' },
+]
+
+export const colorPaletteOptions = [
+  ...coreColorPaletteOptions,
+  ...additionalColorPaletteOptions,
+]
+
 export const avatarOptions: Array<{ id: AvatarChoice; label: string; src: string }> = [
   { id: 'default', label: 'Default', src: '/avatars/default.jpg' },
   { id: 'duck', label: 'Duck', src: '/avatars/duck.jpg' },
   { id: 'penguin', label: 'Penguin', src: '/avatars/penguin.jpg' },
   { id: 'sprout', label: 'Sprout', src: '/avatars/sprout.jpg' },
+  { id: 'cat1', label: 'Cat', src: '/avatars/cat1.jpg' },
+  { id: 'butterfly', label: 'Butterfly', src: '/avatars/butterfly.jpg' },
+  { id: 'moonsun', label: 'Moon and Sun', src: '/avatars/moonsun.jpg' },
+  { id: 'blueheart', label: 'Blue Heart', src: '/avatars/blueheart.jpg' },
 ]
 
 export function getAvatarSrc(choice: AvatarChoice | null | undefined) {

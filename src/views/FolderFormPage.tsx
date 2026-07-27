@@ -1,5 +1,5 @@
 import { type FormEvent, useState } from 'react'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, FolderPen, FolderPlus } from 'lucide-react'
 import type { FolderCategory } from '../lib/database.types'
 import { formatDateInputValue, getCategoryLabel } from '../lib/growtDisplay'
 import type { Folder } from '../lib/growtData'
@@ -86,29 +86,30 @@ export function FolderFormPage({
       <nav className="breadcrumb">
         <div className="breadcrumb__item">
           <button className="breadcrumb__link" onClick={onBack} type="button">
-            <ArrowLeft size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />
-            {isEdit ? 'Folder' : 'Folders'}
+            <ArrowLeft aria-hidden="true" size={14} />
+            <span>{isEdit ? 'Folder' : 'Folders'}</span>
           </button>
           <span className="breadcrumb__sep">/</span>
         </div>
         <span className="breadcrumb__current">{isEdit ? 'Edit Folder' : 'New Folder'}</span>
       </nav>
-
-      <div className="workspace-layout-cols mt-2 sm:mt-4">
-        {/* Left Column: Form Card */}
+      <div className={`workspace-layout-cols gap-6 ${(!isEdit && folderCategory === 'shared') ? 'lg:!grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(300px,0.8fr)]' : 'md:!grid-cols-[minmax(0,1.4fr)_minmax(300px,0.8fr)]'} !grid-cols-1`}>
+        {/* Column 1: Folder Overview */}
         <div className="workspace-main-col">
-          <div className="form-card">
-            <div className="form-card__header">
-              <span className="text-primary text-[11px] font-bold tracking-wider uppercase mb-1 block">
-                {isEdit ? 'Edit Workspace' : 'Create Workspace'}
+          <div className="form-card h-full">
+            <div className="form-card__header form-card__titlebar">
+              <span className="form-card__title-icon">
+                {isEdit ? <FolderPen aria-hidden="true" size={22} /> : <FolderPlus aria-hidden="true" size={22} />}
               </span>
-              <h2 className="text-2xl">{isEdit ? `Edit: ${folder?.title}` : 'New Folder'}</h2>
-              <p className="mt-1">{isEdit ? 'Update the folder details. Changes save immediately.' : 'Create a new folder to organize your tasks and collaborate with your team.'}</p>
+              <div>
+                <span className="form-card__context">{isEdit ? 'Workspace settings' : 'New workspace'}</span>
+                <h2>{isEdit ? (folder?.title || 'Edit folder') : 'Create folder'}</h2>
+              </div>
             </div>
 
             {isEdit ? (
-              <form onSubmit={handleEditSubmit}>
-                <div className="form-card__body">
+              <form onSubmit={handleEditSubmit} className="flex flex-col h-[calc(100%-70px)]">
+                <div className="form-card__body flex-1">
                   <div className="form-field">
                     <label htmlFor="edit-folder-title-page">Folder title</label>
                     <input
@@ -121,27 +122,27 @@ export function FolderFormPage({
                   </div>
 
                   <div className="form-field">
-  <label htmlFor="edit-folder-desc-page">Description</label>
-  <textarea
-    id="edit-folder-desc-page"
-    onChange={(e) => setEditDesc(e.target.value)}
-    placeholder="What this folder is about..."
-    rows={3}
-    value={editDesc}
-  />
-  <div className="text-xs text-on-surface-variant mt-1.5 flex flex-wrap gap-1 items-center">
-    Want to transfer files for this folder? Upload them at{' '}
-    <a
-      href="https://www.swisstransfer.com/en"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-primary hover:underline font-medium"
-    >
-      SwissTransfer
-    </a>{' '}
-    and paste the link here.
-  </div>
-</div>
+                    <label htmlFor="edit-folder-desc-page">Description</label>
+                    <textarea
+                      id="edit-folder-desc-page"
+                      onChange={(e) => setEditDesc(e.target.value)}
+                      placeholder="What this folder is about..."
+                      rows={3}
+                      value={editDesc}
+                    />
+                    <div className="text-xs text-on-surface-variant mt-1.5 flex flex-wrap gap-1 items-center">
+                      Want to transfer files for this folder? Upload them at{' '}
+                      <a
+                        href="https://www.swisstransfer.com/en"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline font-medium"
+                      >
+                        SwissTransfer
+                      </a>{' '}
+                      and paste the link here.
+                    </div>
+                  </div>
 
                   <div className="form-field">
                     <label>Category</label>
@@ -201,7 +202,7 @@ export function FolderFormPage({
                   </label>
                 </div>
 
-                <div className="form-card__footer">
+                <div className="form-card__footer mt-auto">
                   <button className="btn btn--secondary" disabled={isSaving} onClick={onBack} type="button">
                     Cancel
                   </button>
@@ -211,11 +212,11 @@ export function FolderFormPage({
                 </div>
               </form>
             ) : (
-              <form onSubmit={(e) => {
+              <form id="new-folder-form" onSubmit={(e) => {
                 e.preventDefault()
                 onCreateFolder?.(e, inviteUsernames)
-              }}>
-                <div className="form-card__body">
+              }} className="flex flex-col h-[calc(100%-70px)]">
+                <div className="form-card__body flex-1">
                   <div className="form-field">
                     <label htmlFor="new-folder-title">Folder title</label>
                     <input
@@ -275,77 +276,25 @@ export function FolderFormPage({
                       Each new task starts at {formatCurrency(parseRecipientAmount(folderRecipientTaskAmount ?? '0'))}.
                     </p>
                   </div>
-
-                  {(folderCategory === 'shared') && (
-                    <div className="form-field mt-4 pt-4 border-t border-surface-variant/30">
-                      <label>Invite Collaborators</label>
-                      <p className="text-[12px] text-on-surface-variant mb-3">Add members to this shared workspace right away.</p>
-                      
-                      {inviteUsernames.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          {inviteUsernames.map(username => (
-                            <div key={username} className="flex items-center gap-2 bg-primary/10 text-primary px-2.5 py-1 rounded-full text-xs font-bold">
-                              <UserAvatar
-                                label={inviteProfilesByUsername[username]?.display_name || username}
-                                avatarChoice={inviteProfilesByUsername[username]?.avatar_choice}
-                                avatarUrl={inviteProfilesByUsername[username]?.avatar_url}
-                                className="w-5 h-5 text-[10px]"
-                              />
-                              <span>@{username}</span>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setInviteUsernames(curr => curr.filter(u => u !== username))
-                                  setInviteProfilesByUsername(curr => {
-                                    const next = { ...curr }
-                                    delete next[username]
-                                    return next
-                                  })
-                                }}
-                                className="hover:text-error ml-0.5 opacity-70 hover:opacity-100"
-                              >
-                                ×
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      
-                      <div className="relative z-50">
-                        <UserSearchDropdown
-                          className="stitch-input"
-                          value={memberUsername}
-                          onChange={setMemberUsername}
-                          placeholder="Search username to invite..."
-                          excludeUsernames={inviteUsernames}
-                          onSelect={(username, profile) => {
-                            if (!inviteUsernames.includes(username)) {
-                              setInviteUsernames(curr => [...curr, username])
-                              setInviteProfilesByUsername(curr => ({ ...curr, [username]: profile }))
-                            }
-                            setMemberUsername('')
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
                 </div>
 
-                <div className="form-card__footer">
-                  <button className="btn btn--secondary" onClick={onBack} type="button">
-                    Cancel
-                  </button>
-                  <button className="btn btn--primary" disabled={isSaving} type="submit">
-                    {isSaving ? 'Creating…' : 'Create Folder'}
-                  </button>
-                </div>
+                {(!(!isEdit && folderCategory === 'shared')) && (
+                  <div className="form-card__footer mt-auto">
+                    <button className="btn btn--secondary" onClick={onBack} type="button">
+                      Cancel
+                    </button>
+                    <button className="btn btn--primary" disabled={isSaving} type="submit" form="new-folder-form">
+                      {isSaving ? 'Creating…' : 'Create Folder'}
+                    </button>
+                  </div>
+                )}
               </form>
             )}
           </div>
         </div>
 
-        {/* Right Column: Live Card Preview & Guidelines */}
-        <div className="workspace-side-col">
+        {/* Column 2: Workspace Details & Live Card Preview */}
+        <div className="workspace-side-col flex flex-col gap-5">
           <div className="workspace-preview-panel">
             <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--ink)' }}>Live Workspace Preview</h3>
             <p style={{ margin: 0, fontSize: '12px', color: 'var(--ink-3)', lineHeight: 1.4 }}>
@@ -392,6 +341,76 @@ export function FolderFormPage({
             </ul>
           </div>
         </div>
+
+        {/* Column 3: Invite Collaborators (Only shown for new shared folders) */}
+        {(!isEdit && folderCategory === 'shared') && (
+          <div className="workspace-main-col">
+            <div className="form-card h-full flex flex-col">
+              <div className="form-card__header">
+                <h2>Invite Collaborators</h2>
+                <p>Add members to this shared workspace right away.</p>
+              </div>
+
+              <div className="form-card__body flex-1">
+                {inviteUsernames.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {inviteUsernames.map(username => (
+                      <div key={username} className="flex items-center gap-2 bg-primary/10 text-primary px-2.5 py-1.5 rounded-full text-xs font-bold">
+                        <UserAvatar
+                          label={inviteProfilesByUsername[username]?.display_name || username}
+                          avatarChoice={inviteProfilesByUsername[username]?.avatar_choice}
+                          avatarUrl={inviteProfilesByUsername[username]?.avatar_url}
+                          className="w-5 h-5 text-[10px]"
+                        />
+                        <span>@{username}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setInviteUsernames(curr => curr.filter(u => u !== username))
+                            setInviteProfilesByUsername(curr => {
+                              const next = { ...curr }
+                              delete next[username]
+                              return next
+                            })
+                          }}
+                          className="hover:text-error ml-0.5 opacity-70 hover:opacity-100"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="relative z-50">
+                  <UserSearchDropdown
+                    className="stitch-input"
+                    value={memberUsername}
+                    onChange={setMemberUsername}
+                    placeholder="Search username to invite..."
+                    excludeUsernames={inviteUsernames}
+                    onSelect={(username, profile) => {
+                      if (!inviteUsernames.includes(username)) {
+                        setInviteUsernames(curr => [...curr, username])
+                        setInviteProfilesByUsername(curr => ({ ...curr, [username]: profile }))
+                      }
+                      setMemberUsername('')
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="form-card__footer mt-auto">
+                <button className="btn btn--secondary" onClick={onBack} type="button">
+                  Cancel
+                </button>
+                <button className="btn btn--primary" disabled={isSaving} type="submit" form="new-folder-form">
+                  {isSaving ? 'Creating…' : 'Create Folder'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

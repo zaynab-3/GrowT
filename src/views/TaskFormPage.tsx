@@ -1,5 +1,17 @@
 import { type FormEvent, useEffect, useState } from 'react'
-import { ArrowLeft, Calendar } from 'lucide-react'
+import {
+  ArrowLeft,
+  Calendar,
+  CircleCheckBig,
+  CircleDot,
+  CircleGauge,
+  Edit2,
+  FileOutput,
+  ListPlus,
+  MoreHorizontal,
+  SquarePen,
+  UserRoundPlus,
+} from 'lucide-react'
 import type { FolderCategory } from '../lib/database.types'
 import { formatDateInputValue, getCategoryLabel } from '../lib/growtDisplay'
 import type { Task, TaskLevel } from '../lib/growtData'
@@ -13,6 +25,7 @@ import {
 } from '../features/tasks/taskDescriptionUtils'
 import type { MemberPickerProfile } from '../features/members/memberPickerApi'
 import { CategoryPillToggle } from '../components/CategoryPillToggle'
+import { RichDescription } from '../components/RichDescription'
 import { UserAvatar } from '../components/UserAvatar'
 import { UserSearchDropdown } from '../components/UserSearchDropdown'
 import '../styles/forms.css'
@@ -78,6 +91,16 @@ export function TaskFormPage({
   const [memberUsername, setMemberUsername] = useState('')
 
   const isEdit = mode === 'edit'
+  const previewTitle = (isEdit ? editTitle : createTitle).trim() || 'Untitled task'
+  const previewDescription = isEdit ? editDesc : createDesc
+  const previewChecklist = normalizeChecklistItems(isEdit ? editChecklistItems : createChecklistItems)
+  const previewCategory = isEdit ? editCategory : createCategory
+  const previewDueDate = isEdit ? editDueDate : ''
+  const previewAssignee = isEdit
+    ? assignableMembers.find((member) => member.id === editAssignedUserId)?.label ?? null
+    : null
+  const previewHasExport = forceExportButton || (isEdit ? editHasExportButton : createHasExportButton)
+  const previewRecipientAmount = parseRecipientAmount(isEdit ? editRecipientAmount : createRecipientAmount)
 
   useEffect(() => {
     setCreateRecipientAmount(String(defaultRecipientAmount))
@@ -196,24 +219,26 @@ export function TaskFormPage({
       <nav className="breadcrumb">
         <div className="breadcrumb__item">
           <button className="breadcrumb__link" onClick={onBack} type="button">
-            <ArrowLeft size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />
-            {folderTitle ?? 'Tasks'}
+            <ArrowLeft aria-hidden="true" size={14} />
+            <span>{folderTitle ?? 'Tasks'}</span>
           </button>
           <span className="breadcrumb__sep">/</span>
         </div>
         <span className="breadcrumb__current">{isEdit ? 'Edit Task' : 'New Task'}</span>
       </nav>
-
-      <div className="workspace-layout-cols mt-2 sm:mt-4">
-        {/* Left Column: Form Card */}
+      <div className="workspace-layout-cols task-form-layout">
         <div className="workspace-main-col">
           <div className="form-card">
-            <div className="form-card__header">
-              <span className="text-primary text-[11px] font-bold tracking-wider uppercase mb-1 block">
-                {isEdit ? 'Edit Task' : folderTitle ? `Workspace: ${folderTitle}` : 'Standalone Task'}
+            <div className="form-card__header form-card__titlebar">
+              <span className="form-card__title-icon">
+                {isEdit ? <SquarePen aria-hidden="true" size={22} /> : <ListPlus aria-hidden="true" size={22} />}
               </span>
-              <h2 className="text-2xl">{isEdit ? `Edit: ${task?.title}` : 'New Task'}</h2>
-              <p className="mt-1">{isEdit ? "Update this task's details and settings." : 'Add a new task to track your work and progress.'}</p>
+              <div>
+                <span className="form-card__context">
+                  {isEdit ? 'Task settings' : folderTitle ? folderTitle : 'Standalone'}
+                </span>
+                <h2>{isEdit ? (task?.title || 'Edit task') : 'Create task'}</h2>
+              </div>
             </div>
 
             {isEdit ? (
@@ -462,70 +487,113 @@ export function TaskFormPage({
           </div>
         </div>
 
-        {/* Right Column: Live Task Preview & Guidelines */}
-        <div className="workspace-side-col">
-          <div className="workspace-preview-panel">
-            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--ink)' }}>Live Task Preview</h3>
-            <p style={{ margin: 0, fontSize: '12px', color: 'var(--ink-3)', lineHeight: 1.4 }}>
-              Here is how this task card will appear inside its workspace.
-            </p>
+        {/* Right Column: real task-card preview */}
+        <div className="workspace-side-col task-form-preview-column">
+          <section className="workspace-preview-panel task-form-live-preview" aria-label="Live task preview">
+            <header className="task-form-live-preview__header">
+              <span className="task-form-live-preview__icon">
+                <ListPlus aria-hidden="true" size={18} />
+              </span>
+              <span>
+                <strong>Live task preview</strong>
+                <small>Updates as you type</small>
+              </span>
+            </header>
 
-            {/* Simulated Task Card */}
-            <div className="task-card" style={{ pointerEvents: 'none', width: '100%', margin: '8px 0 0', border: '1px solid var(--border)', borderRadius: '12px', padding: '16px', background: 'var(--surface)' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <span className="folder-card__badge" style={{ alignSelf: 'flex-start', fontSize: '10px', padding: '2px 8px', borderRadius: '99px', background: 'var(--primary-light)', color: 'var(--primary)' }}>
-                  {isEdit ? getCategoryLabel(editCategory) : getCategoryLabel(createCategory)}
-                </span>
-                <h4 style={{ margin: '4px 0 0', fontSize: '15px', fontWeight: 700, color: 'var(--ink)' }}>
-                  {isEdit ? (editTitle || 'Untitled Task') : (createTitle || 'Untitled Task')}
-                </h4>
-                {(isEdit ? editDesc : createDesc) ? (
-                  <p style={{ fontSize: '12.5px', color: 'var(--ink-2)', margin: '4px 0 0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.4 }}>
-                    {isEdit ? editDesc : createDesc}
-                  </p>
-                ) : null}
-                {normalizeChecklistItems(isEdit ? editChecklistItems : createChecklistItems).length ? (
-                  <ol className="task-preview-checklist">
-                    {(isEdit ? editChecklistItems : createChecklistItems)
-                      .map((item) => item.trim())
-                      .filter(Boolean)
-                      .slice(0, 4)
-                      .map((item, index) => (
-                        <li key={`${item}-${index}`}>{item}</li>
-                      ))}
-                  </ol>
-                ) : null}
-                {!(isEdit ? editDesc : createDesc) && !normalizeChecklistItems(isEdit ? editChecklistItems : createChecklistItems).length ? (
-                  <p style={{ fontSize: '12.5px', color: 'var(--ink-3)', margin: '4px 0 0' }}>No details provided yet.</p>
-                ) : null}
-                
-                {isEdit && editDueDate && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--danger-color)', marginTop: '4px', fontWeight: 600 }}>
-                    <Calendar size={13} />
-                    Due: {editDueDate}
+            <article className={`task-work-card task-work-card--${previewCategory} task-form-live-card`}>
+              <div className="task-row task-form-live-card__row">
+                <div className="task-row__body">
+                  <div className="task-row__header">
+                    <div className={`task-row__category task-row__category--${previewCategory}`}>
+                      <i aria-hidden="true" />
+                      <span>{getCategoryLabel(previewCategory)}</span>
+                    </div>
+
+                    <div aria-hidden="true" className="task-row__actions task-form-live-card__actions">
+                      {previewHasExport ? <FileOutput size={18} /> : null}
+                      <Edit2 size={17} />
+                      <MoreHorizontal size={19} />
+                    </div>
                   </div>
-                )}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--primary)', marginTop: '4px', fontWeight: 700 }}>
-                  Recipient: {formatCurrency(parseRecipientAmount(isEdit ? editRecipientAmount : createRecipientAmount))}
+
+                  <div className="task-row__title">
+                    <h3>{previewTitle}</h3>
+                  </div>
+
+                  {previewDescription.trim() ? (
+                    <RichDescription
+                      className="task-row__description task-form-live-card__description"
+                      collapsedNoteCount={4}
+                      text={previewDescription}
+                    />
+                  ) : null}
+
+                  {previewChecklist.length ? (
+                    <section className="task-checklist task-checklist--compact task-form-live-checklist" aria-label="Checklist preview">
+                      <div className="task-checklist__summary">
+                        <span className="task-checklist__heading">Checklist</span>
+                        <strong>0 / {previewChecklist.length} complete</strong>
+                      </div>
+                      <div className="task-checklist__timeline">
+                        {previewChecklist.slice(0, 3).map((item, index) => (
+                          <div className="task-checklist__timeline-item" key={`${item}-${index}`}>
+                            <span className="task-checklist__timeline-control">
+                              <i aria-hidden="true" className="task-checklist__timeline-node" />
+                            </span>
+                            <span className="task-checklist__timeline-label">{item}</span>
+                          </div>
+                        ))}
+                        {previewChecklist.length > 3 ? (
+                          <div className="task-checklist__timeline-more">
+                            <span aria-hidden="true" className="task-checklist__timeline-more-node" />
+                            <span>{previewChecklist.length - 3} more</span>
+                          </div>
+                        ) : null}
+                      </div>
+                    </section>
+                  ) : null}
+
+                  {!previewDescription.trim() && previewChecklist.length === 0 ? (
+                    <p className="task-form-live-card__empty">Description and checklist will appear here.</p>
+                  ) : null}
+
+                  <div className="task-row__status-grid task-form-live-card__status-grid">
+                    <div className="task-row-status task-row-status--ongoing">
+                      <CircleDot aria-hidden="true" size={20} />
+                      <span className="task-row-status__label">Ongoing</span>
+                      <small>{previewAssignee ?? '—'}</small>
+                    </div>
+                    <div className="task-row-status task-row-status--half_done">
+                      <CircleGauge aria-hidden="true" size={20} />
+                      <span className="task-row-status__label">Half done</span>
+                      <small>—</small>
+                    </div>
+                    <div className="task-row-status task-row-status--completed">
+                      <CircleCheckBig aria-hidden="true" size={20} />
+                      <span className="task-row-status__label">Completed</span>
+                      <small>—</small>
+                    </div>
+                  </div>
+
+                  <div className="task-row__meta task-form-live-card__meta">
+                    <span className="task-row__assignee">
+                      <UserRoundPlus aria-hidden="true" size={17} />
+                      <span>{previewAssignee ?? 'Unassigned'}</span>
+                    </span>
+                    {previewDueDate ? (
+                      <span className="task-row__due">
+                        <Calendar aria-hidden="true" size={15} />
+                        {previewDueDate}
+                      </span>
+                    ) : null}
+                    <span className="task-form-live-card__recipient">
+                      {formatCurrency(previewRecipientAmount)}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <div className="workspace-preview-panel" style={{ background: 'var(--surface-soft)' }}>
-            <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--ink)' }}>Task Quick Guide</h3>
-            <ul style={{ margin: '8px 0 0', paddingLeft: '18px', fontSize: '12.5px', color: 'var(--ink-2)', display: 'flex', flexDirection: 'column', gap: '8px', lineHeight: 1.4 }}>
-              <li>
-                <strong>Assignee:</strong> You can assign tasks to yourself or coworkers in shared workspaces.
-              </li>
-              <li>
-                <strong>Checklist:</strong> In the task detail page, you can break down the task into checklist subtasks.
-              </li>
-              <li>
-                <strong>Status Updates:</strong> Move tasks from Ongoing to Half Done or Completed as they progress.
-              </li>
-            </ul>
-          </div>
+            </article>
+          </section>
         </div>
       </div>
     </div>

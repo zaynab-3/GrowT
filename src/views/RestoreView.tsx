@@ -21,12 +21,11 @@ export function RestoreView({
   return (
     <div className="utility-view utility-view--restore">
       <header className="utility-view__header">
-        <span className="utility-view__eyebrow">Archive</span>
-        <div className="utility-view__title-row">
+        <div className="utility-view__title-row gui-page-heading">
+          <span className="gui-page-heading__icon"><RotateCcw aria-hidden="true" size={21} /></span>
           <h1>Restore</h1>
           {hasDeletedItems ? <span className="utility-view__count">{deletedItemCount} items</span> : null}
         </div>
-        <p>Deleted items stay here for seven days.</p>
       </header>
 
       {hasDeletedItems ? (

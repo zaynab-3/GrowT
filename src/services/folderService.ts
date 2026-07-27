@@ -5,6 +5,7 @@ import {
   listDeletedFolders as listDeletedFoldersWithClient,
   listFolderMembers as listFolderMembersWithClient,
   listFolders as listFoldersWithClient,
+  removeFolderMember as removeFolderMemberWithClient,
   reorderFolder as reorderFolderWithClient,
   restoreFolder as restoreFolderWithClient,
   softDeleteFolder as softDeleteFolderWithClient,
@@ -73,4 +74,8 @@ export function listFolderMembers(folderId: string) {
 
 export function addFolderMemberByUsername(folderId: string, username: string) {
   return addFolderMemberByUsernameWithClient(getSupabaseClient(), folderId, username)
+}
+
+export function removeFolderMember(folderId: string, userId: string) {
+  return removeFolderMemberWithClient(getSupabaseClient(), folderId, userId)
 }

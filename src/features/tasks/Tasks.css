@@ -402,6 +402,36 @@
   padding: 24px clamp(14px, 4vw, 32px) calc(48px + env(safe-area-inset-bottom));
 }
 
+@media (max-width: 700px) {
+  .task-list-page .task-scope-filters {
+    display: grid !important;
+    gap: 0 !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  .task-list-page .task-scope-filters .task-scope-option {
+    min-width: 0 !important;
+    width: auto !important;
+  }
+}
+
+.task-description-fields__hint {
+  margin: 8px 2px 0;
+  color: var(--ink-3, #7b829b);
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+.task-description-fields__hint code {
+  border-radius: 5px;
+  background: rgba(105, 81, 237, 0.08);
+  padding: 1px 4px;
+  color: #5e4bd6;
+  font-family: inherit;
+  font-size: 0.68rem;
+  font-weight: 750;
+}
+
 .public-task-share__brand {
   display: flex;
   align-items: center;
@@ -891,5 +921,18 @@
     width: 100%;
     min-width: 0;
     padding-inline: 8px !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .task-list-page .task-scope-filters {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    width: 100% !important;
+  }
+
+  .task-list-page .task-scope-filters .task-scope-option {
+    min-width: 0 !important;
+    width: auto !important;
   }
 }

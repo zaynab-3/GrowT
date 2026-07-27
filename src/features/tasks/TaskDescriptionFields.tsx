@@ -48,11 +48,15 @@ export function TaskDescriptionFields({
           <textarea
             id={`${idPrefix}-description`}
             onChange={(event) => onDescriptionChange(event.target.value)}
-            placeholder={descriptionPlaceholder}
+            placeholder={descriptionPlaceholder || 'Write a note, press Enter for another, or leave a blank line for a new paragraph...'}
             rows={compact ? 2 : 3}
             value={description}
           />
         </div>
+        <p className="task-description-fields__hint">
+          Enter adds a new note. A blank line starts a paragraph. Use <code>**bold**</code>,{' '}
+          <code>*italic*</code>, <code>- lists</code>, or paste a link.
+        </p>
       </div>
 
       <div className="task-description-fields__section">

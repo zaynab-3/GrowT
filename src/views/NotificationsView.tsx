@@ -1,5 +1,6 @@
 import { NotificationPanel } from '../features/notifications/NotificationPanel'
 import { useNotifications } from '../features/notifications/useNotifications'
+import { Bell } from 'lucide-react'
 import type { AppView } from './viewTypes'
 import './UtilityViews.css'
 
@@ -22,12 +23,11 @@ export function NotificationsView({ onNavigate }: NotificationsViewProps) {
   return (
     <div className="utility-view utility-view--notifications">
       <header className="utility-view__header">
-        <span className="utility-view__eyebrow">Inbox</span>
-        <div className="utility-view__title-row">
+        <div className="utility-view__title-row gui-page-heading">
+          <span className="gui-page-heading__icon"><Bell aria-hidden="true" size={21} /></span>
           <h1>Notifications</h1>
           {unreadCount > 0 ? <span className="utility-view__count">{unreadCount} unread</span> : null}
         </div>
-        <p>Updates from folders, tasks and people.</p>
       </header>
 
       <div className="workspace-layout-cols utility-view__layout">

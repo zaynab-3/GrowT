@@ -114,7 +114,7 @@ export function SwipeActions({
   }
 
   return (
-    <div className="relative overflow-hidden w-full">
+    <div className="swipe-actions-container relative overflow-hidden w-full">
       {/* Left Action Background */}
       {leftAction && (
         <div 

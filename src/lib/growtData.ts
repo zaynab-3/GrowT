@@ -519,6 +519,27 @@ export async function addFolderMemberByUsername(
   return { member: data, profile }
 }
 
+export async function removeFolderMember(
+  client: GrowTClient,
+  folderId: string,
+  userId: string,
+) {
+  const { data, error } = await client
+    .from('folder_members')
+    .delete()
+    .eq('folder_id', folderId)
+    .eq('user_id', userId)
+    .neq('role', 'owner')
+    .select('*')
+    .single()
+
+  if (error) {
+    throw error
+  }
+
+  return data
+}
+
 export async function listTasks(client: GrowTClient, folderId: string): Promise<Task[]> {
   const { data, error } = await client.rpc('list_folder_tasks', {
     folder_id: folderId,
@@ -953,13 +974,25 @@ export async function setTaskExported(
   taskId: string,
   isExported = true,
 ) {
-  const { data, error } = await client.rpc('set_task_exported', {
+  const { data: directlyUpdatedTask, error: directUpdateError } = await client
+    .from('tasks')
+    .update({ is_exported: isExported })
+    .eq('id', taskId)
+    .is('deleted_at', null)
+    .select('*')
+    .single()
+
+  if (!directUpdateError && directlyUpdatedTask) {
+    return directlyUpdatedTask as Task
+  }
+
+  const { data, error: rpcError } = await client.rpc('set_task_exported', {
     task_id: taskId,
     is_exported: isExported,
   } as unknown as FunctionArgs<'set_task_exported'>)
 
-  if (error) {
-    throw error
+  if (rpcError) {
+    throw rpcError
   }
 
   return data as unknown as Task

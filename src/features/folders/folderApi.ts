@@ -5,6 +5,7 @@ export {
   listDeletedFolders,
   listFolderMembers,
   listFolders,
+  removeFolderMember,
   reorderFolder,
   restoreFolder,
   softDeleteFolder,

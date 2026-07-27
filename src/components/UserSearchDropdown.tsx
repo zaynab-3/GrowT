@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { Check, UserRoundCheck, UserRoundPlus } from 'lucide-react'
 import { UserAvatar } from './UserAvatar'
 import { isSupabaseConfigured } from '../services/clientService'
 import { searchProfilesWithRelationship, type MemberPickerProfile } from '../features/members/memberPickerApi'
@@ -13,9 +14,20 @@ type UserSearchDropdownProps = {
   disabled?: boolean
   excludeUsernames?: string[]
   excludeUserIds?: string[]
+  groupByRelationship?: boolean
 }
 
-export function UserSearchDropdown({ value, onChange, onSelect, placeholder, className, disabled, excludeUsernames = [], excludeUserIds = [] }: UserSearchDropdownProps) {
+export function UserSearchDropdown({
+  value,
+  onChange,
+  onSelect,
+  placeholder,
+  className,
+  disabled,
+  excludeUsernames = [],
+  excludeUserIds = [],
+  groupByRelationship = false,
+}: UserSearchDropdownProps) {
   const [results, setResults] = useState<MemberPickerProfile[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [isSearching, setIsSearching] = useState(false)
@@ -75,8 +87,23 @@ export function UserSearchDropdown({ value, onChange, onSelect, placeholder, cla
     return null
   }
 
+  const resultGroups = groupByRelationship
+    ? [
+        {
+          key: 'acquainted',
+          label: 'Acquainted',
+          profiles: results.filter((profile) => profile.relationship_status === 'acquaintance'),
+        },
+        {
+          key: 'suggestions',
+          label: 'Suggestions',
+          profiles: results.filter((profile) => profile.relationship_status !== 'acquaintance'),
+        },
+      ].filter((group) => group.profiles.length > 0)
+    : [{ key: 'results', label: '', profiles: results }]
+
   return (
-    <div ref={wrapperRef} className="relative w-full">
+    <div ref={wrapperRef} className="user-search-dropdown relative w-full">
       <input
         type="text"
         className={className}
@@ -88,54 +115,77 @@ export function UserSearchDropdown({ value, onChange, onSelect, placeholder, cla
       />
       
       {isOpen && (
-        <div className="absolute left-0 right-0 z-50 mt-2 bg-surface border border-surface-variant rounded-xl shadow-lg max-h-60 overflow-y-auto">
+        <div className="user-search-dropdown__menu absolute left-0 right-0 z-50 mt-2 bg-surface border border-surface-variant rounded-xl shadow-lg max-h-60 overflow-y-auto">
           {isSearching ? (
             <div className="px-3 py-3 text-center text-on-surface-variant text-sm">Searching...</div>
           ) : results.length > 0 ? (
-            <ul className="py-1">
-              {results.map((profile) => {
-                const primaryLabel = profile.display_name?.trim() || profile.username
-                const disabledReason = getDisabledReason(profile)
-                const isResultDisabled = Boolean(disabledReason)
+            <div className="user-search-dropdown__groups">
+              {resultGroups.map((group) => (
+                <section className="user-search-dropdown__group" key={group.key}>
+                  {group.label ? <h3>{group.label}</h3> : null}
+                  <ul>
+                    {group.profiles.map((profile) => {
+                      const primaryLabel = profile.display_name?.trim() || profile.username
+                      const disabledReason = getDisabledReason(profile)
+                      const isResultDisabled = Boolean(disabledReason)
+                      const isSelected =
+                        normalizeUsername(value) === normalizeUsername(profile.username)
 
-                return (
-                  <li key={profile.user_id}>
-                    <button
-                      type="button"
-                      aria-disabled={isResultDisabled}
-                      disabled={isResultDisabled}
-                      className={`w-full px-3 py-2 text-left flex items-center gap-3 transition-colors ${
-                        isResultDisabled
-                          ? 'cursor-not-allowed opacity-60'
-                          : 'hover:bg-surface-variant focus:bg-surface-variant'
-                      }`}
-                      onClick={() => {
-                        if (isResultDisabled) return
-                        onChange(profile.username)
-                        onSelect?.(profile.username, profile)
-                        setIsOpen(false)
-                      }}
-                    >
-                      <UserAvatar
-                        label={primaryLabel}
-                        avatarChoice={profile.avatar_choice}
-                        avatarUrl={profile.avatar_url}
-                        className="w-8 h-8 text-xs shrink-0"
-                      />
-                      <div className="flex min-w-0 flex-1 flex-col">
-                        <span className="font-semibold text-sm text-on-surface truncate">{primaryLabel}</span>
-                        <span className="text-xs text-on-surface-variant truncate">@{profile.username}</span>
-                      </div>
-                      {disabledReason ? (
-                        <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
-                          {disabledReason}
-                        </span>
-                      ) : null}
-                    </button>
-                  </li>
-                )
-              })}
-            </ul>
+                      return (
+                        <li key={profile.user_id}>
+                          <button
+                            aria-disabled={isResultDisabled}
+                            aria-label={
+                              isResultDisabled
+                                ? `${primaryLabel} is already in this folder`
+                                : `Select ${primaryLabel}`
+                            }
+                            className={`user-search-dropdown__result${
+                              isSelected ? ' is-selected' : ''
+                            }${isResultDisabled ? ' is-disabled' : ''}`}
+                            disabled={isResultDisabled}
+                            onClick={() => {
+                              if (isResultDisabled) return
+                              onChange(profile.username)
+                              onSelect?.(profile.username, profile)
+                              setIsOpen(false)
+                            }}
+                            type="button"
+                          >
+                            <UserAvatar
+                              label={primaryLabel}
+                              avatarChoice={profile.avatar_choice}
+                              avatarUrl={profile.avatar_url}
+                              className="w-8 h-8 text-xs shrink-0"
+                            />
+                            <span className="user-search-dropdown__identity">
+                              <strong>{primaryLabel}</strong>
+                              <small>@{profile.username}</small>
+                            </span>
+                            <span
+                              className={`user-search-dropdown__select-icon ${
+                                profile.relationship_status === 'acquaintance'
+                                  ? 'is-acquainted'
+                                  : 'is-suggestion'
+                              }`}
+                              title={disabledReason ?? (isSelected ? 'Selected' : 'Select user')}
+                            >
+                              {isResultDisabled || profile.relationship_status === 'acquaintance' ? (
+                                <UserRoundCheck aria-hidden="true" size={17} />
+                              ) : isSelected ? (
+                                <Check aria-hidden="true" size={17} />
+                              ) : (
+                                <UserRoundPlus aria-hidden="true" size={17} />
+                              )}
+                            </span>
+                          </button>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </section>
+              ))}
+            </div>
           ) : (
             <div className="px-3 py-3 text-center text-on-surface-variant text-sm">No users found.</div>
           )}

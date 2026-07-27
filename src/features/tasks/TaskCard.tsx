@@ -2,20 +2,19 @@ import { useRef, useState, type MouseEvent } from 'react'
 import {
   Archive,
   Calendar,
-  CheckCircle2,
+  Check,
   ChevronDown,
   ChevronUp,
-  Circle,
   CircleCheckBig,
   CircleDot,
   CircleGauge,
   Edit2,
+  FileOutput,
   GripVertical,
   MoreHorizontal,
   ReceiptText,
   Share2,
   Trash2,
-  Upload,
   UserRoundPlus,
 } from 'lucide-react'
 import type { ReorderDirection, TaskProgressStatus } from '../../lib/database.types'
@@ -107,6 +106,7 @@ export function TaskCard({
   taskLevels = [],
 }: TaskCardProps) {
   const canManageTask = task.owner_id === currentUserId || folderOwnerId === currentUserId
+  const canExportTask = canManageTask || forceExportButton || task.has_export_button
   const canEditRecipientAmount = task.folder_id ? folderOwnerId === currentUserId : task.owner_id === currentUserId
   const canReorderTask = task.folder_id ? folderOwnerId === currentUserId : task.owner_id === currentUserId
   const isEditing = editingTaskId === task.id
@@ -127,7 +127,6 @@ export function TaskCard({
 
   const isCompleted = !task.is_active || currentUserStatus === 'completed'
   const completedLevelIds = taskLevelCompletedIds ?? EMPTY_TASK_LEVEL_SET
-  const showExportButton = forceExportButton || task.has_export_button
   const canUpdateStatus = task.assigned_user_id ? task.assigned_user_id === currentUserId : true
   const currentContributions = contributions
     ? Object.values(contributions)
@@ -248,14 +247,22 @@ export function TaskCard({
               </div>
 
               <div className="task-row__actions" onClick={(event) => event.stopPropagation()}>
-                {recipientReport ? (
+                {canExportTask ? (
                   <button
-                    aria-label="View task recipients"
-                    onClick={(event) => setRecipientAnchor(event.currentTarget.getBoundingClientRect())}
-                    title="View recipients"
+                    aria-busy={pendingAction === `export:${task.id}`}
+                    aria-label={task.is_exported ? 'Mark task as not exported' : 'Export task'}
+                    aria-pressed={task.is_exported}
+                    className={`task-row__export${task.is_exported ? ' is-exported' : ''}`}
+                    disabled={pendingAction === `export:${task.id}`}
+                    onClick={() => onSetTaskExported(task.id, !task.is_exported)}
+                    title={task.is_exported ? 'Exported — tap to undo' : 'Export task'}
                     type="button"
                   >
-                    <ReceiptText aria-hidden="true" size={17} />
+                    {task.is_exported ? (
+                      <Check aria-hidden="true" size={20} strokeWidth={2.8} />
+                    ) : (
+                      <FileOutput aria-hidden="true" size={20} strokeWidth={1.8} />
+                    )}
                   </button>
                 ) : null}
 
@@ -275,6 +282,19 @@ export function TaskCard({
                     <MoreHorizontal aria-hidden="true" size={19} />
                   </summary>
                   <div className="task-action-menu__popover">
+                    {recipientReport ? (
+                      <button
+                        onClick={(event) => {
+                          setRecipientAnchor(event.currentTarget.getBoundingClientRect())
+                          closeActionMenu()
+                        }}
+                        type="button"
+                      >
+                        <ReceiptText aria-hidden="true" size={16} />
+                        View recipients
+                      </button>
+                    ) : null}
+
                     {!task.folder_id && canManageTask && onCopyShareLink ? (
                       <button
                         onClick={() => {
@@ -285,20 +305,6 @@ export function TaskCard({
                       >
                         <Share2 aria-hidden="true" size={16} />
                         Copy share link
-                      </button>
-                    ) : null}
-
-                    {showExportButton ? (
-                      <button
-                        disabled={pendingAction === `export:${task.id}`}
-                        onClick={() => {
-                          onSetTaskExported(task.id, !task.is_exported)
-                          closeActionMenu()
-                        }}
-                        type="button"
-                      >
-                        {task.is_exported ? <CheckCircle2 aria-hidden="true" size={16} /> : <Upload aria-hidden="true" size={16} />}
-                        {task.is_exported ? 'Mark not exported' : 'Mark exported'}
                       </button>
                     ) : null}
 
@@ -333,25 +339,10 @@ export function TaskCard({
             </div>
 
             <div className="task-row__title">
-              <button
-                aria-label={getStatusTitle('completed', 'Completed')}
-                aria-pressed={statusToggleStatus === 'completed'}
-                className={statusToggleStatus === 'completed' ? 'is-complete' : ''}
-                disabled={isStatusDisabled('completed')}
-                onClick={(event) => handleStatusChange(event, 'completed')}
-                title={getStatusTitle('completed', 'Completed')}
-                type="button"
-              >
-                {statusToggleStatus === 'completed' ? (
-                  <CircleCheckBig aria-hidden="true" size={25} />
-                ) : (
-                  <Circle aria-hidden="true" size={25} />
-                )}
-              </button>
               <h3>{task.title}</h3>
             </div>
 
-            {task.description ? (
+            {task.description && taskLevels.length === 0 ? (
               <div className="task-row__description">
                 <LinkifiedText text={task.description} />
               </div>

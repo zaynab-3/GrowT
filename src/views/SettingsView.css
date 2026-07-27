@@ -131,6 +131,9 @@
 .palette-option--sprout::before { background: #16a34a; }
 .palette-option--rose::before   { background: #db2777; }
 .palette-option--lavender::before { background: #7c3aed; }
+.palette-option--watermelon::before { background: #e05263; }
+.palette-option--coffee::before { background: #8b5e3c; }
+.palette-option--wine::before { background: #8c2346; }
 
 /* =================== AVATAR GRID ========================== */
 

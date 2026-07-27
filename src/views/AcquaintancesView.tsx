@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { UserRoundSearch } from 'lucide-react'
 
 type AcquaintancesViewProps = {
   children: ReactNode
@@ -6,14 +7,10 @@ type AcquaintancesViewProps = {
 
 export function AcquaintancesView({ children }: AcquaintancesViewProps) {
   return (
-    <div className="acquaintances-page growt-page flex-1 w-full max-w-7xl mx-auto flex flex-col gap-5 sm:gap-8">
-      <div className="flex items-center justify-between mb-0 sm:mb-2">
-        <div>
-          <h2 className="font-headline-lg text-2xl sm:text-headline-lg text-on-surface">Acquaintances</h2>
-          <p className="font-body-md text-body-md text-on-surface-variant mt-1">
-            Find people by username, manage requests, and build your network.
-          </p>
-        </div>
+    <div className="acquaintances-page growt-page flex-1 w-full max-w-[1320px] mx-auto px-[clamp(26px,3vw,44px)] py-[clamp(26px,3vw,44px)] flex flex-col gap-5 sm:gap-8">
+      <div className="gui-page-heading">
+        <span className="gui-page-heading__icon"><UserRoundSearch aria-hidden="true" size={22} /></span>
+        <h1>Acquaintances</h1>
       </div>
       {children}
     </div>

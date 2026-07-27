@@ -1549,8 +1549,25 @@ export const Constants = {
   },
 } as const
 
-export type AvatarChoice = 'default' | 'duck' | 'penguin' | 'sprout'
-export type ColorPalette = 'sage' | 'duck' | 'penguin' | 'sprout' | 'rose' | 'lavender'
+export type AvatarChoice =
+  | 'default'
+  | 'duck'
+  | 'penguin'
+  | 'sprout'
+  | 'cat1'
+  | 'butterfly'
+  | 'moonsun'
+  | 'blueheart'
+export type ColorPalette =
+  | 'sage'
+  | 'duck'
+  | 'penguin'
+  | 'sprout'
+  | 'rose'
+  | 'lavender'
+  | 'watermelon'
+  | 'coffee'
+  | 'wine'
 export type ThemeMode = 'system' | 'light' | 'dark'
 export type FolderCategory = 'work' | 'personal' | 'shared'
 export type TaskProgressStatus = 'ongoing' | 'half_done' | 'completed'

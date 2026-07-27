@@ -57,6 +57,13 @@ export function updatePassword(password: string) {
   return getSupabaseClient().auth.updateUser({ password })
 }
 
+export function updateEmail(email: string, redirectTo: string) {
+  return getSupabaseClient().auth.updateUser(
+    { email },
+    { emailRedirectTo: redirectTo },
+  )
+}
+
 export function signOut(options?: Parameters<ReturnType<typeof getSupabaseClient>['auth']['signOut']>[0]) {
   return getSupabaseClient().auth.signOut(options)
 }

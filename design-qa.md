@@ -72,4 +72,139 @@ The comparisons check the full visible viewport and the following focused region
 - `git diff --check`: passed; only existing Windows line-ending notices were reported.
 - React review: stable keys, effect cleanup, semantic interactive controls, accessible labels, and typed component boundaries checked.
 
-final result: passed
+## Phone folder overview QA
+
+- Source visual truth: `C:\Users\Zainab\AppData\Local\Temp\codex-clipboard-e98a0a51-0304-4e06-83fd-c612284927b4.png`
+- Implementation screenshot: unavailable
+- Target viewport: 390 × 844 CSS pixels
+- Source pixels: 852 × 1845
+- Implementation pixels: unavailable
+- Density normalization: source used as a proportional mobile reference; implementation capture was not produced
+- State: dark theme, folder overview, Collaborators tab selected
+
+**Findings**
+
+- No visual comparison findings were filed because a browser-rendered implementation capture is unavailable.
+
+**Open Questions**
+
+- The user asked to run and inspect the browser personally, so automated browser capture and interaction testing were intentionally not performed.
+
+**Implementation Checklist**
+
+- Open a shared folder at a viewport of 390 × 844.
+- Confirm the phone-only Folder overview replaces the existing collaborator and workspace panels.
+- Test both Collaborators and Workspace details tabs.
+- Test the Invite shortcut, username search, and invite submission.
+- Confirm page scrolling and bottom-navigation clearance.
+- Confirm tablet and desktop layouts remain unchanged above 600px.
+
+**Follow-up Polish**
+
+- Revisit any spacing or density differences the user identifies during their visual review.
+
+## Phone folder overview comparison history
+
+- Initial implementation: phone-only tabbed Folder overview added. Lint and production build passed.
+- Visual comparison: not run at the user's request.
+
+## Selected folder recipient sheet QA
+
+- Source visual truth: `C:\Users\Zainab\AppData\Local\Temp\codex-clipboard-e4a9d5c6-f6bc-4b0a-9abb-5b8b8d30af62.png`
+- Implementation screenshot: unavailable
+- Target viewport: 390 × 844 CSS pixels
+- State: light theme, two selected folders, Folders tab selected
+
+**Implementation checks**
+
+- Replaced the text dollar glyph with the project icon library and centered it in a fixed icon target.
+- Added an independent, accessible details disclosure to every selected folder card.
+- Expanded details expose each recipient's payout plus ongoing, half-done, completed, and other-half credit counts.
+- Cards remain compact until their own disclosure is opened.
+- Component-scoped ESLint and diff validation passed.
+
+**Open questions**
+
+- The user asked to inspect the browser personally, so no automated browser capture was produced.
+- The full production build is currently blocked by unrelated malformed JSX in `src/views/TaskFormPage.tsx`.
+
+final result: blocked
+
+## Content-sized folder rail QA
+
+- Source: `C:\Users\Zainab\AppData\Local\Temp\codex-clipboard-4353716e-76b8-4d11-8158-d2e85e6667b8.png`
+- Implementation screenshot: unavailable at the user's request.
+
+**Implementation checks**
+
+- The collaborator card no longer stretches to consume unused viewport height.
+- Overview and collaborator cards remain sticky as a single content-sized rail.
+- When rail content exceeds the available desktop/tablet height, the rail scrolls as one contained region.
+- The persistent invite row stays removed; invitation remains available through the responsive +user modal.
+- `npm run lint`, `npm run build`, and `git diff --check` passed.
+
+final result: blocked
+
+## Sticky desktop rail + responsive collaborator invite QA
+
+- Layout issue sources:
+  - `C:\Users\Zainab\AppData\Local\Temp\codex-clipboard-154a60db-7d4a-4fd9-b374-33fd97a8f260.png`
+  - `C:\Users\Zainab\AppData\Local\Temp\codex-clipboard-78f083a5-ebd2-4c35-adbb-42cfb70db3d9.png`
+  - `C:\Users\Zainab\AppData\Local\Temp\codex-clipboard-3b4f70c6-fab6-4a87-8c2f-77fc8e3dc843.png`
+  - `C:\Users\Zainab\AppData\Local\Temp\codex-clipboard-87c23abc-21ca-4959-ab74-aa63af859634.png`
+- Invite interaction sources:
+  - `C:\Users\Zainab\AppData\Local\Temp\codex-clipboard-c2f682a4-5adb-4e54-abf4-ead02c8b6f85.png`
+  - `C:\Users\Zainab\AppData\Local\Temp\codex-clipboard-ec04f5e1-4c8d-4918-94ce-3f4090bdd747.png`
+- Implementation screenshots: unavailable at the user's request.
+
+**Implementation checks**
+
+- Removed the duplicated topbar offset from sticky desktop/tablet rails, eliminating the empty band above folder and profile side content.
+- Folder overview and collaborator data now use the full available rail height; only a long collaborator table scrolls.
+- Replaced the permanently visible invite form with an icon action in the Folder overview header.
+- The invite action opens a centered desktop/tablet dialog and a phone bottom sheet.
+- Username results are constrained inside the dialog, current collaborators are excluded, Escape and backdrop dismissal work, and the dialog remains open for inviting more than one person.
+
+**Code verification**
+
+- `npm run lint`: passed.
+- `npm run build`: passed.
+- `git diff --check`: passed; only Windows line-ending notices were reported.
+
+**Open visual check**
+
+- Browser capture and interaction testing were intentionally not performed because the user asked to inspect the browser personally.
+
+final result: blocked
+
+## Desktop and tablet folder overview + live task preview QA
+
+- Folder overview source: `C:\Users\Zainab\AppData\Local\Temp\codex-clipboard-e98a0a51-0304-4e06-83fd-c612284927b4.png`
+- Desktop layout issue sources:
+  - `C:\Users\Zainab\AppData\Local\Temp\codex-clipboard-aa617c64-c63a-4781-80f7-7a3f5a0fde05.png`
+  - `C:\Users\Zainab\AppData\Local\Temp\codex-clipboard-ee9ae39a-47f2-4f4a-b774-dcdc1070f975.png`
+- Task preview issue source: `C:\Users\Zainab\AppData\Local\Temp\codex-clipboard-12cecae6-b32c-4dca-bb32-fc98a99f7aee.png`
+- Implementation screenshots: unavailable at the user's request
+- Target states: tablet and desktop folder detail; desktop task create/edit
+
+**Implementation checks**
+
+- The approved tabbed Folder overview is now shared across phone, tablet, and desktop instead of using a separate compressed desktop collaborator panel.
+- At widths above 600px, the overview stays sticky within the available viewport height and its content scrolls independently.
+- The overview retains collaborators, all four contribution columns, invitation, and workspace details.
+- The task form preview now uses the actual task-card hierarchy: category, export/edit/more actions, formatted description, checklist timeline, three status cells, assignee, due date, and payout.
+- Multiline descriptions and supported inline formatting use the same rich-description renderer as task details.
+- The preview updates from the current form state rather than relying on static sample text.
+- Repaired missing responsive layout wrappers in the task and folder form pages.
+
+**Code verification**
+
+- `npm run lint`: passed.
+- `npm run build`: passed.
+- `git diff --check`: passed; only Windows line-ending notices were reported.
+
+**Open visual check**
+
+- Browser capture and interaction testing were intentionally not performed because the user asked to inspect the browser personally.
+
+final result: blocked

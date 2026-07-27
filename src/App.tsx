@@ -13,6 +13,7 @@ import {
   listDeletedFolders,
   listFolderMembers,
   listFolders,
+  removeFolderMember,
   reorderFolder,
   restoreFolder,
   softDeleteFolder,
@@ -43,6 +44,10 @@ import {
   undoTaskStatusAction,
   updateTask,
 } from './features/tasks/taskApi'
+import {
+  searchProfilesWithRelationship,
+  sendAcquaintanceRequest,
+} from './features/members/memberPickerApi'
 import { AppShell } from './layout/AppShell'
 import { Sidebar } from './layout/Sidebar'
 import { AppViewRouter } from './views/AppViewRouter'
@@ -1208,6 +1213,46 @@ function App() {
     }
   }
 
+  async function handleChangeEmail(nextEmail: string) {
+    if (!isSupabaseConfigured || !user) {
+      throw new Error('You need to be signed in to change your email.')
+    }
+
+    const normalizedEmail = nextEmail.trim().toLowerCase()
+    if (!normalizedEmail || normalizedEmail === (user.email ?? '').toLowerCase()) {
+      throw new Error('Enter a different email address.')
+    }
+
+    const { error } = await authService.updateEmail(
+      normalizedEmail,
+      `${window.location.origin}/profile`,
+    )
+
+    if (error) throw error
+    setMessage('Confirmation links were sent. Confirm the change from your email.')
+  }
+
+  async function handleChangePassword(currentPassword: string, nextPassword: string) {
+    if (!isSupabaseConfigured || !user?.email) {
+      throw new Error('Password changes require an email sign-in.')
+    }
+
+    const passwordError = getPasswordError(nextPassword, nextPassword)
+    if (passwordError) throw new Error(passwordError)
+
+    const { error: verificationError } = await authService.signInWithPassword(
+      user.email,
+      currentPassword,
+    )
+    if (verificationError) {
+      throw new Error('Your current password is incorrect.')
+    }
+
+    const { error } = await authService.updatePassword(nextPassword)
+    if (error) throw error
+    setMessage('Password changed successfully.')
+  }
+
   async function handleCreateFolder(event: React.FormEvent, inviteUsernames?: string[]) {
     event.preventDefault()
 
@@ -1556,16 +1601,47 @@ function App() {
     setMessage('')
 
     try {
+      let invitedRelationshipStatus:
+        | 'acquaintance'
+        | 'pending_incoming'
+        | 'pending_outgoing'
+        | 'none'
+        | null = null
+
+      try {
+        const relationshipMatches = await searchProfilesWithRelationship(nextUsername)
+        invitedRelationshipStatus = relationshipMatches.find(
+          (candidate) => normalizeUsername(candidate.username) === normalizeUsername(nextUsername),
+        )?.relationship_status ?? null
+      } catch (relationshipError) {
+        logBackgroundError('Folder collaborator relationship lookup failed', relationshipError)
+      }
+
       const { member, profile } = await addFolderMemberByUsername(
         activeFolder.id,
         nextUsername,
       )
+      let acquaintanceRequestSent = false
+
+      if (invitedRelationshipStatus === 'none') {
+        try {
+          await sendAcquaintanceRequest(nextUsername)
+          acquaintanceRequestSent = true
+        } catch (requestError) {
+          logBackgroundError('Folder collaborator acquaintance request failed', requestError)
+        }
+      }
 
       setProfilesById((current) => ({ ...current, [profile.id]: profile }))
 
       if (member) {
         setMembers((current) => upsertById(current, member))
-        setMessage(`${profile.display_name ?? profile.username ?? 'User'} can now open this folder.`)
+        const profileLabel = profile.display_name ?? profile.username ?? 'User'
+        setMessage(
+          acquaintanceRequestSent
+            ? `${profileLabel} can now open this folder. An acquaintance request was also sent.`
+            : `${profileLabel} can now open this folder.`,
+        )
       } else {
         setMessage(`${profile.display_name ?? profile.username ?? 'User'} already has access.`)
       }
@@ -1575,6 +1651,34 @@ function App() {
     } catch (error) {
       console.error('Member invite failed', error)
       setMessage('Unable to add member.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleRemoveFolderMember(userId: string) {
+    if (
+      !isSupabaseConfigured ||
+      !user ||
+      !activeFolder ||
+      activeFolder.owner_id !== user.id ||
+      userId === activeFolder.owner_id
+    ) {
+      return
+    }
+
+    setSaving(true)
+    setMessage('')
+
+    try {
+      const removedMember = await removeFolderMember(activeFolder.id, userId)
+
+      setMembers((current) => current.filter((member) => member.id !== removedMember.id))
+      setMessage(`${getProfileLabel(userId)} was removed from this folder.`)
+      await refreshLiveSessionRef.current()
+    } catch (error) {
+      console.error('Folder member remove failed', error)
+      setMessage('Unable to remove collaborator.')
     } finally {
       setSaving(false)
     }
@@ -2096,7 +2200,7 @@ function App() {
       accountLabel={accountLabel}
       accountAvatarUrl={accountAvatarUrl}
       contextLabel={contextLabel}
-      dashboardMode={route.name === 'dashboard' || route.name === 'folders'}
+      dashboardMode={true}
       message={message}
       navigationKey={routeToPath(route)}
       folders={folders}
@@ -2188,10 +2292,13 @@ function App() {
         onOpenFolder={(folderId) => navigateToRoute({ name: 'folder-detail', folderId })}
         onOpenTask={(task) => navigateToRoute({ name: 'task-detail', taskId: task.id, folderId: task.folder_id || undefined })}
         onProfileAvatarChoiceChange={setProfileAvatarChoice}
+        onChangeEmail={handleChangeEmail}
+        onChangePassword={handleChangePassword}
         onProfileColorPaletteChange={setProfileColorPalette}
         onProfileDisplayNameChange={setProfileDisplayName}
         onProfileThemeModeChange={setProfileThemeMode}
         onProfileUsernameChange={setProfileUsername}
+        onRemoveFolderMember={(memberId) => void handleRemoveFolderMember(memberId)}
         onRemoveTaskMember={(task, memberId) => void handleRemoveTaskMember(task, memberId)}
         onRestoreFolder={handleRestoreFolder}
         onRestoreTask={handleRestoreTask}
@@ -2207,6 +2314,7 @@ function App() {
         profileAvatarChoice={profileAvatarChoice}
         profileColorPalette={profileColorPalette}
         profileDisplayName={profileDisplayName}
+        profileEmail={user?.email ?? ''}
         profileThemeMode={profileThemeMode}
         profileUsername={profileUsername}
         realtimeLabel={realtimeStatus}

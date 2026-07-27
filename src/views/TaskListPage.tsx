@@ -6,12 +6,13 @@ import {
   CircleGauge,
   LayoutGrid,
   Plus,
+  ReceiptText,
   SlidersHorizontal,
   UserRound,
   UsersRound,
   X,
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReorderDirection, TaskProgressStatus } from '../lib/database.types'
 import type { Folder as _Folder, Task, TaskLevel, TaskMember, TaskStatusAction } from '../lib/growtData'
 import type { RecipientReport } from '../lib/recipient'
@@ -91,6 +92,20 @@ export function TaskListPage({
   const [scope, setScope] = useState<TaskScope>('all')
   const [progressFilter, setProgressFilter] = useState<ProgressFilter>('all')
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const scopeRefs = useRef<Record<TaskScope, HTMLButtonElement | null>>({
+    all: null,
+    personal: null,
+    shared: null,
+    work: null,
+  })
+
+  useEffect(() => {
+    scopeRefs.current[scope]?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'center',
+    })
+  }, [scope])
 
   const personalCount = standaloneTasks.filter((t) => t.category === 'personal').length
   const workCount = standaloneTasks.filter((t) => t.category === 'work').length
@@ -146,40 +161,39 @@ export function TaskListPage({
   ]
 
   return (
-    <div className="task-list-page growt-page flex-1 w-full max-w-7xl mx-auto flex flex-col gap-5 sm:gap-6">
-      <div className="workspace-header-compact">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
-          <div>
-            <span className="page-header__eyebrow" style={{ textTransform: 'uppercase', fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', color: 'var(--primary)' }}>
-              Tasks
-            </span>
-            <h1>Standalone tasks</h1>
-            <p className="page-header__desc" style={{ margin: '4px 0 0', color: 'var(--ink-3)', fontSize: '14px' }}>
-              Independent tasks outside your workspaces.
-            </p>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <button className="bg-primary text-white font-label-md text-label-md px-4 sm:px-6 py-2.5 rounded-xl flex items-center gap-2 hover:bg-primary-dark transition-all shadow-md shadow-primary/20 whitespace-nowrap" onClick={onAddTask} type="button" id="add-task-btn">
-              <Plus size={16} />
-              New task
-            </button>
-          </div>
+    <div className="task-list-page growt-page flex-1 w-full flex flex-col gap-5 sm:gap-6">
+      <header className="task-list-page__header flex flex-wrap md:flex-nowrap items-center justify-between gap-4 mb-6">
+        <div className="gui-page-heading">
+          <span className="gui-page-heading__icon">
+            <ReceiptText aria-hidden="true" size={22} />
+          </span>
+          <h1>Standalone tasks</h1>
         </div>
-      </div>
+
+        <button aria-label="Create a new task" id="add-task-btn" onClick={onAddTask} type="button">
+          <Plus aria-hidden="true" size={20} />
+          <span>New task</span>
+        </button>
+      </header>
 
       <div className="task-list-page__content">
         <div className="task-filter-region">
           <div aria-label="Task categories" className="task-scope-filters" role="group">
             {scopeOptions.map(({ Icon, count, id, label }) => (
               <button
+                aria-label={`${label}, ${count} tasks`}
                 aria-pressed={scope === id}
                 className={`task-scope-option task-scope-option--${id}${scope === id ? ' is-active' : ''}`}
                 key={id}
                 onClick={() => setScope(id)}
+                ref={(element) => {
+                  scopeRefs.current[id] = element
+                }}
+                title={`${label} · ${count}`}
                 type="button"
               >
                 <Icon aria-hidden="true" size={18} />
-                <span>{label}</span>
+                <span className="task-scope-option__label">{label}</span>
                 <small>{count}</small>
               </button>
             ))}
@@ -282,7 +296,7 @@ export function TaskListPage({
                 />
               ))
             ) : (
-              <div className="flex flex-col items-center justify-center py-10 sm:py-16 px-5 sm:px-6 text-center bg-surface dark:bg-dark-card rounded-2xl border border-surface-variant/50">
+              <div className="flex flex-col items-center justify-center py-10 sm:py-16 px-5 sm:px-6 text-center bg-surface rounded-2xl border border-surface-variant/50">
                 <CheckSquare size={48} className="text-outline mb-4" />
                 <h4 className="font-title-lg text-title-lg text-on-surface mb-2">No tasks found</h4>
                 <p className="font-body-md text-body-md text-on-surface-variant max-w-sm">

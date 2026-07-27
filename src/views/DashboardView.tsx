@@ -7,8 +7,8 @@ import {
   Clock3,
   FileText,
   FolderOpen,
-  Sparkles,
-} from 'lucide-react'
+} 
+from 'lucide-react'
 import { UserAvatar } from '../components/UserAvatar'
 import type { TaskProgressStatus } from '../lib/database.types'
 import { getCategoryLabel } from '../lib/growtDisplay'
@@ -181,12 +181,6 @@ export function DashboardView({
       })
   }, [contributionsByTask, standaloneTasks, tasks])
 
-  const todayTaskCount = dashboardTasks.filter(({ task }) => {
-    return task.due_date ? isSameLocalDay(new Date(task.due_date), now) : false
-  }).length
-  const activeStandaloneCount = dashboardTasks.filter(({ task }) => !task.folder_id).length
-  const workloadCount = todayTaskCount || activeStandaloneCount
-  const workloadLabel = todayTaskCount ? 'tasks today' : 'active tasks'
   const attentionCount = dashboardTasks.filter(({ task, status }) => {
     if (status === 'half_done') return true
     if (!task.due_date) return false
@@ -227,20 +221,36 @@ export function DashboardView({
 
   return (
     <section className="dashboard-screen" aria-labelledby="dashboard-greeting">
-      <header className="dashboard-greeting">
-        <div>
-          <p className="dashboard-greeting__eyebrow">Welcome back</p>
-          <h1 id="dashboard-greeting">
-            Good {now.getHours() < 12 ? 'morning' : now.getHours() < 18 ? 'afternoon' : 'evening'}, {firstName}
-            <Sparkles aria-hidden="true" size={22} />
+      <header className="dashboard-greeting-hero">
+        <div className="dashboard-greeting-hero__body">
+
+          <h1 id="dashboard-greeting" className="dashboard-greeting-hero__title">
+            Good {now.getHours() < 12 ? 'morning' : now.getHours() < 18 ? 'afternoon' : 'evening'}, <span className="dashboard-greeting-hero__name">{firstName}</span>
           </h1>
-          <p className="dashboard-greeting__summary">
-            <strong>{workloadCount}</strong> {workloadLabel}
-            <span aria-hidden="true">·</span>
-            <strong className={attentionCount ? 'dashboard-greeting__attention' : ''}>{attentionCount}</strong> need attention
-          </p>
         </div>
       </header>
+
+      <section className="dashboard-section dashboard-progress-first" aria-labelledby="task-progress-heading">
+        <div className="dashboard-section__heading dashboard-section__heading--inline">
+          <h2 id="task-progress-heading">My tasks progress</h2>
+          <button onClick={() => onNavigate('tasks')} type="button">View all</button>
+        </div>
+        <div className="dashboard-progress-summary">
+          {([
+            ['ongoing', statusTotals.ongoing],
+            ['half_done', statusTotals.half_done],
+            ['completed', statusTotals.completed],
+          ] as const).map(([status, count]) => (
+            <div className={`dashboard-progress-summary__item dashboard-progress-summary__item--${status}`} key={status}>
+              <strong>{count}</strong>
+              <span>{status === 'half_done' ? 'Half done' : status === 'ongoing' ? 'Ongoing' : 'Completed'}</span>
+              <span className="dashboard-progress-summary__track" aria-hidden="true">
+                <span style={{ width: `${totalProgress ? Math.max((count / totalProgress) * 100, count ? 12 : 0) : 0}%` }} />
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <div className="dashboard-home-grid">
         <div className="dashboard-home-grid__focus">
@@ -276,7 +286,8 @@ export function DashboardView({
                       userIds={getParticipantIds(upNext.task, taskMembersByTask, contributionsByTask)}
                     />
                     <button className="dashboard-primary-action" onClick={() => onOpenTask(upNext.task)} type="button">
-                      Continue <ArrowRight size={17} />
+                      <span>Continue</span>
+                      <ArrowRight size={17} />
                     </button>
                   </div>
                 </div>
@@ -325,28 +336,6 @@ export function DashboardView({
         </div>
 
         <aside className="dashboard-home-grid__support">
-          <section className="dashboard-section" aria-labelledby="task-progress-heading">
-            <div className="dashboard-section__heading dashboard-section__heading--inline">
-              <h2 id="task-progress-heading">My tasks progress</h2>
-              <button onClick={() => onNavigate('tasks')} type="button">View all</button>
-            </div>
-            <div className="dashboard-progress-summary">
-              {([
-                ['ongoing', statusTotals.ongoing],
-                ['half_done', statusTotals.half_done],
-                ['completed', statusTotals.completed],
-              ] as const).map(([status, count]) => (
-                <div className={`dashboard-progress-summary__item dashboard-progress-summary__item--${status}`} key={status}>
-                  <strong>{count}</strong>
-                  <span>{status === 'half_done' ? 'Half done' : status === 'ongoing' ? 'Ongoing' : 'Completed'}</span>
-                  <span className="dashboard-progress-summary__track" aria-hidden="true">
-                    <span style={{ width: `${totalProgress ? Math.max((count / totalProgress) * 100, count ? 12 : 0) : 0}%` }} />
-                  </span>
-                </div>
-              ))}
-            </div>
-          </section>
-
           <section className="dashboard-section" aria-labelledby="workspaces-heading">
             <div className="dashboard-section__heading dashboard-section__heading--inline">
               <h2 id="workspaces-heading">Your workspaces</h2>

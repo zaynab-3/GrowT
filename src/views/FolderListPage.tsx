@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Check, ChevronDown, ChevronUp, FolderOpen, FolderPlus, Trash2, Plus, Info, Edit2, MoreHorizontal, ReceiptText, Sparkles } from 'lucide-react'
+import { Check, ChevronDown, ChevronUp, Eye, Filter, FolderOpen, FolderPlus, Trash2, Plus, Info, Edit2, MoreHorizontal, ReceiptText, X } from 'lucide-react'
 import { getCategoryLabel, isSharedFolder } from '../lib/growtDisplay'
 import type { Folder as FolderType, Task, TaskStatusAction } from '../lib/growtData'
 import {
@@ -66,10 +66,18 @@ export function FolderListPage({
   const [recipientReviewMode, setRecipientReviewMode] = useState(false)
   const [isRecipientReviewOpen, setIsRecipientReviewOpen] = useState(false)
   const [selectedRecipientFolderIds, setSelectedRecipientFolderIds] = useState<string[]>([])
+  const [isScopeMenuOpen, setIsScopeMenuOpen] = useState(false)
 
   const personalCount = folders.filter((f) => !isSharedFolder(f) && f.category === 'personal').length
   const workCount = folders.filter((f) => !isSharedFolder(f) && f.category === 'work').length
   const sharedCount = folders.filter((f) => isSharedFolder(f)).length
+  const scopeOptions: { id: FolderScope; label: string; count: number }[] = [
+    { id: 'all', label: 'All folders', count: folders.length },
+    { id: 'work', label: 'Work', count: workCount },
+    { id: 'personal', label: 'Personal', count: personalCount },
+    { id: 'shared', label: 'Shared', count: sharedCount },
+  ]
+  const activeScope = scopeOptions.find((option) => option.id === scope) ?? scopeOptions[0]
 
   const visibleFolders = useMemo(
     () =>
@@ -188,136 +196,70 @@ export function FolderListPage({
 
   return (
     <section className="folders-redesign" aria-labelledby="workspaces-heading">
-      <header className="folders-redesign__hero">
-        <div>
-          <p className="folders-redesign__eyebrow"><Sparkles size={14} /> Workspaces</p>
-          <h1 id="workspaces-heading">Everything has a place.</h1>
-          <p>Keep related tasks, people, and progress together without the clutter.</p>
+      <header className="folders-redesign__hero flex flex-wrap md:flex-nowrap items-center justify-between gap-4 mb-6">
+        <div className="gui-page-heading">
+          <span className="gui-page-heading__icon"><FolderOpen aria-hidden="true" size={22} /></span>
+          <h1 id="workspaces-heading">Workspaces</h1>
         </div>
 
-        <button className="folders-redesign__create" onClick={onAddFolder} type="button">
-          <FolderPlus size={18} />
-          <span>New workspace</span>
-        </button>
-      </header>
+        <div className="folders-redesign__hero-actions">
+          <div className="folders-redesign__controls folder-filter-bar !m-0">
+            <div className="folder-filter-menu">
+              <button
+                aria-controls="folder-filter-options"
+                aria-expanded={isScopeMenuOpen}
+                className="folder-filter-menu__trigger"
+                onClick={() => setIsScopeMenuOpen((current) => !current)}
+                type="button"
+              >
+                <Filter size={18} />
+                <span>{activeScope.label}</span>
+                <strong>{activeScope.count}</strong>
+                <ChevronDown className={isScopeMenuOpen ? 'rotate-180' : ''} size={17} />
+              </button>
 
-      <div className="folders-redesign__controls">
-        <div className="folder-scope-filters">
-          <button
-            onClick={() => setScope('all')}
-            aria-pressed={scope === 'all'}
-            className={scope === 'all' ? 'folder-scope-filter folder-scope-filter--active' : 'folder-scope-filter'}
-            type="button"
-          >
-            All <span>{folders.length}</span>
-          </button>
-
-          <button
-            onClick={() => setScope('work')}
-            aria-pressed={scope === 'work'}
-            className={scope === 'work' ? 'folder-scope-filter folder-scope-filter--active' : 'folder-scope-filter'}
-            type="button"
-          >
-            Work <span>{workCount}</span>
-          </button>
-
-          <button
-            onClick={() => setScope('personal')}
-            aria-pressed={scope === 'personal'}
-            className={scope === 'personal' ? 'folder-scope-filter folder-scope-filter--active' : 'folder-scope-filter'}
-            type="button"
-          >
-            Personal <span>{personalCount}</span>
-          </button>
-
-          <button
-            onClick={() => setScope('shared')}
-            aria-pressed={scope === 'shared'}
-            className={scope === 'shared' ? 'folder-scope-filter folder-scope-filter--active' : 'folder-scope-filter'}
-            type="button"
-          >
-            Shared <span>{sharedCount}</span>
-          </button>
-        </div>
-
-        <div className="folders-redesign__recipient-control">
-          <button
-            aria-controls="recipient-review-actions"
-            aria-expanded={recipientReviewMode}
-            className={`folders-redesign__recipient-toggle${recipientReviewMode ? ' folders-redesign__recipient-toggle--active' : ''}`}
-            onClick={handleRecipientReviewModeToggle}
-            type="button"
-          >
-            <span className="inline-flex items-center gap-2">
-              <ReceiptText size={17} />
-              {recipientReviewMode ? 'Done checking' : 'Check recipients'}
-            </span>
-
-            <ChevronDown
-              aria-hidden="true"
-              className={`shrink-0 transition-transform duration-300 ${
-                recipientReviewMode ? 'rotate-180' : 'rotate-0'
-              }`}
-              size={17}
-            />
-          </button>
-
-          <div
-            aria-hidden={!recipientReviewMode}
-            className={`grid transition-[grid-template-rows,opacity,transform] duration-300 ease-out ${
-              recipientReviewMode
-                ? 'grid-rows-[1fr] translate-y-0 opacity-100'
-                : 'pointer-events-none grid-rows-[0fr] -translate-y-2 opacity-0'
-            }`}
-            id="recipient-review-actions"
-          >
-            <div className="min-h-0 overflow-hidden">
-              <div className="folders-redesign__recipient-panel">
-                <div className="min-w-0 px-1">
-                  <p className="font-label-md text-label-md font-bold text-on-surface">
-                    Recipient review
-                  </p>
-                  <p className="mt-0.5 font-body-sm text-body-sm text-on-surface-variant">
-                    {selectedFolderReviews.length > 0
-                      ? `${selectedFolderReviews.length} selected · ${selectedVisibleFolderCount} visible here`
-                      : 'Select folders below, then review their recipients.'}
-                  </p>
+              {isScopeMenuOpen ? (
+                <div className="folder-filter-menu__options" id="folder-filter-options" role="menu">
+                  {scopeOptions.map((option) => (
+                    <button
+                      aria-checked={scope === option.id}
+                      className={scope === option.id ? 'is-active' : ''}
+                      key={option.id}
+                      onClick={() => {
+                        setScope(option.id)
+                        setIsScopeMenuOpen(false)
+                      }}
+                      role="menuitemradio"
+                      type="button"
+                    >
+                      <span>{option.label}</span>
+                      <strong>{option.count}</strong>
+                      {scope === option.id ? <Check size={16} /> : null}
+                    </button>
+                  ))}
                 </div>
-
-                <div className="grid shrink-0 grid-cols-2 gap-2 sm:flex sm:items-center">
-                  <button
-                    className="inline-flex min-h-10 items-center justify-center rounded-xl border border-black/[0.06] bg-surface px-3 py-2 font-label-sm text-label-sm font-bold text-on-surface transition-all hover:border-primary/25 hover:bg-surface-container-high disabled:cursor-not-allowed disabled:opacity-45 dark:border-white/10 dark:bg-dark-card"
-                    disabled={!recipientReviewMode || !visibleFolders.length}
-                    onClick={toggleVisibleRecipientFolders}
-                    type="button"
-                  >
-                    {allVisibleFoldersSelected ? 'Unselect visible' : 'Select visible'}
-                  </button>
-
-                  <button
-                    className="inline-flex min-h-10 items-center justify-center rounded-xl border border-black/[0.06] bg-surface px-3 py-2 font-label-sm text-label-sm font-bold text-on-surface-variant transition-all hover:border-error/25 hover:text-error disabled:cursor-not-allowed disabled:opacity-45 dark:border-white/10 dark:bg-dark-card"
-                    disabled={!recipientReviewMode || !selectedFolderReviews.length}
-                    onClick={() => setSelectedRecipientFolderIds([])}
-                    type="button"
-                  >
-                    Clear
-                  </button>
-
-                  <button
-                    className="col-span-2 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 font-label-sm text-label-sm font-bold text-on-primary shadow-md shadow-primary/20 transition-all hover:bg-surface-tint hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none sm:col-span-1"
-                    disabled={!recipientReviewMode || !selectedFolderReviews.length}
-                    onClick={() => setIsRecipientReviewOpen(true)}
-                    type="button"
-                  >
-                    <ReceiptText size={15} />
-                    Review selected ({selectedFolderReviews.length})
-                  </button>
-                </div>
-              </div>
+              ) : null}
             </div>
+
+            <button
+              aria-label={recipientReviewMode ? 'Exit recipient selection' : 'Select folders to review recipients'}
+              aria-pressed={recipientReviewMode}
+              className={`folders-redesign__recipient-shortcut${recipientReviewMode ? ' is-active' : ''}`}
+              onClick={handleRecipientReviewModeToggle}
+              title={recipientReviewMode ? 'Done selecting' : 'Review recipients'}
+              type="button"
+            >
+              <ReceiptText size={20} />
+              {selectedFolderReviews.length > 0 ? <span>{selectedFolderReviews.length}</span> : null}
+            </button>
           </div>
+
+          <button className="folders-redesign__create shrink-0" onClick={onAddFolder} type="button">
+            <FolderPlus size={18} />
+            <span className="hidden md:inline">New workspace</span>
+          </button>
         </div>
-      </div>
+      </header>
 
       <RecipientFolderReviewPopup
         combinedReport={combinedRecipientReport}
@@ -499,7 +441,12 @@ export function FolderListPage({
                             avatarUrl: getProfileAvatar(userId),
                             ongoing: stats.ongoing,
                             halfDone: stats.half_done,
-                            completed: stats.completed,
+                            completed:
+                              recipientReport?.users.find((summary) => summary.userId === userId)?.fullyCompleted ??
+                              stats.completed,
+                            completedOtherHalf:
+                              recipientReport?.users.find((summary) => summary.userId === userId)?.completedOtherHalf ??
+                              0,
                           }))}
                         />
                       )}
@@ -772,6 +719,39 @@ export function FolderListPage({
           <small>Start somewhere fresh</small>
         </button>
       </div>
+
+      {recipientReviewMode ? (
+        <div className="folders-recipient-selection-bar" role="region" aria-label="Recipient selection actions">
+          <strong>{selectedFolderReviews.length} selected</strong>
+          <button
+            aria-label={allVisibleFoldersSelected ? 'Unselect visible folders' : 'Select visible folders'}
+            disabled={!visibleFolders.length}
+            onClick={toggleVisibleRecipientFolders}
+            type="button"
+          >
+            <Eye size={17} />
+            <span>{allVisibleFoldersSelected ? 'Unselect visible' : 'Select visible'}</span>
+          </button>
+          <button
+            aria-label="Clear selected folders"
+            disabled={!selectedFolderReviews.length}
+            onClick={() => setSelectedRecipientFolderIds([])}
+            type="button"
+          >
+            <X size={17} />
+            <span>Clear</span>
+          </button>
+          <button
+            className="is-primary"
+            disabled={!selectedFolderReviews.length}
+            onClick={() => setIsRecipientReviewOpen(true)}
+            type="button"
+          >
+            <ReceiptText size={17} />
+            <span>Review ({selectedFolderReviews.length})</span>
+          </button>
+        </div>
+      ) : null}
     </section>
   )
 }

@@ -8,6 +8,7 @@ export type StatusContribution = {
 }
 
 type TaskStatusParticipantsProps = {
+  emptyLabel?: string
   rows: StatusContribution[]
   getProfileAvatar: (userId: string) => string | null
   getProfileLabel: (userId: string) => string
@@ -15,13 +16,18 @@ type TaskStatusParticipantsProps = {
 }
 
 export function TaskStatusParticipants({
+  emptyLabel = '—',
   rows,
   getProfileAvatar,
   getProfileLabel,
   showEmpty = false,
 }: TaskStatusParticipantsProps) {
   if (!rows.length) {
-    return showEmpty ? <span className="task-status-participants task-status-participants--empty">—</span> : null
+    return showEmpty ? (
+      <span className="task-status-participants task-status-participants--empty">
+        {emptyLabel}
+      </span>
+    ) : null
   }
 
   return (

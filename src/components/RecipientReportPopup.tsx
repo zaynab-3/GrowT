@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
   CheckCircle2,
@@ -63,6 +63,7 @@ export function RecipientReportPopup({
   const [activeTab, setActiveTab] = useState<RecipientTab>('people')
   const [expandedUserId, setExpandedUserId] = useState<string | null>(null)
   const [showTaskBreakdown, setShowTaskBreakdown] = useState(false)
+  const breakdownRef = useRef<HTMLDivElement>(null)
 
   const totalStatusCount = useMemo(
     () =>
@@ -91,6 +92,16 @@ export function RecipientReportPopup({
   }, [isOpen, onClose])
 
   if (!isOpen) return null
+
+  function toggleTaskBreakdown() {
+    const willOpen = !showTaskBreakdown
+    setShowTaskBreakdown(willOpen)
+    if (willOpen) {
+      window.requestAnimationFrame(() => {
+        breakdownRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      })
+    }
+  }
 
   return createPortal(
     <div className="recipient-sheet-overlay" onClick={onClose}>
@@ -278,7 +289,7 @@ export function RecipientReportPopup({
             <button
               aria-expanded={showTaskBreakdown}
               className="recipient-sheet__breakdown-toggle"
-              onClick={() => setShowTaskBreakdown((current) => !current)}
+              onClick={toggleTaskBreakdown}
               type="button"
             >
               <span className="recipient-sheet__breakdown-icon">
@@ -293,7 +304,7 @@ export function RecipientReportPopup({
             </button>
 
             {showTaskBreakdown ? (
-              <div className="recipient-sheet__task-breakdown">
+              <div className="recipient-sheet__task-breakdown" ref={breakdownRef}>
                 {report.users.flatMap((user) =>
                   user.credits.map((credit) => (
                     <div key={`${credit.taskId}:${credit.userId}:${credit.kind}:breakdown`}>
@@ -303,6 +314,11 @@ export function RecipientReportPopup({
                     </div>
                   )),
                 )}
+                {!report.users.some((user) => user.credits.length) ? (
+                  <p className="recipient-sheet__task-breakdown-empty">
+                    Task credit will appear here after recipient activity is recorded.
+                  </p>
+                ) : null}
               </div>
             ) : null}
           </section>
