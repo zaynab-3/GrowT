@@ -592,6 +592,19 @@ body,
 .profile-page,
 .utility-view {
   gap: 24px !important;
+  max-width: 1320px !important;
+  width: 100% !important;
+  margin-inline: auto !important;
+  min-width: 0 !important;
+  padding: clamp(26px, 3vw, 44px) !important;
+}
+
+@media (max-width: 768px) {
+  .acquaintances-page,
+  .profile-page,
+  .utility-view {
+    padding: 22px 16px 108px !important;
+  }
 }
 
 .acquaintances-page {
