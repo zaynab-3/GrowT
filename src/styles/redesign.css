@@ -5616,6 +5616,18 @@ body,
   color: var(--primary) !important;
 }
 
+.task-checklist-editor,
+.task-description-fields textarea {
+  background: #ffffff !important;
+  border: 1px solid rgba(79, 85, 128, 0.14) !important;
+}
+
+:root[data-theme='dark'] .task-checklist-editor,
+:root[data-theme='dark'] .task-description-fields textarea {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+}
+
 /* ============================================================
    Unified responsive GUI shell, profile credentials and themes
    ============================================================ */
