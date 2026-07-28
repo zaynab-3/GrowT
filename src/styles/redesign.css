@@ -3081,6 +3081,8 @@ body,
 }
 
 .recipient-sheet {
+  --ui-emerald: var(--primary);
+  --ui-emerald-soft: var(--primary-light);
   background: var(--ui-surface);
   border: 1px solid rgba(77, 83, 122, 0.1);
   border-radius: 28px 28px 0 0;
@@ -3168,13 +3170,42 @@ body,
   overscroll-behavior: contain;
   padding: 0 24px max(24px, env(safe-area-inset-bottom));
 }
+
 .recipient-sheet__summary {
   background: #fcfcff;
-  border: 1px solid rgba(102, 87, 232, 0.13);
+  border: 1px solid rgba(var(--primary-rgb), 0.13);
   border-radius: 22px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+/* ── Mobile only: pin the summary so it never scrolls away ── */
+@media (max-width: 779px) {
+  .recipient-sheet {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .recipient-sheet__scroll {
+    flex: 1 1 0;
+    min-height: 0;
+    /* grid rows: summary always gets its natural size, report gets the rest */
+    grid-template-rows: auto 1fr;
+    align-items: start;
+  }
+
+  .recipient-sheet__summary {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    /* ensure it keeps its background while stickied */
+    background: #fcfcff;
+  }
+
+  .recipient-sheet__report {
+    min-height: 0;
+  }
 }
 
 .recipient-sheet__payout {
@@ -3232,8 +3263,8 @@ body,
 .recipient-sheet__summary-stats > div {
   align-items: center;
   display: flex;
-  gap: 8px;
-  padding: 14px 16px;
+  gap: 10px;
+  padding: 14px 20px;
 }
 
 .recipient-sheet__summary-stats > div + div {
@@ -3654,7 +3685,7 @@ body,
   border-radius: 12px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin-top: 12px;
+  margin-top: 6px;
 }
 
 .recipient-person__status-item {
@@ -3881,46 +3912,130 @@ body,
 }
 
 @media (min-width: 780px) {
+  /* ─── Overlay ─────────────────────────────────── */
   .recipient-sheet-overlay {
     align-items: center;
     justify-content: center;
     padding: 24px;
   }
 
+  /* ─── Dialog shell ────────────────────────────── */
   .recipient-sheet {
-    border-radius: 28px;
-    max-height: min(88dvh, 850px);
-    max-width: 980px !important;
-    width: 92vw !important;
-    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+    border-radius: 24px;
+    box-shadow: 0 28px 72px rgba(15, 23, 42, 0.24);
+    display: flex;
+    flex-direction: column;
+    max-height: min(88dvh, 880px);
+    max-width: 960px !important;
+    width: 93vw !important;
   }
 
-  .recipient-sheet__handle {
-    display: none;
-  }
+  .recipient-sheet__handle { display: none; }
 
   .recipient-sheet__header {
-    padding: 20px 28px 14px;
-    border-bottom: 1px solid rgba(77, 83, 122, 0.08);
+    border-bottom: 1px solid rgba(77, 83, 122, 0.09);
+    flex-shrink: 0;
+    padding: 20px 28px 16px;
   }
 
+  /* ─── Two-panel body ─────────────────────────── */
+  /* The scroll container becomes a side-by-side grid.
+     overflow:hidden here is intentional — each panel
+     scrolls itself via its own overflow-y:auto.       */
   .recipient-sheet__scroll {
+    align-items: stretch !important;
     display: grid !important;
-    grid-template-columns: minmax(310px, 1fr) minmax(420px, 1.35fr) !important;
-    align-items: start;
-    gap: 24px !important;
-    padding: 22px 28px 28px !important;
-    overflow-y: auto;
+    flex: 1 1 0;
+    gap: 0 !important;
+    grid-template-columns: 270px 1fr !important;
+    min-height: 0;
+    overflow: hidden !important;
+    padding: 0 !important;
   }
 
+  /* ─── Left: summary sidebar ──────────────────── */
   .recipient-sheet__summary {
+    background: linear-gradient(
+      175deg,
+      rgba(var(--primary-rgb), 0.045) 0%,
+      rgba(250, 251, 254, 0.98) 55%
+    ) !important;
+    border: none !important;
+    border-radius: 0 !important;
+    border-right: 1px solid rgba(77, 83, 122, 0.09) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    /* explicit height so overflow-y:auto triggers */
+    height: 100%;
+    margin: 0 !important;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    position: static !important;
+  }
+
+  .recipient-sheet__payout {
+    padding: 26px 24px 20px;
+  }
+
+  /* Stack stats vertically so text is never clipped */
+  .recipient-sheet__summary-stats {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: unset !important;
+  }
+
+  .recipient-sheet__summary-stats > div {
+    border-left: none !important;
+    border-top: 1px solid rgba(77, 83, 122, 0.08) !important;
+    gap: 13px;
+    padding: 14px 24px;
+  }
+
+  .recipient-sheet__summary-stats > div + div {
+    border-top: 1px solid rgba(77, 83, 122, 0.08) !important;
+  }
+
+  /* ─── Right: report panel ────────────────────── */
+  .recipient-sheet__report {
+    border: none !important;
+    border-radius: 0 !important;
+    display: flex;
+    flex-direction: column;
+    /* explicit height so overflow-y:auto triggers */
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+    overflow-x: hidden;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+  }
+
+  /* Tabs: sticky at top of right panel */
+  .recipient-sheet__tabs {
+    background: var(--ui-surface);
+    border-bottom: 1px solid rgba(77, 83, 122, 0.09);
+    flex-shrink: 0;
     position: sticky;
     top: 0;
-    margin: 0 !important;
+    z-index: 2;
   }
 
-  .recipient-sheet__report {
-    min-width: 0;
+  /* Folder cards: single column, full width */
+  .recipient-folder-sheet__folders {
+    grid-template-columns: minmax(0, 1fr) !important;
+    padding: 16px 20px !important;
+  }
+
+  /* People tab */
+  .recipient-sheet__people { padding: 0; }
+
+  /* Breakdown toggle: sticky at panel bottom */
+  .recipient-sheet__breakdown-toggle {
+    background: var(--ui-surface);
+    bottom: 0;
+    margin-top: auto;
+    position: sticky;
   }
 }
 
