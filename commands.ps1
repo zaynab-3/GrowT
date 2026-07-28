@@ -1,3 +1,5 @@
+npm run build
+
 git add -A
 
 git diff --cached --name-only | Select-String -Pattern "\.codex/qa|chrome-profile|Default/Extensions|node_modules|\.vite|dist"

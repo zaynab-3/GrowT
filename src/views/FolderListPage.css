@@ -867,44 +867,50 @@
   z-index: 80;
   inset-block-end: calc(78px + env(safe-area-inset-bottom));
   display: flex;
-  width: min(760px, 100%);
+  width: max-content;
+  max-width: min(760px, calc(100% - 16px));
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   justify-self: center;
+  margin-inline: auto;
   border: 1px solid rgba(71, 80, 126, 0.12);
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.96);
-  padding: 8px;
+  padding: 6px 8px;
   box-shadow: 0 18px 55px rgba(29, 35, 78, 0.18);
   backdrop-filter: blur(18px);
+  box-sizing: border-box;
 }
 
 .folders-recipient-selection-bar > strong {
-  margin-inline: 8px auto;
+  margin-inline: 6px auto;
   color: var(--folders-ink);
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .folders-recipient-selection-bar > button {
   display: inline-flex;
-  min-height: 42px;
+  min-height: 40px;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 6px;
   border: 0;
   border-radius: 12px;
   background: transparent;
-  padding: 0 11px;
+  padding: 0 10px;
   color: var(--folders-muted);
   font-size: 0.72rem;
   font-weight: 780;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .folders-recipient-selection-bar > button.is-primary {
   background: var(--primary);
   color: #fff;
+  padding: 0 12px;
 }
 
 .folders-recipient-selection-bar > button:disabled {
@@ -972,12 +978,14 @@
   }
 
   .folders-recipient-selection-bar {
-    width: 100%;
+    width: max-content;
+    max-width: calc(100% - 16px);
+    margin-inline: auto;
     border-radius: 16px;
   }
 
   .folders-recipient-selection-bar > strong {
-    margin-inline-start: 6px;
+    margin-inline-start: 4px;
   }
 }
 
@@ -1007,6 +1015,29 @@
     display: none;
   }
 
+  .folders-recipient-selection-bar {
+    padding: 5px 6px;
+    gap: 4px;
+    max-width: calc(100% - 12px);
+  }
+
+  .folders-recipient-selection-bar > button {
+    min-height: 36px;
+    padding: 0 8px;
+    font-size: 0.7rem;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 440px) {
+  .folders-recipient-selection-bar > button:not(.is-primary) span {
+    display: none;
+  }
+
+  .folders-recipient-selection-bar > button:not(.is-primary) {
+    padding: 0 8px;
+    min-width: 36px;
+  }
 }
 
 @media (max-width: 360px) {
@@ -1014,12 +1045,8 @@
     display: none;
   }
 
-  .folders-recipient-selection-bar > button:not(.is-primary) span {
-    display: none;
-  }
-
   .folders-recipient-selection-bar > button {
-    width: 40px;
+    width: 36px;
     padding: 0;
   }
 
