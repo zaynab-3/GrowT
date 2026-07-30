@@ -2980,7 +2980,7 @@ body,
 }
 
 .task-row-status--has-participants {
-  background: color-mix(in srgb, var(--status-accent) 50%, transparent) !important;
+  background: color-mix(in srgb, var(--status-accent) 30%, transparent) !important;
 }
 
 .task-row-status__label {
