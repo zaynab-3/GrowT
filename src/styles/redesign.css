@@ -2980,7 +2980,7 @@ body,
 }
 
 .task-row-status--has-participants {
-  background: color-mix(in srgb, var(--status-accent) 30%, transparent) !important;
+  background: color-mix(in srgb, var(--status-accent) 15%, transparent) !important;
 }
 
 .task-row-status__label {
@@ -5533,6 +5533,12 @@ body,
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.task-row-status--has-participants .task-status-person__name,
+.task-row-status--has-participants .task-status-person:nth-child(n + 2) .task-status-person__name {
+  color: color-mix(in srgb, var(--status-accent) 72%, var(--ink)) !important;
+  font-weight: 700;
 }
 
 .task-row__meta {
