@@ -5528,7 +5528,7 @@ body,
 .task-row-status .task-status-person__name,
 .task-row-status .task-status-person:nth-child(n + 2) .task-status-person__name {
   color: var(--ink-3);
-  font-size: 0.68rem;
+  font-size: clamp(0.72rem, calc(0.68rem + 0.18vw), 0.8rem);
   max-width: 90px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -5708,7 +5708,6 @@ body,
 
   .task-row-status .task-status-person__name,
   .task-row-status .task-status-person:nth-child(n + 2) .task-status-person__name {
-    font-size: 0.64rem;
     max-width: 64px;
   }
 
