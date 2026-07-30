@@ -364,7 +364,7 @@ export function TaskCard({
                 <button
                   aria-label={getStatusTitle(id, label)}
                   aria-pressed={statusToggleStatus === id}
-                  className={`task-row-status task-row-status--${id}${statusToggleStatus === id ? ' is-active' : ''}`}
+                  className={`task-row-status task-row-status--${id}${contributions?.[id].length ? ' task-row-status--has-participants' : ''}${statusToggleStatus === id ? ' is-active' : ''}`}
                   disabled={isStatusDisabled(id)}
                   key={id}
                   onClick={(event) => handleStatusChange(event, id)}

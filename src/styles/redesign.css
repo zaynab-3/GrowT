@@ -2979,6 +2979,10 @@ body,
   border-radius: 12px;
 }
 
+.task-row-status--has-participants {
+  background: color-mix(in srgb, var(--status-accent) 50%, transparent) !important;
+}
+
 .task-row-status__label {
   color: var(--status-accent);
   font-size: 0.76rem;
@@ -7630,8 +7634,8 @@ body,
   background: var(--surface) !important;
 }
 
-:root[data-theme='dark'] .task-row-status,
-:root[data-theme='dark'] .task-row-status.is-active {
+:root[data-theme='dark'] .task-row-status:not(.task-row-status--has-participants),
+:root[data-theme='dark'] .task-row-status.is-active:not(.task-row-status--has-participants) {
   border-color: var(--border) !important;
   background: var(--surface-soft) !important;
 }
