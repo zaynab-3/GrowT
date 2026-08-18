@@ -77,6 +77,10 @@ import * as authService from './services/authService'
 import { isSupabaseConfigured } from './services/clientService'
 import { createInviteWithUser } from './services/inviteService'
 import {
+  GoogleTasksAuthorizationError,
+  syncGoogleTasksIntoGrowT,
+} from './services/googleTasksService'
+import {
   ensureProfile,
   listProfiles,
   resolveLoginEmail,
@@ -102,6 +106,8 @@ type ConfirmRequest = {
   onConfirm: () => Promise<void>
   title: string
 }
+
+type GoogleTasksSyncStatus = 'disconnected' | 'error' | 'needs_authorization' | 'ready' | 'syncing'
 
 const SKIP_LANDING_STORAGE_KEY = 'growt:skipLanding'
 const THEME_MODE_STORAGE_KEY = 'growt:themeMode'
@@ -254,6 +260,8 @@ function App() {
   const [saving, setSaving] = useState(false)
   const [pendingAction, setPendingAction] = useState<string | null>(null)
   const [realtimeStatus, setRealtimeStatus] = useState('Idle')
+  const [googleTasksSyncStatus, setGoogleTasksSyncStatus] = useState<GoogleTasksSyncStatus>('disconnected')
+  const [googleTasksLastSyncedAt, setGoogleTasksLastSyncedAt] = useState<string | null>(null)
 
   const user = session?.user ?? null
   const userId = user?.id ?? null
@@ -278,6 +286,15 @@ function App() {
   const actionsRef = useRef<TaskStatusAction[]>([])
   const refreshFoldersRef = useRef<() => Promise<void>>(async () => undefined)
   const refreshLiveSessionRef = useRef<() => Promise<void>>(async () => undefined)
+  const googleTasksSyncInFlightRef = useRef(false)
+
+  const googleProviderToken = useMemo(() => {
+    const providers = user?.app_metadata?.providers
+    const hasGoogleIdentity = user?.app_metadata?.provider === 'google'
+      || (Array.isArray(providers) && providers.includes('google'))
+
+    return hasGoogleIdentity ? session?.provider_token ?? null : null
+  }, [session?.provider_token, user?.app_metadata?.provider, user?.app_metadata?.providers])
 
   const navigateToAuthView = useCallback((view: AuthView, mode: 'push' | 'replace' = 'push') => {
     runViewTransition(() => {
@@ -746,6 +763,42 @@ function App() {
     }
   }, [authReady, isCurrentSession, loadProfilesForIds, sessionKey, userId])
 
+  const runGoogleTasksSync = useCallback(async (announce = false) => {
+    if (!googleProviderToken) {
+      setGoogleTasksSyncStatus('disconnected')
+      if (announce) setMessage('Connect Google Tasks from your profile first.')
+      return
+    }
+
+    if (googleTasksSyncInFlightRef.current) return
+
+    googleTasksSyncInFlightRef.current = true
+    setGoogleTasksSyncStatus('syncing')
+
+    try {
+      const result = await syncGoogleTasksIntoGrowT(googleProviderToken)
+      setGoogleTasksSyncStatus('ready')
+      setGoogleTasksLastSyncedAt(new Date().toISOString())
+      await refreshStandaloneTasks()
+
+      if (announce) {
+        setMessage(`Google Tasks synced: ${result.imported} open ${result.imported === 1 ? 'task' : 'tasks'}.`)
+      }
+    } catch (error) {
+      const needsAuthorization = error instanceof GoogleTasksAuthorizationError
+      setGoogleTasksSyncStatus(needsAuthorization ? 'needs_authorization' : 'error')
+      console.error('Google Tasks sync failed', error)
+
+      if (announce) {
+        setMessage(needsAuthorization
+          ? 'Reconnect Google Tasks to renew read-only access.'
+          : error instanceof Error ? error.message : 'Unable to sync Google Tasks.')
+      }
+    } finally {
+      googleTasksSyncInFlightRef.current = false
+    }
+  }, [googleProviderToken, refreshStandaloneTasks])
+
   const refreshArchive = useCallback(async () => {
     if (!authReady || !isSupabaseConfigured || !userId || !sessionKey) {
       return
@@ -867,6 +920,30 @@ function App() {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [authReady, refreshArchive, refreshStandaloneTasks, userId])
+
+  useEffect(() => {
+    if (!initialDataReady || !userId) return
+
+    if (!googleProviderToken) {
+      setGoogleTasksSyncStatus('disconnected')
+      return
+    }
+
+    const syncWhenVisible = () => {
+      if (document.visibilityState === 'visible') void runGoogleTasksSync()
+    }
+
+    void runGoogleTasksSync()
+    const intervalId = window.setInterval(syncWhenVisible, 60_000)
+    window.addEventListener('focus', syncWhenVisible)
+    document.addEventListener('visibilitychange', syncWhenVisible)
+
+    return () => {
+      window.clearInterval(intervalId)
+      window.removeEventListener('focus', syncWhenVisible)
+      document.removeEventListener('visibilitychange', syncWhenVisible)
+    }
+  }, [googleProviderToken, initialDataReady, runGoogleTasksSync, userId])
 
   const refreshLiveSession = useCallback(async () => {
     if (!authReady) {
@@ -1177,6 +1254,8 @@ function App() {
     setSaving(false)
     setPendingAction(null)
     setRealtimeStatus('Idle')
+    setGoogleTasksSyncStatus('disconnected')
+    setGoogleTasksLastSyncedAt(null)
   }
 
   async function handleUpdateProfile(event: FormEvent<HTMLFormElement>) {
@@ -1251,6 +1330,19 @@ function App() {
     const { error } = await authService.updatePassword(nextPassword)
     if (error) throw error
     setMessage('Password changed successfully.')
+  }
+
+  async function handleConnectGoogleTasks() {
+    if (!isSupabaseConfigured) return
+
+    setGoogleTasksSyncStatus('syncing')
+    setMessage('')
+    const { error } = await authService.signInWithGoogle(`${window.location.origin}/profile`)
+
+    if (error) {
+      setGoogleTasksSyncStatus('error')
+      throw error
+    }
   }
 
   async function handleCreateFolder(event: React.FormEvent, inviteUsernames?: string[]) {
@@ -2261,6 +2353,8 @@ function App() {
           profileThemeMode !== (currentProfile?.theme_mode ?? defaultThemeMode) ||
           profileColorPalette !== (currentProfile?.color_palette ?? defaultColorPalette)
         }
+        googleTasksLastSyncedAt={googleTasksLastSyncedAt}
+        googleTasksSyncStatus={googleTasksSyncStatus}
         isSaving={saving}
         memberUsername={memberUsername}
         normalizedSearchQuery={normalizedSearchQuery}
@@ -2294,6 +2388,7 @@ function App() {
         onProfileAvatarChoiceChange={setProfileAvatarChoice}
         onChangeEmail={handleChangeEmail}
         onChangePassword={handleChangePassword}
+        onConnectGoogleTasks={handleConnectGoogleTasks}
         onProfileColorPaletteChange={setProfileColorPalette}
         onProfileDisplayNameChange={setProfileDisplayName}
         onProfileThemeModeChange={setProfileThemeMode}
@@ -2303,6 +2398,7 @@ function App() {
         onRestoreFolder={handleRestoreFolder}
         onRestoreTask={handleRestoreTask}
         onSaveProfile={handleUpdateProfile}
+        onSyncGoogleTasks={() => runGoogleTasksSync(true)}
         onSelectFolder={setSelectedFolderId}
         onSetTaskExported={(taskId, isExported) => void handleSetTaskExported(taskId, isExported)}
         onSetTaskStatus={(taskId, status) => void handleSetTaskStatus(taskId, status)}

@@ -756,6 +756,35 @@ export async function createStandaloneTask(
   return data as unknown as Task
 }
 
+export async function syncGoogleTask(
+  client: GrowTClient,
+  task: {
+    description: string | null
+    dueDate: string | null
+    externalListId: string
+    externalTaskId: string
+    externalUpdatedAt: string | null
+    externalUrl: string | null
+    title: string
+  },
+) {
+  const { data, error } = await client.rpc('sync_google_task', {
+    description: task.description ?? undefined,
+    due_date: task.dueDate ?? undefined,
+    external_list_id: task.externalListId,
+    external_task_id: task.externalTaskId,
+    external_updated_at: task.externalUpdatedAt ?? undefined,
+    external_url: task.externalUrl ?? undefined,
+    title: task.title,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return data as unknown as Task
+}
+
 export async function updateTask(
   client: GrowTClient,
   task: {

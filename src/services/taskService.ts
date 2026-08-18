@@ -17,6 +17,7 @@ import {
   setTaskProgress as setTaskProgressWithClient,
   softDeleteTask as softDeleteTaskWithClient,
   syncTaskLevels as syncTaskLevelsWithClient,
+  syncGoogleTask as syncGoogleTaskWithClient,
   undoLatestTaskProgress as undoLatestTaskProgressWithClient,
   undoTaskStatusAction as undoTaskStatusActionWithClient,
   updateTask as updateTaskWithClient,
@@ -99,6 +100,18 @@ export function updateTask(task: {
 
 export function syncTaskLevels(taskId: string, itemTitles: string[]) {
   return syncTaskLevelsWithClient(getSupabaseClient(), taskId, itemTitles)
+}
+
+export function syncGoogleTask(task: {
+  description: string | null
+  dueDate: string | null
+  externalListId: string
+  externalTaskId: string
+  externalUpdatedAt: string | null
+  externalUrl: string | null
+  title: string
+}) {
+  return syncGoogleTaskWithClient(getSupabaseClient(), task)
 }
 
 export function softDeleteTask(taskId: string) {

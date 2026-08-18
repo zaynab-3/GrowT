@@ -17,6 +17,7 @@ export {
   setTaskProgress,
   softDeleteTask,
   syncTaskLevels,
+  syncGoogleTask,
   undoLatestTaskProgress,
   undoTaskStatusAction,
   updateTask,

@@ -3,10 +3,14 @@ import {
   ArrowLeft,
   ArrowRight,
   AtSign,
+  CheckCircle2,
   Eye,
   EyeOff,
+  FolderKanban,
   LockKeyhole,
   Mail,
+  ShieldCheck,
+  Sparkles,
   UserRound,
 } from 'lucide-react'
 import { GrowTLogo } from '../components/GrowTLogo'
@@ -143,236 +147,355 @@ export function AuthPanel({
     )
   }
 
-  if (authView === 'reset') {
-    return (
-      <main className="auth-page">
-        <PwaInstallButton variant="auth" />
-        <section className="auth-panel auth-panel--compact">
-          <div className="auth-heading">
-            <GrowTLogo className="auth-heading__logo" size={70} />
-            <h1>GrowT</h1>
-            <p>Set a new password for your account.</p>
-          </div>
-          <form className="auth-form" onSubmit={onSubmitReset}>
-            <AuthField
-              autoComplete="new-password"
-              icon={<LockKeyhole size={18} strokeWidth={2.2} />}
-              id="reset-password"
-              label="New password"
-              onChange={onResetPasswordChange}
-              placeholder="New password"
-              trailing={passwordToggle('reset-password', 'new password')}
-              type={visiblePasswords['reset-password'] ? 'text' : 'password'}
-              value={resetPassword}
-            />
-            <AuthField
-              autoComplete="new-password"
-              icon={<LockKeyhole size={18} strokeWidth={2.2} />}
-              id="reset-confirm-password"
-              label="Confirm password"
-              onChange={onResetConfirmPasswordChange}
-              placeholder="Confirm new password"
-              trailing={passwordToggle('reset-confirm-password', 'confirm password')}
-              type={visiblePasswords['reset-confirm-password'] ? 'text' : 'password'}
-              value={resetConfirmPassword}
-            />
-            <button className="button button--primary" disabled={authLoading} type="submit">
-              {authLoading ? 'Updating…' : 'Update password'}
-            </button>
-          </form>
-        </section>
-        {message ? <p className="auth-toast" role="status">{message}</p> : null}
-      </main>
-    )
-  }
-
   return (
     <main className="auth-page">
       <PwaInstallButton variant="auth" />
-      <section className="auth-panel">
-        <div className="auth-heading">
-          <GrowTLogo className="auth-heading__logo" size={70} />
-          <h1>GrowT</h1>
-          <p>
-            {authView === 'register'
-              ? 'Start your journey to organized serenity.'
-              : authView === 'forgot'
-                ? 'We will help you get back into your workspace.'
-                : 'Welcome back to your workspace'}
-          </p>
+
+      {/* ── Left side: Brand Showcase (Desktop) ──────────────── */}
+      <aside className="auth-showcase">
+        <div className="auth-showcase__header">
+          <a className="auth-showcase__brand" href="/">
+            <GrowTLogo className="auth-showcase__logo" size={32} />
+            <span className="auth-showcase__brand-title">GrowT</span>
+          </a>
+          <span className="auth-showcase__version-tag">v2.0</span>
         </div>
-        {authView === 'register' ? (
-          <>
-            <h2 className="auth-panel-title">Create Account</h2>
-            <form className="auth-form" onSubmit={onSubmitRegister}>
-              <AuthField
-                autoComplete="username"
-                icon={<AtSign size={18} strokeWidth={2.2} />}
-                id="register-username"
-                label="Username"
-                onChange={onRegisterUsernameChange}
-                placeholder="unique_handle"
-                value={registerUsername}
-              />
-              <AuthField
-                autoComplete="email"
-                icon={<Mail size={18} strokeWidth={2.2} />}
-                id="register-email"
-                label="Email address"
-                onChange={onRegisterEmailChange}
-                placeholder="you@example.com"
-                type="email"
-                value={registerEmail}
-              />
-              <AuthField
-                autoComplete="new-password"
-                hint="Must be at least 8 characters."
-                icon={<LockKeyhole size={18} strokeWidth={2.2} />}
-                id="register-password"
-                label="Password"
-                onChange={onRegisterPasswordChange}
-                placeholder="Create a strong password"
-                trailing={passwordToggle('register-password', 'password')}
-                type={visiblePasswords['register-password'] ? 'text' : 'password'}
-                value={registerPassword}
-              />
-              <AuthField
-                autoComplete="new-password"
-                icon={<LockKeyhole size={18} strokeWidth={2.2} />}
-                id="register-confirm-password"
-                label="Confirm password"
-                onChange={onRegisterConfirmPasswordChange}
-                placeholder="Repeat your password"
-                trailing={passwordToggle('register-confirm-password', 'confirm password')}
-                type={visiblePasswords['register-confirm-password'] ? 'text' : 'password'}
-                value={registerConfirmPassword}
-              />
-              <button className="button button--primary" disabled={authLoading} type="submit">
-                <span>{authLoading ? 'Creating account…' : 'Create Account'}</span>
-                <ArrowRight aria-hidden="true" size={17} strokeWidth={2.4} />
-              </button>
-            </form>
-            <div className="auth-divider">
-              <span>or continue with</span>
-            </div>
-            <button
-              className="button button--google"
-              disabled={authLoading}
-              onClick={onContinueWithGoogle}
-              type="button"
-            >
-              <svg className="google-icon" viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05" />
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335" />
-              </svg>
-              Continue with Google
-            </button>
-            <div className="auth-links">
-              <button className="text-button" onClick={() => onViewChange('login')} type="button">
-                Already have an account? Login
-              </button>
-            </div>
-          </>
-        ) : null}
 
-        {authView === 'forgot' ? (
-          <>
-            <h2 className="auth-panel-title">Reset password</h2>
-            <form className="auth-form" onSubmit={onSubmitForgot}>
-              <AuthField
-                autoComplete="email"
-                icon={<Mail size={18} strokeWidth={2.2} />}
-                id="forgot-email"
-                label="Email address"
-                onChange={onForgotEmailChange}
-                placeholder="you@example.com"
-                type="email"
-                value={forgotEmail}
-              />
-              <button className="button button--primary" disabled={authLoading} type="submit">
-                {authLoading ? 'Sending…' : 'Send reset link'}
-              </button>
-            </form>
-            <div className="auth-links">
-              <button className="text-button" onClick={() => onViewChange('login')} type="button">
-                <ArrowLeft size={14} style={{ marginRight: 4 }} /> Back to login
-              </button>
-            </div>
-          </>
-        ) : null}
+        <div className="auth-showcase__body">
+          <div className="auth-showcase__pill">
+            <Sparkles size={13} />
+            <span>Intentional Task System</span>
+          </div>
 
-        {authView === 'login' ? (
-          <>
-            <form className="auth-form" onSubmit={onSubmitLogin}>
-              <AuthField
-                autoComplete="username"
-                icon={<UserRound size={18} strokeWidth={2.2} />}
-                id="login-identifier"
-                label="Username or email"
-                onChange={onLoginIdentifierChange}
-                placeholder="you@company.com"
-                value={loginIdentifier}
-              />
-              <div className="auth-password-label">
-                <span>Password</span>
-                <button className="text-button text-button--inline" onClick={() => onViewChange('forgot')} type="button">
-                  Forgot?
-                </button>
+          <h2 className="auth-showcase__headline">
+            Mindful tasks, effortless flow.
+          </h2>
+
+          <p className="auth-showcase__desc">
+            Organize tasks without friction. Fast, offline-first, and designed to help you finish what matters most.
+          </p>
+
+          <div className="auth-showcase__features">
+            <div className="auth-showcase__feature-item">
+              <span className="auth-showcase__feature-icon"><CheckCircle2 size={16} /></span>
+              <div>
+                <strong>Local-first speed</strong>
+                <p>Instant load times, works completely offline.</p>
               </div>
-              <AuthField
-                autoComplete="current-password"
-                icon={<LockKeyhole size={18} strokeWidth={2.2} />}
-                id="login-password"
-                label=""
-                onChange={onLoginPasswordChange}
-                placeholder="********"
-                trailing={passwordToggle('login-password', 'password')}
-                type={visiblePasswords['login-password'] ? 'text' : 'password'}
-                value={loginPassword}
-              />
-              <label className="checkbox-row" htmlFor="remember-me">
-                <input
-                  id="remember-me"
-                  checked={rememberMe}
-                  onChange={(event) => onRememberMeChange(event.target.checked)}
-                  type="checkbox"
+            </div>
+            <div className="auth-showcase__feature-item">
+              <span className="auth-showcase__feature-icon"><FolderKanban size={16} /></span>
+              <div>
+                <strong>Folder Workspaces</strong>
+                <p>Group projects naturally by client, goal, or life category.</p>
+              </div>
+            </div>
+            <div className="auth-showcase__feature-item">
+              <span className="auth-showcase__feature-icon"><ShieldCheck size={16} /></span>
+              <div>
+                <strong>Privacy Guaranteed</strong>
+                <p>Zero surveillance, zero ads. Your data belongs to you.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="auth-showcase__footer">
+          <span>© {new Date().getFullYear()} GrowT · Made with care</span>
+        </div>
+      </aside>
+
+      {/* ── Right side: Clean Auth Form ─────────────────────── */}
+      <section className="auth-form-container">
+        <header className="auth-form-header">
+          <a className="auth-back-link" href="/">
+            <ArrowLeft size={16} />
+            <span>Back to website</span>
+          </a>
+
+          {/* Mobile brand header */}
+          <div className="auth-mobile-brand">
+            <GrowTLogo size={36} />
+            <span>GrowT</span>
+          </div>
+        </header>
+
+        <div className="auth-form-card">
+          {authView === 'login' && (
+            <>
+              <div className="auth-title-block">
+                <h1>Welcome back</h1>
+                <p>Sign in to continue to your workspace.</p>
+              </div>
+
+              {onContinueWithGoogle && (
+                <>
+                  <button
+                    className="button--google"
+                    disabled={authLoading}
+                    onClick={onContinueWithGoogle}
+                    type="button"
+                  >
+                    <svg className="google-icon" height="18" viewBox="0 0 24 24" width="18" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05" />
+                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335" />
+                    </svg>
+                    <span>Continue with Google</span>
+                  </button>
+
+                  <div className="auth-divider">
+                    <span>or continue with email</span>
+                  </div>
+                </>
+              )}
+
+              <form className="auth-form" onSubmit={onSubmitLogin}>
+                <AuthField
+                  autoComplete="username"
+                  icon={<UserRound size={18} strokeWidth={2.2} />}
+                  id="login-identifier"
+                  label="Username or email"
+                  onChange={onLoginIdentifierChange}
+                  placeholder="you@example.com"
+                  value={loginIdentifier}
                 />
-                Remember me
-              </label>
-              <button className="button button--primary" disabled={authLoading} type="submit">
-                {authLoading ? 'Logging in…' : 'Log in'}
-              </button>
-            </form>
-            <div className="auth-divider">
-              <span>or continue with</span>
-            </div>
-            <button
-              className="button button--google"
-              disabled={authLoading}
-              onClick={onContinueWithGoogle}
-              type="button"
-            >
-              <svg className="google-icon" viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05" />
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335" />
-              </svg>
-              Continue with Google
-            </button>
-            <div className="auth-links">
-              <button className="text-button" onClick={() => onViewChange('register')} type="button">
-                Don&apos;t have an account? Register
-              </button>
-            </div>
-          </>
-        ) : null}
+
+                <div className="auth-password-header">
+                  <label htmlFor="login-password">Password</label>
+                  <button
+                    className="auth-link-button auth-link-button--subtle"
+                    onClick={() => onViewChange('forgot')}
+                    type="button"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+
+                <AuthField
+                  autoComplete="current-password"
+                  icon={<LockKeyhole size={18} strokeWidth={2.2} />}
+                  id="login-password"
+                  label=""
+                  onChange={onLoginPasswordChange}
+                  placeholder="••••••••"
+                  trailing={passwordToggle('login-password', 'password')}
+                  type={visiblePasswords['login-password'] ? 'text' : 'password'}
+                  value={loginPassword}
+                />
+
+                <label className="checkbox-row" htmlFor="remember-me">
+                  <input
+                    id="remember-me"
+                    checked={rememberMe}
+                    onChange={(event) => onRememberMeChange(event.target.checked)}
+                    type="checkbox"
+                  />
+                  <span>Keep me signed in</span>
+                </label>
+
+                <button className="button button--primary" disabled={authLoading} type="submit">
+                  <span>{authLoading ? 'Signing in…' : 'Sign in'}</span>
+                  <ArrowRight size={17} strokeWidth={2.4} />
+                </button>
+              </form>
+
+              <footer className="auth-card-footer">
+                <p>
+                  Don't have an account?{' '}
+                  <button className="auth-link-button" onClick={() => onViewChange('register')} type="button">
+                    Create account
+                  </button>
+                </p>
+              </footer>
+            </>
+          )}
+
+          {authView === 'register' && (
+            <>
+              <div className="auth-title-block">
+                <h1>Create account</h1>
+                <p>Start your journey to organized serenity.</p>
+              </div>
+
+              {onContinueWithGoogle && (
+                <>
+                  <button
+                    className="button--google"
+                    disabled={authLoading}
+                    onClick={onContinueWithGoogle}
+                    type="button"
+                  >
+                    <svg className="google-icon" height="18" viewBox="0 0 24 24" width="18" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05" />
+                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335" />
+                    </svg>
+                    <span>Sign up with Google</span>
+                  </button>
+
+                  <div className="auth-divider">
+                    <span>or sign up with email</span>
+                  </div>
+                </>
+              )}
+
+              <form className="auth-form" onSubmit={onSubmitRegister}>
+                <AuthField
+                  autoComplete="username"
+                  icon={<AtSign size={18} strokeWidth={2.2} />}
+                  id="register-username"
+                  label="Username"
+                  onChange={onRegisterUsernameChange}
+                  placeholder="unique_handle"
+                  value={registerUsername}
+                />
+
+                <AuthField
+                  autoComplete="email"
+                  icon={<Mail size={18} strokeWidth={2.2} />}
+                  id="register-email"
+                  label="Email address"
+                  onChange={onRegisterEmailChange}
+                  placeholder="you@example.com"
+                  type="email"
+                  value={registerEmail}
+                />
+
+                <AuthField
+                  autoComplete="new-password"
+                  hint="Must be at least 8 characters."
+                  icon={<LockKeyhole size={18} strokeWidth={2.2} />}
+                  id="register-password"
+                  label="Password"
+                  onChange={onRegisterPasswordChange}
+                  placeholder="Create a strong password"
+                  trailing={passwordToggle('register-password', 'password')}
+                  type={visiblePasswords['register-password'] ? 'text' : 'password'}
+                  value={registerPassword}
+                />
+
+                <AuthField
+                  autoComplete="new-password"
+                  icon={<LockKeyhole size={18} strokeWidth={2.2} />}
+                  id="register-confirm-password"
+                  label="Confirm password"
+                  onChange={onRegisterConfirmPasswordChange}
+                  placeholder="Repeat your password"
+                  trailing={passwordToggle('register-confirm-password', 'confirm password')}
+                  type={visiblePasswords['register-confirm-password'] ? 'text' : 'password'}
+                  value={registerConfirmPassword}
+                />
+
+                <button className="button button--primary" disabled={authLoading} type="submit">
+                  <span>{authLoading ? 'Creating account…' : 'Create Account'}</span>
+                  <ArrowRight size={17} strokeWidth={2.4} />
+                </button>
+              </form>
+
+              <footer className="auth-card-footer">
+                <p>
+                  Already have an account?{' '}
+                  <button className="auth-link-button" onClick={() => onViewChange('login')} type="button">
+                    Log in
+                  </button>
+                </p>
+              </footer>
+            </>
+          )}
+
+          {authView === 'forgot' && (
+            <>
+              <div className="auth-title-block">
+                <h1>Reset password</h1>
+                <p>Enter your email and we'll send you a recovery link.</p>
+              </div>
+
+              <form className="auth-form" onSubmit={onSubmitForgot}>
+                <AuthField
+                  autoComplete="email"
+                  icon={<Mail size={18} strokeWidth={2.2} />}
+                  id="forgot-email"
+                  label="Email address"
+                  onChange={onForgotEmailChange}
+                  placeholder="you@example.com"
+                  type="email"
+                  value={forgotEmail}
+                />
+
+                <button className="button button--primary" disabled={authLoading} type="submit">
+                  <span>{authLoading ? 'Sending…' : 'Send recovery link'}</span>
+                  <ArrowRight size={17} strokeWidth={2.4} />
+                </button>
+              </form>
+
+              <footer className="auth-card-footer">
+                <p>
+                  Remember your password?{' '}
+                  <button className="auth-link-button" onClick={() => onViewChange('login')} type="button">
+                    Back to login
+                  </button>
+                </p>
+              </footer>
+            </>
+          )}
+
+          {authView === 'reset' && (
+            <>
+              <div className="auth-title-block">
+                <h1>Set new password</h1>
+                <p>Choose a secure new password for your account.</p>
+              </div>
+
+              <form className="auth-form" onSubmit={onSubmitReset}>
+                <AuthField
+                  autoComplete="new-password"
+                  icon={<LockKeyhole size={18} strokeWidth={2.2} />}
+                  id="reset-password"
+                  label="New password"
+                  onChange={onResetPasswordChange}
+                  placeholder="New password"
+                  trailing={passwordToggle('reset-password', 'new password')}
+                  type={visiblePasswords['reset-password'] ? 'text' : 'password'}
+                  value={resetPassword}
+                />
+
+                <AuthField
+                  autoComplete="new-password"
+                  icon={<LockKeyhole size={18} strokeWidth={2.2} />}
+                  id="reset-confirm-password"
+                  label="Confirm password"
+                  onChange={onResetConfirmPasswordChange}
+                  placeholder="Confirm new password"
+                  trailing={passwordToggle('reset-confirm-password', 'confirm password')}
+                  type={visiblePasswords['reset-confirm-password'] ? 'text' : 'password'}
+                  value={resetConfirmPassword}
+                />
+
+                <button className="button button--primary" disabled={authLoading} type="submit">
+                  <span>{authLoading ? 'Updating…' : 'Update password'}</span>
+                  <ArrowRight size={17} strokeWidth={2.4} />
+                </button>
+              </form>
+
+              <footer className="auth-card-footer">
+                <p>
+                  <button className="auth-link-button" onClick={() => onViewChange('login')} type="button">
+                    Back to login
+                  </button>
+                </p>
+              </footer>
+            </>
+          )}
+        </div>
       </section>
+
       {message ? <p className="auth-toast" role="status">{message}</p> : null}
     </main>
   )
 }
+
 
 

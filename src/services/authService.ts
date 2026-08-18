@@ -45,7 +45,10 @@ export function signInWithPassword(email: string, password: string) {
 export function signInWithGoogle(redirectTo: string) {
   return getSupabaseClient().auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo },
+    options: {
+      redirectTo,
+      scopes: 'https://www.googleapis.com/auth/tasks.readonly',
+    },
   })
 }
 

@@ -599,6 +599,11 @@ export type Database = {
           deleted_at: string | null
           description: string | null
           due_date: string | null
+          external_list_id: string | null
+          external_source: string | null
+          external_task_id: string | null
+          external_updated_at: string | null
+          external_url: string | null
           folder_id: string | null
           has_export_button: boolean
           id: string
@@ -617,6 +622,11 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           due_date?: string | null
+          external_list_id?: string | null
+          external_source?: string | null
+          external_task_id?: string | null
+          external_updated_at?: string | null
+          external_url?: string | null
           folder_id?: string | null
           has_export_button?: boolean
           id?: string
@@ -635,6 +645,11 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           due_date?: string | null
+          external_list_id?: string | null
+          external_source?: string | null
+          external_task_id?: string | null
+          external_updated_at?: string | null
+          external_url?: string | null
           folder_id?: string | null
           has_export_button?: boolean
           id?: string
@@ -1258,6 +1273,46 @@ export type Database = {
           deleted_at: string | null
           description: string | null
           due_date: string | null
+          folder_id: string | null
+          has_export_button: boolean
+          id: string
+          is_active: boolean
+          is_exported: boolean
+          owner_id: string
+          position: number
+          recipient_amount: number
+          title: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "tasks"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      sync_google_task: {
+        Args: {
+          description?: string
+          due_date?: string
+          external_list_id: string
+          external_task_id: string
+          external_updated_at?: string
+          external_url?: string
+          title: string
+        }
+        Returns: {
+          assigned_user_id: string | null
+          category: string
+          created_at: string
+          deleted_at: string | null
+          description: string | null
+          due_date: string | null
+          external_list_id: string | null
+          external_source: string | null
+          external_task_id: string | null
+          external_updated_at: string | null
+          external_url: string | null
           folder_id: string | null
           has_export_button: boolean
           id: string

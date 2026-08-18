@@ -7,12 +7,14 @@ import {
   Eye,
   EyeOff,
   KeyRound,
+  ListTodo,
   Mail,
   Monitor,
   Moon,
   Paintbrush,
   Palette,
   Plus,
+  RefreshCw,
   ShieldCheck,
   Smile,
   Sun,
@@ -28,16 +30,20 @@ import {
 import type { AvatarChoice, ColorPalette, ThemeMode } from '../lib/database.types'
 
 type SettingsViewProps = {
+  googleTasksLastSyncedAt: string | null
+  googleTasksSyncStatus: 'disconnected' | 'error' | 'needs_authorization' | 'ready' | 'syncing'
   hasUnsavedChanges: boolean
   isSaving: boolean
   onChangeEmail: (email: string) => Promise<void>
   onChangePassword: (currentPassword: string, nextPassword: string) => Promise<void>
+  onConnectGoogleTasks: () => Promise<void>
   onProfileAvatarChoiceChange: (avatarChoice: AvatarChoice) => void
   onProfileColorPaletteChange: (colorPalette: ColorPalette) => void
   onProfileDisplayNameChange: (displayName: string) => void
   onProfileThemeModeChange: (themeMode: ThemeMode) => void
   onProfileUsernameChange: (username: string) => void
   onSaveProfile: (event: FormEvent<HTMLFormElement>) => void
+  onSyncGoogleTasks: () => Promise<void>
   profileAvatarChoice: AvatarChoice
   profileColorPalette: ColorPalette
   profileDisplayName: string
@@ -113,16 +119,20 @@ function ColorPaletteChoice({
 }
 
 export function SettingsView({
+  googleTasksLastSyncedAt,
+  googleTasksSyncStatus,
   hasUnsavedChanges,
   isSaving,
   onChangeEmail,
   onChangePassword,
+  onConnectGoogleTasks,
   onProfileAvatarChoiceChange,
   onProfileColorPaletteChange,
   onProfileDisplayNameChange,
   onProfileThemeModeChange,
   onProfileUsernameChange,
   onSaveProfile,
+  onSyncGoogleTasks,
   profileAvatarChoice,
   profileColorPalette,
   profileDisplayName,
@@ -340,6 +350,53 @@ export function SettingsView({
 
         {/* Right Column: Theme selection + Color selection + Save Profile card */}
         <div className="workspace-side-col">
+          <section className="google-tasks-card glass-card rounded-2xl p-4 sm:p-6 shadow-sm border border-surface-variant">
+            <div className="google-tasks-card__heading">
+              <span><ListTodo aria-hidden="true" size={20} /></span>
+              <div>
+                <h4>Google Tasks</h4>
+                <p>Import open Google tasks into your personal GrowT tasks.</p>
+              </div>
+            </div>
+
+            <div className={`google-tasks-card__status google-tasks-card__status--${googleTasksSyncStatus}`}>
+              <span aria-hidden="true" />
+              <p>
+                {googleTasksSyncStatus === 'syncing' ? 'Syncing now…' : null}
+                {googleTasksSyncStatus === 'ready' ? 'Connected · checks every minute while GrowT is open' : null}
+                {googleTasksSyncStatus === 'needs_authorization' ? 'Access expired · reconnect to continue' : null}
+                {googleTasksSyncStatus === 'error' ? 'Sync could not finish · try again' : null}
+                {googleTasksSyncStatus === 'disconnected' ? 'Not connected' : null}
+              </p>
+            </div>
+
+            {googleTasksLastSyncedAt ? (
+              <small>Last synced {new Date(googleTasksLastSyncedAt).toLocaleString()}</small>
+            ) : null}
+
+            <div className="google-tasks-card__actions">
+              <button
+                className="credentials-card__button"
+                disabled={googleTasksSyncStatus === 'syncing'}
+                onClick={() => void onConnectGoogleTasks()}
+                type="button"
+              >
+                {googleTasksSyncStatus === 'disconnected' ? 'Connect Google Tasks' : 'Reconnect Google'}
+              </button>
+              {googleTasksSyncStatus !== 'disconnected' ? (
+                <button
+                  className="google-tasks-card__sync"
+                  disabled={googleTasksSyncStatus === 'syncing'}
+                  onClick={() => void onSyncGoogleTasks()}
+                  type="button"
+                >
+                  <RefreshCw aria-hidden="true" size={16} />
+                  Sync now
+                </button>
+              ) : null}
+            </div>
+          </section>
+
           {/* Theme Mode */}
           <div className="glass-card rounded-2xl p-4 sm:p-6 shadow-sm border border-surface-variant">
             <h4 className="font-title-lg text-title-lg text-on-surface mb-6 flex items-center gap-2" style={{ margin: '0 0 16px' }}>

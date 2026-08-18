@@ -28,6 +28,7 @@ import type { AppRoute, AppView } from './viewTypes'
 type AssignableMember = { id: string; label: string }
 type ContributionCounts = Record<TaskProgressStatus, number>
 type StatusContribution = { action: TaskStatusAction; userId: string }
+type GoogleTasksSyncStatus = 'disconnected' | 'error' | 'needs_authorization' | 'ready' | 'syncing'
 const EMPTY_TASK_LEVEL_SET = new Set<string>()
 
 type AppViewRouterProps = {
@@ -51,6 +52,8 @@ type AppViewRouterProps = {
   getContributionCounts: (userId: string) => ContributionCounts
   getProfileAvatar: (userId: string) => string | null
   getProfileLabel: (userId: string) => string
+  googleTasksLastSyncedAt: string | null
+  googleTasksSyncStatus: GoogleTasksSyncStatus
   hasUnsavedChanges: boolean
 
   isSaving: boolean
@@ -85,6 +88,7 @@ type AppViewRouterProps = {
   onOpenTask: (task: Task) => void
   onChangeEmail: (email: string) => Promise<void>
   onChangePassword: (currentPassword: string, nextPassword: string) => Promise<void>
+  onConnectGoogleTasks: () => Promise<void>
   onProfileAvatarChoiceChange: (avatarChoice: AvatarChoice) => void
   onProfileColorPaletteChange: (colorPalette: ColorPalette) => void
   onProfileDisplayNameChange: (displayName: string) => void
@@ -95,6 +99,7 @@ type AppViewRouterProps = {
   onRestoreFolder: (folder: Folder) => void
   onRestoreTask: (task: Task) => void
   onSaveProfile: (event: FormEvent<HTMLFormElement>) => void
+  onSyncGoogleTasks: () => Promise<void>
   onSelectFolder: (folderId: string) => void
   onSetTaskExported: (taskId: string, isExported?: boolean) => void
   onSetTaskStatus: (taskId: string, status: TaskProgressStatus) => void
@@ -145,6 +150,8 @@ export function AppViewRouter({
   folders,
   getProfileAvatar,
   getProfileLabel,
+  googleTasksLastSyncedAt,
+  googleTasksSyncStatus,
   hasUnsavedChanges,
   isSaving,
 
@@ -179,6 +186,7 @@ export function AppViewRouter({
   onOpenTask,
   onChangeEmail,
   onChangePassword,
+  onConnectGoogleTasks,
   onProfileAvatarChoiceChange,
   onProfileColorPaletteChange,
   onProfileDisplayNameChange,
@@ -189,6 +197,7 @@ export function AppViewRouter({
   onRestoreFolder,
   onRestoreTask,
   onSaveProfile,
+  onSyncGoogleTasks,
   onSetTaskExported,
   onSetTaskStatus,
   onToggleTaskLevel,
@@ -561,16 +570,20 @@ export function AppViewRouter({
     case 'settings':
       return (
         <SettingsView
+          googleTasksLastSyncedAt={googleTasksLastSyncedAt}
+          googleTasksSyncStatus={googleTasksSyncStatus}
           hasUnsavedChanges={hasUnsavedChanges}
           isSaving={isSaving}
           onChangeEmail={onChangeEmail}
           onChangePassword={onChangePassword}
+          onConnectGoogleTasks={onConnectGoogleTasks}
           onProfileAvatarChoiceChange={onProfileAvatarChoiceChange}
           onProfileColorPaletteChange={onProfileColorPaletteChange}
           onProfileDisplayNameChange={onProfileDisplayNameChange}
           onProfileThemeModeChange={onProfileThemeModeChange}
           onProfileUsernameChange={onProfileUsernameChange}
           onSaveProfile={onSaveProfile}
+          onSyncGoogleTasks={onSyncGoogleTasks}
           profileAvatarChoice={profileAvatarChoice}
           profileColorPalette={profileColorPalette}
           profileDisplayName={profileDisplayName}
