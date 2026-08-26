@@ -1,5 +1,5 @@
 import type { Task } from '../lib/growtData'
-import { syncGoogleTask } from './taskService'
+import { finishGoogleTasksSync, syncGoogleTask } from './taskService'
 
 const GOOGLE_TASKS_API = 'https://tasks.googleapis.com/tasks/v1'
 
@@ -13,6 +13,7 @@ type GoogleTask = {
   due?: string
   hidden?: boolean
   id: string
+  links?: Array<{ link?: string }>
   notes?: string
   status?: 'completed' | 'needsAction'
   title?: string
@@ -29,6 +30,7 @@ type GooglePage<T> = {
 }
 
 export type GoogleTasksSyncResult = {
+  deactivated: number
   imported: number
   lists: number
   tasks: Task[]
@@ -109,10 +111,12 @@ async function listOpenGoogleTasks(providerToken: string, taskListId: string) {
 export async function syncGoogleTasksIntoGrowT(providerToken: string): Promise<GoogleTasksSyncResult> {
   const taskLists = await listGoogleTaskLists(providerToken)
   const syncedTasks: Task[] = []
+  let deactivated = 0
 
   // Keep writes sequential so newly imported tasks receive stable positions.
   for (const taskList of taskLists) {
     const googleTasks = await listOpenGoogleTasks(providerToken, taskList.id)
+    const activeGoogleTaskIds: string[] = []
 
     for (const googleTask of googleTasks) {
       const title = googleTask.title?.trim()
@@ -120,19 +124,26 @@ export async function syncGoogleTasksIntoGrowT(providerToken: string): Promise<G
         continue
       }
 
+      activeGoogleTaskIds.push(googleTask.id)
       syncedTasks.push(await syncGoogleTask({
         description: googleTask.notes?.trim() || null,
         dueDate: googleTask.due ?? null,
         externalListId: taskList.id,
         externalTaskId: googleTask.id,
         externalUpdatedAt: googleTask.updated ?? null,
-        externalUrl: googleTask.webViewLink ?? googleTask.assignmentInfo?.linkToTask ?? null,
+        externalUrl: googleTask.webViewLink
+          ?? googleTask.assignmentInfo?.linkToTask
+          ?? googleTask.links?.find((link) => link.link?.startsWith('https://'))?.link
+          ?? null,
         title,
       }))
     }
+
+    deactivated += await finishGoogleTasksSync(taskList.id, activeGoogleTaskIds)
   }
 
   return {
+    deactivated,
     imported: syncedTasks.length,
     lists: taskLists.length,
     tasks: syncedTasks,

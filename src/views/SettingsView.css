@@ -191,6 +191,187 @@
   padding: 8px 0 16px;
 }
 
+/* =================== GOOGLE TASKS ========================= */
+
+.google-tasks-card {
+  display: grid;
+  min-width: 0;
+  gap: 15px;
+}
+
+.google-tasks-card__heading {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+}
+
+.google-tasks-card__icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 13px;
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.google-tasks-card__heading > div {
+  min-width: 0;
+}
+
+.google-tasks-card__heading h4,
+.google-tasks-card__heading p,
+.google-tasks-card__status strong,
+.google-tasks-card__status span,
+.google-tasks-card__note p {
+  margin: 0;
+}
+
+.google-tasks-card__heading h4 {
+  margin-bottom: 3px;
+  color: var(--ink);
+  font-size: 0.98rem;
+}
+
+.google-tasks-card__heading p {
+  color: var(--ink-3);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.google-tasks-card__permission {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  padding: 4px 8px;
+  color: var(--ink-2);
+  font-size: 0.66rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.google-tasks-card__status {
+  display: grid;
+  grid-template-columns: 9px auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: var(--surface-soft);
+  padding: 10px 12px;
+}
+
+.google-tasks-card__status-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ink-3);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ink-3) 12%, transparent);
+}
+
+.google-tasks-card__status strong {
+  color: var(--ink);
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+
+.google-tasks-card__status-detail {
+  overflow: hidden;
+  color: var(--ink-3);
+  font-size: 0.7rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.google-tasks-card__status--ready .google-tasks-card__status-dot {
+  background: #18a768;
+  box-shadow: 0 0 0 4px rgba(24, 167, 104, 0.13);
+}
+
+.google-tasks-card__status--syncing .google-tasks-card__status-dot {
+  background: #4285f4;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.13);
+}
+
+.google-tasks-card__status--error .google-tasks-card__status-dot,
+.google-tasks-card__status--needs_authorization .google-tasks-card__status-dot {
+  background: var(--danger-color);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--danger-color) 13%, transparent);
+}
+
+.google-tasks-card__note {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+  color: var(--ink-3);
+}
+
+.google-tasks-card__note svg {
+  margin-top: 2px;
+  color: var(--primary);
+}
+
+.google-tasks-card__note p {
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.google-tasks-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+}
+
+.google-tasks-card__connect,
+.google-tasks-card__sync {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: 12px;
+  padding: 0 14px;
+  font-size: 0.76rem;
+  font-weight: 760;
+}
+
+.google-tasks-card__connect {
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(var(--primary-rgb), 0.2);
+}
+
+.google-tasks-card__sync {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.google-tasks-card__connect:hover:not(:disabled) {
+  background: var(--primary-dark);
+}
+
+.google-tasks-card__sync:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.google-tasks-card button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.google-tasks-card__actions small {
+  margin-left: auto;
+  color: var(--ink-3);
+  font-size: 0.68rem;
+}
+
 @media (max-width: 900px) {
   .settings-page {
     gap: 16px;
@@ -207,6 +388,32 @@
 }
 
 @media (max-width: 600px) {
+  .google-tasks-card__heading {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+
+  .google-tasks-card__permission {
+    display: none;
+  }
+
+  .google-tasks-card__status {
+    grid-template-columns: 9px minmax(0, 1fr);
+  }
+
+  .google-tasks-card__status-detail {
+    grid-column: 2;
+    white-space: normal;
+  }
+
+  .google-tasks-card__actions > button {
+    flex: 1 1 auto;
+  }
+
+  .google-tasks-card__actions small {
+    width: 100%;
+    margin-left: 0;
+  }
+
   .theme-mode-toggle {
     width: 100%;
   }

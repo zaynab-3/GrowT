@@ -2,6 +2,7 @@ import {
   addTaskMemberByUsername as addTaskMemberByUsernameWithClient,
   createStandaloneTask as createStandaloneTaskWithClient,
   createTask as createTaskWithClient,
+  finishGoogleTasksSync as finishGoogleTasksSyncWithClient,
   hardDeleteTask as hardDeleteTaskWithClient,
   listDeletedTasks as listDeletedTasksWithClient,
   listStandaloneTasks as listStandaloneTasksWithClient,
@@ -112,6 +113,10 @@ export function syncGoogleTask(task: {
   title: string
 }) {
   return syncGoogleTaskWithClient(getSupabaseClient(), task)
+}
+
+export function finishGoogleTasksSync(externalListId: string, activeExternalTaskIds: string[]) {
+  return finishGoogleTasksSyncWithClient(getSupabaseClient(), externalListId, activeExternalTaskIds)
 }
 
 export function softDeleteTask(taskId: string) {

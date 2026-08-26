@@ -898,13 +898,13 @@ body,
   letter-spacing: -0.02em;
 }
 
-.profile-page .glass-card:first-child {
+.profile-page .workspace-main-col > .glass-card:first-child {
   background:
     radial-gradient(circle at 15% 20%, rgba(102, 87, 232, 0.11), transparent 36%),
     var(--ui-surface) !important;
 }
 
-.profile-page .glass-card:first-child > div:first-child > div {
+.profile-page .workspace-main-col > .glass-card:first-child > div:first-child > div {
   border-color: #fff !important;
   box-shadow: 0 0 0 3px rgba(102, 87, 232, 0.12), 0 10px 26px rgba(44, 47, 95, 0.13) !important;
 }
@@ -2979,6 +2979,22 @@ body,
   border-radius: 12px;
 }
 
+.task-row__source-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 9px 0 0 38px;
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 740;
+  line-height: 1.4;
+  text-decoration: none;
+}
+
+.task-row__source-link:hover {
+  text-decoration: underline;
+}
+
 .task-row-status--has-participants {
   background: color-mix(in srgb, var(--status-accent) 15%, transparent) !important;
 }
@@ -4160,6 +4176,7 @@ body,
   }
 
   .task-row__description,
+  .task-row__source-link,
   .task-row .task-checklist,
   .task-row__status-grid,
   .task-row__meta {
@@ -4526,6 +4543,7 @@ body,
 }
 
 .task-detail-redesign__actions > button,
+.task-detail-redesign__actions > a,
 .task-detail-redesign__more > summary {
   display: inline-flex;
   min-height: 46px;
@@ -4540,6 +4558,7 @@ body,
   font-size: 0.84rem;
   font-weight: 760;
   list-style: none;
+  text-decoration: none;
 }
 
 .task-detail-redesign__more {
@@ -4881,6 +4900,7 @@ body,
   }
 
   .task-detail-redesign__actions > button,
+  .task-detail-redesign__actions > a,
   .task-detail-redesign__more > summary {
     width: 100%;
     min-width: 0;
@@ -5001,6 +5021,7 @@ body,
 
 @media (max-width: 360px) {
   .task-detail-redesign__actions > button,
+  .task-detail-redesign__actions > a,
   .task-detail-redesign__more > summary {
     min-height: 52px;
     flex-direction: column;
@@ -5022,6 +5043,7 @@ body,
 :root[data-theme='dark'] .task-detail-redesign__surface,
 :root[data-theme='dark'] .task-detail-section,
 :root[data-theme='dark'] .task-detail-redesign__actions > button,
+:root[data-theme='dark'] .task-detail-redesign__actions > a,
 :root[data-theme='dark'] .task-detail-redesign__more > summary,
 :root[data-theme='dark'] .task-detail-redesign__more-menu,
 :root[data-theme='dark'] .task-detail-section__heading > button,
@@ -5343,6 +5365,10 @@ body,
 }
 
 .task-row__description {
+  margin-left: 0;
+}
+
+.task-row__source-link {
   margin-left: 0;
 }
 

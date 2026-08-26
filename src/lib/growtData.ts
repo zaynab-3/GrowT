@@ -785,6 +785,23 @@ export async function syncGoogleTask(
   return data as unknown as Task
 }
 
+export async function finishGoogleTasksSync(
+  client: GrowTClient,
+  externalListId: string,
+  activeExternalTaskIds: string[],
+) {
+  const { data, error } = await client.rpc('finish_google_tasks_sync', {
+    active_external_task_ids: activeExternalTaskIds,
+    external_list_id: externalListId,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return data
+}
+
 export async function updateTask(
   client: GrowTClient,
   task: {

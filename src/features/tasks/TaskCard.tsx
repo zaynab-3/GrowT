@@ -9,6 +9,7 @@ import {
   CircleDot,
   CircleGauge,
   Edit2,
+  ExternalLink,
   FileOutput,
   GripVertical,
   MoreHorizontal,
@@ -346,6 +347,19 @@ export function TaskCard({
               <div className="task-row__description">
                 <LinkifiedText text={task.description} />
               </div>
+            ) : null}
+
+            {task.external_source === 'google_tasks' && task.external_url ? (
+              <a
+                className="task-row__source-link"
+                href={task.external_url}
+                onClick={(event) => event.stopPropagation()}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                <ExternalLink aria-hidden="true" size={14} />
+                Open original task for images and attachments
+              </a>
             ) : null}
 
             {taskLevels.length > 0 ? (

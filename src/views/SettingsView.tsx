@@ -6,6 +6,7 @@ import {
   CreditCard,
   Eye,
   EyeOff,
+  ExternalLink,
   KeyRound,
   ListTodo,
   Mail,
@@ -350,33 +351,47 @@ export function SettingsView({
 
         {/* Right Column: Theme selection + Color selection + Save Profile card */}
         <div className="workspace-side-col">
-          <section className="google-tasks-card glass-card rounded-2xl p-4 sm:p-6 shadow-sm border border-surface-variant">
+          <section
+            aria-labelledby="google-tasks-heading"
+            className="google-tasks-card glass-card rounded-2xl p-4 sm:p-6 shadow-sm border border-surface-variant"
+          >
             <div className="google-tasks-card__heading">
-              <span><ListTodo aria-hidden="true" size={20} /></span>
+              <span className="google-tasks-card__icon"><ListTodo aria-hidden="true" size={20} /></span>
               <div>
-                <h4>Google Tasks</h4>
-                <p>Import open Google tasks into your personal GrowT tasks.</p>
+                <h4 id="google-tasks-heading">Google Tasks</h4>
+                <p>Bring your open Google tasks into My Tasks.</p>
               </div>
+              <span className="google-tasks-card__permission">Read only</span>
             </div>
 
-            <div className={`google-tasks-card__status google-tasks-card__status--${googleTasksSyncStatus}`}>
-              <span aria-hidden="true" />
-              <p>
+            <div
+              aria-live="polite"
+              className={`google-tasks-card__status google-tasks-card__status--${googleTasksSyncStatus}`}
+            >
+              <span className="google-tasks-card__status-dot" aria-hidden="true" />
+              <strong>
                 {googleTasksSyncStatus === 'syncing' ? 'Syncing now…' : null}
-                {googleTasksSyncStatus === 'ready' ? 'Connected · checks every minute while GrowT is open' : null}
-                {googleTasksSyncStatus === 'needs_authorization' ? 'Access expired · reconnect to continue' : null}
-                {googleTasksSyncStatus === 'error' ? 'Sync could not finish · try again' : null}
+                {googleTasksSyncStatus === 'ready' ? 'Connected and syncing' : null}
+                {googleTasksSyncStatus === 'needs_authorization' ? 'Google access required' : null}
+                {googleTasksSyncStatus === 'error' ? 'Sync needs attention' : null}
                 {googleTasksSyncStatus === 'disconnected' ? 'Not connected' : null}
-              </p>
+              </strong>
+              <span className="google-tasks-card__status-detail">
+                {googleTasksSyncStatus === 'ready' ? 'Checks every minute while GrowT is open.' : null}
+                {googleTasksSyncStatus === 'needs_authorization' ? 'Reconnect and approve read-only Tasks access.' : null}
+                {googleTasksSyncStatus === 'error' ? 'Try syncing again or reconnect Google.' : null}
+                {googleTasksSyncStatus === 'disconnected' ? 'Connect once to start automatic import.' : null}
+              </span>
             </div>
 
-            {googleTasksLastSyncedAt ? (
-              <small>Last synced {new Date(googleTasksLastSyncedAt).toLocaleString()}</small>
-            ) : null}
+            <div className="google-tasks-card__note">
+              <ExternalLink aria-hidden="true" size={16} />
+              <p>Images and attachments stay in Google. Every imported task includes a link to open the original.</p>
+            </div>
 
             <div className="google-tasks-card__actions">
               <button
-                className="credentials-card__button"
+                className="google-tasks-card__connect"
                 disabled={googleTasksSyncStatus === 'syncing'}
                 onClick={() => void onConnectGoogleTasks()}
                 type="button"
@@ -393,6 +408,9 @@ export function SettingsView({
                   <RefreshCw aria-hidden="true" size={16} />
                   Sync now
                 </button>
+              ) : null}
+              {googleTasksLastSyncedAt ? (
+                <small>Last sync {new Date(googleTasksLastSyncedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
               ) : null}
             </div>
           </section>

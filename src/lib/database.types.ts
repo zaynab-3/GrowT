@@ -1291,6 +1291,13 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      finish_google_tasks_sync: {
+        Args: {
+          active_external_task_ids?: string[]
+          external_list_id: string
+        }
+        Returns: number
+      }
       sync_google_task: {
         Args: {
           description?: string

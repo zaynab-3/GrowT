@@ -12,6 +12,7 @@ import {
   CircleGauge,
   DollarSign,
   Edit3,
+  ExternalLink,
   FileText,
   Link2,
   ListChecks,
@@ -156,6 +157,13 @@ export function TaskDetailPage({
         </div>
 
         <div className="task-detail-redesign__actions">
+          {task.external_source === 'google_tasks' && task.external_url ? (
+            <a href={task.external_url} rel="noopener noreferrer" target="_blank">
+              <ExternalLink size={18} />
+              <span>Open in Google Tasks</span>
+            </a>
+          ) : null}
+
           {recipientReport ? (
             <button
               onClick={(event) => setRecipientAnchor(event.currentTarget.getBoundingClientRect())}

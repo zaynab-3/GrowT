@@ -287,14 +287,12 @@ function App() {
   const refreshFoldersRef = useRef<() => Promise<void>>(async () => undefined)
   const refreshLiveSessionRef = useRef<() => Promise<void>>(async () => undefined)
   const googleTasksSyncInFlightRef = useRef(false)
+  const googleTasksAuthorizationBlockedRef = useRef(false)
 
-  const googleProviderToken = useMemo(() => {
-    const providers = user?.app_metadata?.providers
-    const hasGoogleIdentity = user?.app_metadata?.provider === 'google'
-      || (Array.isArray(providers) && providers.includes('google'))
-
-    return hasGoogleIdentity ? session?.provider_token ?? null : null
-  }, [session?.provider_token, user?.app_metadata?.provider, user?.app_metadata?.providers])
+  const googleProviders = user?.app_metadata?.providers
+  const hasGoogleIdentity = user?.app_metadata?.provider === 'google'
+    || (Array.isArray(googleProviders) && googleProviders.includes('google'))
+  const googleProviderToken = hasGoogleIdentity ? session?.provider_token ?? null : null
 
   const navigateToAuthView = useCallback((view: AuthView, mode: 'push' | 'replace' = 'push') => {
     runViewTransition(() => {
@@ -770,13 +768,14 @@ function App() {
       return
     }
 
-    if (googleTasksSyncInFlightRef.current) return
+    if (googleTasksSyncInFlightRef.current || (googleTasksAuthorizationBlockedRef.current && !announce)) return
 
     googleTasksSyncInFlightRef.current = true
     setGoogleTasksSyncStatus('syncing')
 
     try {
       const result = await syncGoogleTasksIntoGrowT(googleProviderToken)
+      googleTasksAuthorizationBlockedRef.current = false
       setGoogleTasksSyncStatus('ready')
       setGoogleTasksLastSyncedAt(new Date().toISOString())
       await refreshStandaloneTasks()
@@ -786,6 +785,7 @@ function App() {
       }
     } catch (error) {
       const needsAuthorization = error instanceof GoogleTasksAuthorizationError
+      googleTasksAuthorizationBlockedRef.current = needsAuthorization
       setGoogleTasksSyncStatus(needsAuthorization ? 'needs_authorization' : 'error')
       console.error('Google Tasks sync failed', error)
 
@@ -798,6 +798,10 @@ function App() {
       googleTasksSyncInFlightRef.current = false
     }
   }, [googleProviderToken, refreshStandaloneTasks])
+
+  useEffect(() => {
+    googleTasksAuthorizationBlockedRef.current = false
+  }, [googleProviderToken])
 
   const refreshArchive = useCallback(async () => {
     if (!authReady || !isSupabaseConfigured || !userId || !sessionKey) {
@@ -1337,11 +1341,11 @@ function App() {
 
     setGoogleTasksSyncStatus('syncing')
     setMessage('')
-    const { error } = await authService.signInWithGoogle(`${window.location.origin}/profile`)
+    const { error } = await authService.connectGoogleTasks(`${window.location.origin}/profile`)
 
     if (error) {
       setGoogleTasksSyncStatus('error')
-      throw error
+      setMessage('Unable to open Google Tasks connection. Please try again.')
     }
   }
 
