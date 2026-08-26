@@ -319,6 +319,12 @@
   line-height: 1.55;
 }
 
+.google-tasks-card__note a {
+  color: var(--primary);
+  font-weight: 760;
+  text-underline-offset: 2px;
+}
+
 .google-tasks-card__actions {
   display: flex;
   flex-wrap: wrap;

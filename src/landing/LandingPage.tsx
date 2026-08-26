@@ -548,9 +548,15 @@ export function LandingPage({ onLogin, onRegister }: LandingPageProps) {
           <span>GrowT</span>
           <span className="landing-footer__heart">made with care ♥</span>
         </div>
-        <p className="landing-footer__copy">
-          © {new Date().getFullYear()} GrowT · Built by a small team
-        </p>
+        <div className="landing-footer__meta">
+          <nav aria-label="Legal information" className="landing-footer__links">
+            <a href="/privacy">Privacy Policy</a>
+            <a href="/terms">Terms of Service</a>
+          </nav>
+          <p className="landing-footer__copy">
+            © {new Date().getFullYear()} GrowT · Built by a small team
+          </p>
+        </div>
       </footer>
     </main>
   )

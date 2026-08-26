@@ -5,6 +5,7 @@ import { ConfirmDialog } from './components/ConfirmDialog'
 import { LoadingState } from './components/LoadingState'
 import { IntroLoader } from './landing/IntroLoader'
 import { LandingPage } from './landing/LandingPage'
+import { LegalPage } from './legal/LegalPage'
 import type { FolderEditValues } from './features/folders/FolderEditForm'
 import {
   addFolderMemberByUsername,
@@ -2214,6 +2215,10 @@ function App() {
 
   if (route.name === 'task-share') {
     return <PublicTaskSharePage shareId={route.shareId} />
+  }
+
+  if (publicPath === '/privacy' || publicPath === '/terms') {
+    return <LegalPage document={publicPath === '/privacy' ? 'privacy' : 'terms'} />
   }
 
   const authPanel = (

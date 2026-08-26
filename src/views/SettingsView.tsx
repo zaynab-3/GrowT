@@ -386,7 +386,10 @@ export function SettingsView({
 
             <div className="google-tasks-card__note">
               <ExternalLink aria-hidden="true" size={16} />
-              <p>Images and attachments stay in Google. Every imported task includes a link to open the original.</p>
+              <p>
+                Images and attachments stay in Google. Every imported task includes a link to open the original.{' '}
+                <a href="/privacy#google-tasks" target="_blank">How GrowT uses Google data</a>
+              </p>
             </div>
 
             <div className="google-tasks-card__actions">
