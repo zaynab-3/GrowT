@@ -2,7 +2,7 @@
 
 GrowT is a React + TypeScript + Supabase app scaffold.
 
-# You can login and view the PWA following this link: grow-t.vercel.app
+# You can login and view the PWA following this link: https://grow-t.vercel.app
 
 ## Current Product Pass
 
