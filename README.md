@@ -2,6 +2,8 @@
 
 GrowT is a React + TypeScript + Supabase app scaffold.
 
+# You can login and view the PWA following this link: grow-t.vercel.app
+
 ## Current Product Pass
 
 - Email magic-link authentication
